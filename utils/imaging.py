@@ -1719,7 +1719,10 @@ def baller(img):
 	colors = np.rot90(colors, k=-1)
 
 	balls = []
-	[[balls.append(Ball(60+i*6, 320+j*6, 2, tuple(colors[i][j]), 1)) for j in range(32)] for i in range(32)]
+	
+	for i in range(32):
+		for j in range(32):
+			balls.append(Ball(60+i*6, 320+j*6, 2, tuple(colors[i][j]), 1))
         
 	walls = [
 		Wall(0, 0, 0, res+100),

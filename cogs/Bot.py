@@ -288,7 +288,7 @@ class Bots(commands.Cog, name='Bot'):
 		view = discord.ui.View()
 		view.add_item(discord.ui.Button(label='Jeyy Bot Source Code', url='https://github.com/JeyyGit/Jeyy-Bot'))
 		
-		await ctx.send('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
+		await ctx.reply('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
 
 	@commands.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)

@@ -277,14 +277,18 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.command(aliases=['src'], hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def source(self, ctx):
-		await ctx.trigger_typing()
-		num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
+		# await ctx.trigger_typing()
+		# num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
 
-		url = f"https://http.cat/{num}"
-		async with aiohttp.ClientSession() as session:
-			async with session.get(url) as response:
-				buf = BytesIO(await response.read())
-				await ctx.reply("||ish closed source :^||", file=discord.File(buf, f"error_code_{num}.jpg", spoiler=True), mention_author=False, delete_after=10)
+		# url = f"https://http.cat/{num}"
+		# async with aiohttp.ClientSession() as session:
+		# 	async with session.get(url) as response:
+		# 		buf = BytesIO(await response.read())
+		# 		await ctx.reply("||ish closed source :^||", file=discord.File(buf, f"error_code_{num}.jpg", spoiler=True), mention_author=False, delete_after=10)
+		view = discord.ui.View()
+		view.add_item(discord.ui.Button(label='Jeyy Bot Source Code', url='https://github.com/JeyyGit/Jeyy-Bot'))
+		
+		await ctx.send('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
 
 	@commands.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)

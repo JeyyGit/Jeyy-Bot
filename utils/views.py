@@ -18,172 +18,10 @@ importlib.reload(pour_puzzle)
 from utils.pour_puzzle import Liquid, Bottle, levels
 
 # Bot cog
-class HelpView(discord.ui.View):
-	def __init__(self):
-		super().__init__()
-		self.ctx = None
-		self.clean_prefix = None
-		self.message = None
-		self.page = 0
-		self.embed = None
-
-	async def start(self, ctx, clean_prefix):
-		self.ctx = ctx
-		self.clean_prefix = clean_prefix
-		self.embed = discord.Embed(title="Help", description="List of commands available", color=self.ctx.bot.c)
-		self.embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
-		self.embed.add_field(name="Categories:", value="\U000025ab\U0000fe0f Fun\n\U000025ab\U0000fe0f Image\n\U000025ab\U0000fe0f API\n\U000025ab\U0000fe0f Utility\n\U000025ab\U0000fe0f Bot", inline=False)
-		self.message = await self.ctx.reply(embed=self.embed, view=self, allowed_mentions=discord.AllowedMentions.none())
-
-	@discord.ui.button(label="Fun", style=discord.ButtonStyle.primary)
-	async def help_fun(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		if self.page == 1:
-			return
-
-		self.embed.clear_fields()
-		self.embed.add_field(name="-=: Fun :=-", value="Where All The Fun Begins!", inline=False)
-		self.embed.add_field(name="`isometric`", value="Draw your own blocks", inline=True)
-		self.embed.add_field(name="`wordle`", value="Word guessing game", inline=True)
-		self.embed.add_field(name="`golf`", value="Play mini golf", inline=True)
-		self.embed.add_field(name="`typerace`", value="How fast can you type?", inline=True)
-		self.embed.add_field(name="`ace`", value="Objection!", inline=True)
-		self.embed.add_field(name="`sort_puzzle`", value="Sort liquid color!", inline=True)
-		self.embed.add_field(name="`nonogram`", value="Sudoku wannabe", inline=True)
-		self.embed.add_field(name="`build`", value="A way to save, share, and find isometric builds", inline=True)
-		self.embed.add_field(name="`texttoiso`", value="Turn text into isometric")
-		self.embed.add_field(name="`imagetoiso`", value="Turn avatar, emoji, image url into isometric", inline=True)
-		#self.embed.add_field(name="`land`", value="Draw blocks in square fit", inline=True)
-		self.embed.add_field(name="\u200b", value=f"Use `{self.clean_prefix}help [command]` for more info on a command.", inline=False)
-		self.embed.set_thumbnail(url='https://cdn.jeyy.xyz/image/isometric_4e4954.gif')
-		await self.message.edit(embed=self.embed)
-		self.page = 1
-
-	@discord.ui.button(label="Image", style=discord.ButtonStyle.primary)
-	async def help_image(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		if self.page == 2:
-			return
-
-		self.embed.clear_fields()
-		self.embed.add_field(name="-=: Image :=-", value="Image generation/manipulation", inline=False)
-		# self.embed.add_field(name="`avatar`", value="See avatar", inline=True)
-		# self.embed.add_field(name="`patpat`", value="Pats someone", inline=True)
-		# self.embed.add_field(name="`glitch`", value="Error occured.", inline=True)
-		# self.embed.add_field(name="`bonk`", value="Bonk someone", inline=True)
-		# self.embed.add_field(name="`balls`", value="Ball pit", inline=True)
-		# self.embed.add_field(name="`bomb`", value="Nuclear avatar", inline=True)
-		# self.embed.add_field(name="`shift`", value="Sheeeft", inline=True)
-		# self.embed.add_field(name="`burn`", value="Muahaha", inline=True)
-		# self.embed.add_field(name="`hornyjail`", value="No horny!", inline=True)
-		# self.embed.add_field(name="`equation`", value="Thinking..", inline=True)
-		# self.embed.add_field(name="`disco`", value="Disco-rd", inline=True)
-		# self.embed.add_field(name="`eugh`", value="Sobs sobs", inline=True)
-		# self.embed.add_field(name="`radiate`", value="\U0001f300", inline=True)
-		# self.embed.add_field(name="`shoot`", value="\U0001f464 \U0001f52b", inline=True)
-		# self.embed.add_field(name="`scan`", value="Scan through gifs", inline=True)
-		# self.embed.add_field(name="`zoom`", value="Magnify \U0001f50e", inline=True)
-		# self.embed.add_field(name="`explicit`", value="! Parental Advisory !", inline=True)
-		# self.embed.add_field(name="`blur`", value="I need glasses", inline=True)
-		# self.embed.add_field(name="`fry`", value="Til golden brown", inline=True)
-		# self.embed.add_field(name="`gallery`", value="Cool exhibit", inline=True)
-		# self.embed.add_field(name="`golf`", value="\U000026f3", inline=True)
-		self.embed.add_field(name='\u200b', value=
-			'`avatar` `patpat` `glitch` `bonk` `balls` `bomb` `shift` `burn` `logoff` `hornyjail` `equation` ' \
-			'`disco` `eugh` `radiate` `shoot` `zoom` `explicit` `blur` `fry` `gallery` `layers` `boil` ' \
-			'`hearts` `matrix` `tv` `print` `half-invert` `shock` `infinity` `canny` `earthquake` ' \
-			'`roll` `lamp` `rain` `cartoon` `abstract` `optics` `paparazzi` `shear` `magnify` `youtube` ' \
-			'`sensitive` `warp` `wave` `ads` `pattern` `bubble` `cloth` `clock`'
-		, inline=False)
-
-		self.embed.add_field(name='\u200b', value='Most of image command is available on [Jeyy API](https://api.jeyy.xyz \"JeyyAPI\")! Feel free to check it out :)', inline=False)
-		
-		# self.embed.add_field(name="\u200b", value="\u200b", inline=True)
-		self.embed.add_field(name="\u200b", value=f"Use `{self.clean_prefix}help [command]` for more info on a command.", inline=False)
-		self.embed.set_thumbnail(url='https://cdn.jeyy.xyz/image/patpat_4fe81e.gif')
-		await self.message.edit(embed=self.embed)
-		self.page = 2
-
-	@discord.ui.button(label="API", style=discord.ButtonStyle.primary)
-	async def help_api(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		if self.page == 3:
-			return
-
-		self.embed.clear_fields()
-		self.embed.add_field(name="-=: Api :=-", value="External API commands.", inline=False)
-		self.embed.add_field(name="`http`", value="Search or random http error cat images", inline=True)
-		self.embed.add_field(name="`gif`", value="Search or random gif", inline=True)
-		self.embed.add_field(name="`guess`", value="My bot will try to guess your character", inline=True)
-		self.embed.add_field(name="`meme`", value="Random reddit memes", inline=True)
-		self.embed.add_field(name="`reddit`", value="Search or random subreddit post", inline=True)
-		self.embed.add_field(name="`xkcd`", value="Random XKCD comic", inline=True)
-		self.embed.add_field(name="`sand`", value="Sandman", inline=True)
-		self.embed.add_field(name="`explode`", value="Yes", inline=True)
-		self.embed.add_field(name="\u200b", value="\u200b", inline=True)
-		self.embed.add_field(value="`waifu` `slap` `catboy` `cuddle` `hug` `kiss` `lick` `pat` `smug` `hit` `wave` `dance` `highfive` `handhold` `bite` `glomp` `kill` `poke` `neko` `cry` `yeet` `yaoi` `blush` `smile` `nom` `happy` ||`nsfwwaifu`|| ||`nsfwneko`|| ||`nsfwtrap`|| ||`nsfwbj`||", name="Anime commands", inline=False)
-		self.embed.add_field(name="\u200b", value=f"Use `{self.clean_prefix}help [command]` for more info on a command.", inline=False)
-		self.embed.set_thumbnail(url='https://cdn.jeyy.xyz/image/http_2a872d.png')
-		await self.message.edit(embed=self.embed)
-		self.page = 3
-
-	@discord.ui.button(label="Utility", style=discord.ButtonStyle.primary)
-	async def help_utility(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		if self.page == 4:
-			return
-
-		self.embed.clear_fields()
-		self.embed.add_field(name="-=: Utility :=-", value="Useful commands.", inline=False)
-		self.embed.add_field(name="`todo`", value="Keep track of your tasks", inline=True)
-		self.embed.add_field(name="`wheel`", value="Start a random picker wheel", inline=True)
-		self.embed.add_field(name="`choose`", value="I'll choose it for you :)", inline=True)
-		# self.embed.add_field(name="`poll`", value="Set a polling", inline=True)
-		self.embed.add_field(name="`translate`", value="Translate to a specified language", inline=True)
-		self.embed.add_field(name="`google`", value="Search from google", inline=True)
-		self.embed.add_field(name="`quotes`", value="Quotes a message", inline=True)
-		self.embed.add_field(name="`sayas`", value="Say as someone else", inline=True)
-		self.embed.add_field(name="`gaymeter`", value="See how gay a person is", inline=True)
-		self.embed.add_field(name="`scrapbook`", value="Scrapbook style text", inline=True)
-		self.embed.add_field(name="`together`", value="Start discord beta activities", inline=True)
-		self.embed.add_field(name="`format_text`", value="Format text with ansi", inline=True)
-		self.embed.add_field(name="`screenshot`", value="Screenshot given url", inline=True)
-		self.embed.add_field(name="\u200b", value=f"Use `{self.clean_prefix}help [command]` for more info on a command.", inline=False)
-		self.embed.set_thumbnail(url='https://cdn.jeyy.xyz/image/wheel_spin_4ddcac.gif')
-		await self.message.edit(embed=self.embed)
-		self.page = 4
-
-	@discord.ui.button(label="Bot", style=discord.ButtonStyle.primary)
-	async def help_bot(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		if self.page == 5:
-			return
-
-		self.embed.clear_fields()
-		self.embed.add_field(name="-=: Bot :=-", value="Bot management commands.", inline=False)
-		self.embed.add_field(name="`ping`", value="Ping the bot", inline=True)
-		self.embed.add_field(name="`invite`", value="Jeyy Bot invite link", inline=True)
-		self.embed.add_field(name="`uptime`", value="See bot's uptime", inline=True)
-		self.embed.add_field(name="`commandusage`", value="See command usages", inline=True)
-		self.embed.add_field(name="`about`", value="See bot's info", inline=True)
-		self.embed.add_field(name="`emojis`", value="List of emojis bot could see", inline=True)
-		self.embed.add_field(name="`toggle`", value="Toggle emoji auto response", inline=True)
-		self.embed.add_field(name="\u200b", value=f"Use `{self.clean_prefix}help [command]` for more info on a command.", inline=False)
-		self.embed.set_thumbnail(url='https://cdn.jeyy.xyz/image/jeyy_bot_d5698c.png')
-		await self.message.edit(embed=self.embed)
-		self.page = 5
-
-	@discord.ui.button(emoji="\U0001f6d1", style=discord.ButtonStyle.red)
-	async def exit(self, button: discord.ui.Button, interaction: discord.Interaction):
-		if interaction.user != self.ctx.author:
-			return await interaction.response.send_message(f"Only {self.ctx.author} can use this button.", ephemeral=True)
-		await self.message.delete()
-		self.stop()
+class CogButton(discord.ui.Button):
+	def __init__(self, cid, **kwargs):
+		self.cid = cid
+		super().__init__(**kwargs)
 
 class HelpView(discord.ui.View):
 	def __init__(self, ctx, help_command, *, timeout=None):
@@ -204,12 +42,12 @@ class HelpView(discord.ui.View):
 		self.stop()
 
 	async def start_cog_help(self, mapping):
-		for cog, commands in mapping.items():
+		for i, (cog, commands) in enumerate(mapping.items()):
 			commands = await self.help.filter_commands(commands, sort=True)
 			if getattr(cog, 'hidden', False) or not cog or cog.qualified_name == 'Jishaku':
 				continue
 
-			await self.create_cog_ui(cog, commands)
+			await self.create_cog_ui(i, cog, commands)
 
 		del_button = discord.ui.Button(emoji="\U0001f6d1", style=discord.ButtonStyle.red)
 		del_button.callback = self.del_button_callback
@@ -241,17 +79,24 @@ class HelpView(discord.ui.View):
 		
 		return embed
 
-	async def create_cog_ui(self, cog, commands):
-		button = discord.ui.Button(label=cog.qualified_name, style=discord.ButtonStyle.primary)
-		button.callback = self.create_callback(cog, commands)
+	async def create_cog_ui(self, cid, cog, commands):
+		button = CogButton(cid, label=cog.qualified_name, style=discord.ButtonStyle.primary)
+		button.callback = self.create_callback(cid, cog, commands)
 
 		self.add_item(button)
 
-	def create_callback(self, cog, commands):
+	def create_callback(self, cid, cog, commands):
 
 		async def callback(interaction):
-			print(f'called {cog.qualified_name}')
-			await self.message.edit(embed=self.create_cog_embed(cog, commands))
+			for btn in self.children:
+				if isinstance(btn, CogButton):
+					if btn.cid == cid:
+						btn.disabled = True
+						btn.style = discord.ButtonStyle.secondary
+					else:
+						btn.disabled = False
+						btn.style = discord.ButtonStyle.primary
+			await self.message.edit(embed=self.create_cog_embed(cog, commands), view=self)
 
 		return callback
 

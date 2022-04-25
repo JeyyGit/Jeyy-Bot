@@ -26,68 +26,11 @@ importlib.reload(useful)
 importlib.reload(help_command)
 
 
-from utils.views import HelpView, EndpointView
+from utils.views import EndpointView
 from utils.useful import Modal
 from utils.contextbot import JeyyBot, JeyyContext
 from utils.help_command import JeyyHelp
 
-
-class MyHelp(commands.MinimalHelpCommand): # Bot's Help
-	def get_context(self):
-		return self.context
-
-	async def send_bot_help(self, mapping):
-		ctx = self.get_context()
-
-		clean_prefix = await commands.clean_content().convert(ctx, ctx.prefix)
-
-		await HelpView().start(ctx, clean_prefix)
-
-	async def send_command_help(self, command):
-		ctx = self.get_context()
-		if ctx.guild.id == 336642139381301249 and command.name == "snipe":
-			return
-			
-		aliases = command.aliases
-		if aliases:
-			aliases = [f"`{alias}`" for alias in aliases]
-			embed = discord.Embed(title=f"{self.get_command_signature(command)}", description="**Aliases: **"+", ".join(aliases), color=ctx.bot.c)
-		else:
-			embed = discord.Embed(title=f"{self.get_command_signature(command)}", color=ctx.bot.c)
-		if command.help:
-			embed.add_field(name=command.name, value=command.help, inline=False)
-
-		await ctx.reply(embed=embed, mention_author=False)
-
-	async def send_group_help(self, command):
-		ctx = self.get_context()
-
-		if command.name == "isometric":
-			cmd = ctx.bot.get_command("isometric help")
-			await cmd(ctx)
-			return
-
-		aliases = command.aliases
-		if aliases:
-			aliases = [f"`{alias}`" for alias in aliases]
-			embed = discord.Embed(title=f"{self.get_command_signature(command)}", description="**Aliases: **"+", ".join(aliases), color=ctx.bot.c)
-		else:
-			embed = discord.Embed(title=f"{self.get_command_signature(command)}", color=ctx.bot.c)
-		if command.help:
-			embed.add_field(name=command.name, value=command.help.replace("j;", ctx.prefix), inline=False)
-
-		children = [self.get_command_signature(cmd) for cmd in command.walk_commands()]
-		embed.add_field(name="Command(s)", value="\n".join(children))
-		await ctx.reply(embed=embed, mention_author=False)
-
-	async def send_pages(self):
-		ctx = self.get_context()
-		for page in self.paginator.pages:
-			embed = discord.Embed(description=page, color=ctx.bot.c)
-			await ctx.reply(embed=embed, mention_author=False)
-
-
-MUTED_WORDS = ['@everyone', 'nitro']
 
 class Bots(commands.Cog, name='Bot'):
 	"""Bot management commands"""
@@ -274,9 +217,10 @@ class Bots(commands.Cog, name='Bot'):
 		embed.set_thumbnail(url=self.bot.user.avatar.url)
 		await ctx.reply(embed=embed, mention_author=False)
 
-	@commands.command(aliases=['src'], hidden=True)
+	@commands.command(aliases=['src'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def source(self, ctx):
+		"""See bot's source code"""
 		# await ctx.trigger_typing()
 		# num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
 

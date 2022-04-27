@@ -610,6 +610,10 @@ class Utility(commands.Cog):
 		"""Translate to a given language
 		`j;translate langs` to see all language destinations\nTranslate a given text to another language\n\nExample : `j;translate english Aku makan`, `j;translate zh-cn I want to eat`
 		"""
+		if destination_lang not in sum(LANGUAGES.items(), ()):
+			await ctx.reply("Language is not listed. Please check `j;translate languages` to see available codes")
+			return ctx.command.reset_cooldown(ctx)
+			
 		if not text:
 			await ctx.reply("Missing `text`.", mention_author=False)
 			ctx.command.reset_cooldown(ctx)

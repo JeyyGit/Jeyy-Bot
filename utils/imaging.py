@@ -1525,6 +1525,17 @@ def wordle_keyboard(word, guesses):
 
 	return buf
 
+def shorten_ace(font, txt, length):
+	last = [[]]
+	i = 0
+	for word in txt.split():
+		last[i].append(word)
+		if font.getlength(' '.join(last[i])) > length:
+			last.append([])
+			last[i+1].append(last[i].pop())
+			i += 1
+	return '\n'.join(' '.join(line) for line in last)
+
 @executor_function
 def attorning(name, text):
 	bg = ace_asset['court']['bg_l']

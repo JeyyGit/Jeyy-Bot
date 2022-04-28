@@ -12,10 +12,12 @@ from PIL import Image, ImageDraw, ImageFont
 from arsenic import stop_session, Session
 from discord.ext import commands
 
-from utils import pour_puzzle
+from utils import pour_puzzle, sounder
 importlib.reload(pour_puzzle)
+importlib.reload(sounder)
 
 from utils.pour_puzzle import Liquid, Bottle, levels
+from utils.sounder import Sounder, audios
 
 # Bot cog
 class CogButton(discord.ui.Button):
@@ -900,6 +902,65 @@ class AnsiMaker(discord.ui.View):
 			button.style = discord.ButtonStyle.danger
 
 		await self.update(button, 'BG')
+
+class SounderView(discord.ui.View):
+	def __init__(self, ctx, sounder, *, timeout=None):
+		super().__init__(timeout=timeout)
+		self.ctx = ctx
+		self.sounder: Sounder = sounder
+		self.msg = None
+		for audio in audios:
+			btn = discord.ui.Button(label=audio, style=discord.ButtonStyle.secondary)
+			btn.callback = self.create_callback(audio)
+			self.add_item(btn)
+
+	async def interaction_check(self, interaction: discord.Interaction):
+		if interaction.user != self.ctx.author:
+			await interaction.response.send_message('This is not your interaction!', ephemeral=True)
+			return False
+
+		return True
+
+	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success, disabled=True)
+	async def finish(self, button: discord.ui.Button, interaction: discord.Interaction):
+		buf = await self.sounder.export()
+
+		view = DeleteView(self.ctx)
+		view.message = await self.ctx.message.reply(file=discord.File(buf, 'sounder.mp3'), view=view, mention_author=False)
+
+	@discord.ui.button(label='Clear', style=discord.ButtonStyle.primary, disabled=True)
+	async def clear(self, button: discord.ui.Button, interaction: discord.Interaction):
+		await self.sounder.init()
+		self.sounder.count_sound = 0
+		self.sounder.position = 0
+		self.sounder.sounds = []
+		
+		for btn in self.children:
+			if btn.label in ['Finished', 'Clear']:
+				btn.disabled = True
+			else:
+				btn.disabled = False
+
+		await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
+
+	@discord.ui.button(label='Delete', style=discord.ButtonStyle.danger)
+	async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
+		await self.msg.delete()
+
+	def create_callback(self, sound):
+
+		async def callback(interaction):
+			await self.sounder.append_sound(sound)
+			for btn in self.children:
+				if btn.label in ['Finish', 'Clear']:
+					btn.disabled = False
+				else:
+					if self.sounder.position > 15:
+						btn.disabled = True
+			
+			return await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
+
+		return callback
 
 class CariResults(discord.ui.View):
 	def __init__(self, ctx, msg, data):

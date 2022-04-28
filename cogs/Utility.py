@@ -23,12 +23,14 @@ import typing
 import urllib
 
 
-from utils import imaging, views, useful, converters, trocr
+from utils import imaging, views, useful, converters, trocr, sounder
+
 # importlib.reload(imaging)
 importlib.reload(trocr)
 importlib.reload(views)
 importlib.reload(useful)
 importlib.reload(converters)
+importlib.reload(sounder)
 
 from utils.imaging import (
 	wheeling,
@@ -36,9 +38,10 @@ from utils.imaging import (
 	circly
 )
 
-from utils.views import FileView, EmbedBuilder, AnsiMaker, CariMenu
+from utils.views import FileView, EmbedBuilder, AnsiMaker, CariMenu, SounderView
 from utils.converters import ToImage
 from utils.trocr import TROCR
+from utils.sounder import Sounder
 
 service = services.Chromedriver(binary='../chromedriver', log_file=os.devnull)
 # browser = browsers.Chrome(**{"goog:chromeOptions":{
@@ -138,16 +141,13 @@ class Utility(commands.Cog):
 	
 	@executor_function
 	def translate_func(self, dest, text):
-		try:
-			translation = self.translator.translate(text, dest=dest)
-		except ValueError:
-			return "Failed", "Language is not listed. Please check `j;translate languages` to see available codes", ""
-		else:
-			translated = translation.text
-			source = LANGUAGES[translation.src.lower()]
-			destination = LANGUAGES[translation.dest.lower()]
-			
-			return translated, source, destination
+		translation = self.translator.translate(text, dest=dest)
+
+		translated = translation.text
+		source = LANGUAGES[translation.src.lower()]
+		destination = LANGUAGES[translation.dest.lower()]
+		
+		return translated, source, destination
 
 	@executor_function
 	def translate_from_func(self, src, dest, text):
@@ -613,25 +613,22 @@ class Utility(commands.Cog):
 		if destination_lang not in sum(LANGUAGES.items(), ()):
 			await ctx.reply("Language is not listed. Please check `j;translate languages` to see available codes")
 			return ctx.command.reset_cooldown(ctx)
-			
+
 		if not text:
 			await ctx.reply("Missing `text`.", mention_author=False)
-			ctx.command.reset_cooldown(ctx)
-			return
+			return ctx.command.reset_cooldown(ctx)
 
 		async with ctx.typing():
-			translated, source, destination = await self.translate_func(destination_lang, text)
-
-			if translated == "Failed":
-				await ctx.reply(source, mention_author=False)
-			else:
-				
-				embeds = []
-				embeds.append(discord.Embed(title=f"From {source.capitalize()}", description=f"```\n{text}```", color=self.bot.c).set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url))
-				embeds.append(discord.Embed(title=f"To {destination.capitalize()}", description=f"```\n{translated}```", color=self.bot.c))
-
+			try:
+				translated, source, destination = await self.translate_func(destination_lang, text)
+				embeds = [
+					discord.Embed(title=f"From {source.capitalize()}", description=f"```\n{text}```", color=self.bot.c).set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url),
+					discord.Embed(title=f"To {destination.capitalize()}", description=f"```\n{translated}```", color=self.bot.c)
+				]
 				await ctx.reply(embeds=embeds, mention_author=False)
-
+			except:
+				await ctx.reply("An error occured", mention_author=False)
+			
 	@translate.command(name='from')
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	async def translate_from(self, ctx, from_lang, destination_lang, *, text:commands.clean_content=None):
@@ -1217,6 +1214,14 @@ class Utility(commands.Cog):
 
 			await ctx.reply(file=discord.File(await trocr.run(), 'trocr.png'))
 
+	@commands.command()
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def sounder(self, ctx):
+		sounder = Sounder()
+		await sounder.init()
+		sounder_view = SounderView(ctx, sounder)
+
+		sounder_view.msg = await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
 
 def setup(bot):
 	bot.add_cog(Utility(bot))

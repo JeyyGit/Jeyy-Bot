@@ -102,33 +102,6 @@ for filename in os.listdir("./cogs"):
 		bot.load_extension(f"cogs.{filename[:-3]}")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
 	bot.loop.run_until_complete(create_db_pool())
 	bot.run(bot.keys('BOTTOKEN'))

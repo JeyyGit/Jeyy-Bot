@@ -6,7 +6,7 @@ from jishaku.functools import executor_function
 
 paths = [(p, Path(p).name.split('.')) for p in glob('./audio/sounder/*')]
 audios = {name: AudioSegment.from_file(path, fmt) for path, (name, fmt) in paths}
-audios['delay'] = AudioSegment.silent(500)
+audios['delay'] = AudioSegment.silent(300)
 
 class Sounder:
 	def __init__(self):
@@ -16,7 +16,7 @@ class Sounder:
 
 	@executor_function
 	def init(self):
-		self.sound = AudioSegment.silent(15000)
+		self.sound = AudioSegment.silent(1000)
 
 	@executor_function
 	def append_sound(self, sound, times=1, octaves=0):
@@ -28,23 +28,27 @@ class Sounder:
 			new_sample_rate = int(audio.frame_rate * (2.0 ** octaves))
 			audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_sample_rate})
 
-		self.sound = self.sound.overlay(audio, self.position*500, times=times)
+		for _ in range(times):
+			self.sound = self.sound.append(AudioSegment.silent(600), 0)
+
+		self.sound = self.sound.overlay(audio, self.position*300, times=times)
 		self.position += times
 		self.sounds.append(sound)
 
 	@executor_function
 	def add_multiple(self, *sounds):
 		audio = [audios.get(sound) for sound in sounds]
+		self.sound = self.sound.append(AudioSegment.silent(600), 0)
 
 		for a in audio:
-			self.sound.overlay(a, self.position*500)
+			self.sound = self.sound.overlay(a, self.position*300)
 
 		self.position += 1
 		self.sounds.append(sounds)
 
 	@executor_function
 	def export(self):
-		self.remove_leading_silence()
+		# self.remove_leading_silence()
 
 		buf = BytesIO()
 		self.sound.export(buf, 'mp3')

@@ -19,6 +19,28 @@ importlib.reload(sounder)
 from utils.pour_puzzle import Liquid, Bottle, levels
 from utils.sounder import Sounder, audios
 
+# Base
+class BaseView(discord.ui.View):
+	def __init__(self, ctx, *, timeout=180):
+		self.ctx = ctx
+		super().__init__(timeout=timeout)
+
+	async def interaction_check(self, interaction):
+		if interaction.user != self.ctx.author:
+			await interaction.response.send_message(f'Only **{self.ctx.author}** can use this button!', ephemeral=True)
+			return False
+
+		return True
+
+class DelView(BaseView):
+	def __init__(self, ctx, *, timeout=180):
+		super().__init__(ctx, timeout=timeout)
+
+	@discord.ui.button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
+	async def delete(self, button, interaction):
+		await interaction.response.defer()
+		await interaction.delete_original_message()
+
 # Bot cog
 class CogButton(discord.ui.Button):
 	def __init__(self, cid, **kwargs):
@@ -119,7 +141,7 @@ class ApiKeyView(discord.ui.View):
 	def __init__(self, ctx: commands.Context):
 		super().__init__()
 		self.ctx = ctx
-		
+
 
 # Isometric cog
 class Switch(discord.ui.View):
@@ -923,10 +945,11 @@ class SounderView(discord.ui.View):
 
 	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success, disabled=True)
 	async def finish(self, button: discord.ui.Button, interaction: discord.Interaction):
+		await interaction.response.defer()
 		buf = await self.sounder.export()
 
 		view = DeleteView(self.ctx)
-		view.message = await self.ctx.message.reply(file=discord.File(buf, 'sounder.mp3'), view=view, mention_author=False)
+		view.message = await self.ctx.message.reply(', '.join(self.sounder.sounds), file=discord.File(buf, 'sounder.mp3'), view=view, mention_author=False)
 
 	@discord.ui.button(label='Clear', style=discord.ButtonStyle.primary, disabled=True)
 	async def clear(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -950,6 +973,7 @@ class SounderView(discord.ui.View):
 	def create_callback(self, sound):
 
 		async def callback(interaction):
+			await interaction.response.defer()
 			await self.sounder.append_sound(sound)
 			for btn in self.children:
 				if btn.label in ['Finish', 'Clear']:
@@ -962,6 +986,116 @@ class SounderView(discord.ui.View):
 
 		return callback
 
+class PollButton(discord.ui.Button):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.count = 0
+
+class PollView(discord.ui.View):
+	nums = [f'{num}\U0000fe0f\U000020e3' for num in (
+		"\U00000031", "\U00000032", "\U00000033", "\U00000034", "\U00000035", 
+		"\U00000036", "\U00000037", "\U00000038", "\U00000039")] + ["\U0001f51f"
+	]
+	def __init__(self, ctx, title, timeout, args):
+		super().__init__(timeout=None)
+		self.created_at = dt.datetime.now()
+		self.ctx = ctx
+		self.title = title
+		self.timeout = timeout
+		self.args = {arg: set() for arg in args}
+		self.btns = {}
+		self.ended = False
+		self.message = None
+		self.c = None
+		
+		for arg in args:
+			btn = PollButton(label=f'{arg} (0)', style=discord.ButtonStyle.primary)
+			btn.callback = self.create_callback(arg)
+			self.btns[arg] = btn
+			self.add_item(btn)
+
+		cancel_btn = discord.ui.Button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
+		cancel_btn.callback = self.cancel
+		self.add_item(cancel_btn)
+
+	async def start(self):
+		self.c = self.ctx.bot.c
+		self.message = await self.ctx.reply(embed=self.create_embed(), view=self, mention_author=False)
+
+		await asyncio.sleep(self.timeout)
+		if not self.ended:
+			await self.end()
+
+	def create_embed(self):
+		text = '\n'.join(f'{self.nums[i]} `{choice}`: [`{len(choosers)}`] {", ".join(u.display_name for u in list(choosers)[:3]) + (f", and `{len(choosers)-3}` more" if len(choosers) > 3 else "")}' for i, (choice, choosers) in enumerate(self.args.items()))
+		
+		ends = self.created_at + dt.timedelta(seconds=self.timeout)
+		text += f'\n\n*Poll ends on {discord.utils.format_dt(ends, "F")} ({discord.utils.format_dt(ends, "R")})*'
+
+		embed = discord.Embed(title=self.title, description=text, color=self.c)
+		embed.set_author(name=f"{self.ctx.author} has created a poll", icon_url=self.ctx.author.display_avatar.url)
+		embed.set_footer(text=f'Configured timeout: {humanize.naturaldelta(dt.timedelta(seconds=self.timeout))}')
+
+		return embed
+
+	def create_callback(self, arg):
+		async def callback(interaction):
+			for choice, choosers in self.args.items():
+				if interaction.user in choosers and choice == arg:
+					for choice in self.args:
+						if interaction.user in self.args[choice]:
+							self.args[choice].remove(interaction.user)
+							btn = self.btns.get(arg)
+							btn.count -= 1
+							btn.label = f"{arg} ({btn.count})"
+							break
+					break
+			else:
+				for choice, choosers in self.args.items():
+					try:
+						choosers.remove(interaction.user)
+						btn = self.btns.get(choice)
+						btn.count -= 1
+						btn.label = f"{arg} ({btn.count})"
+					except KeyError:
+						...
+				self.args[arg].add(interaction.user)
+
+				btn = self.btns.get(arg)
+				btn.count += 1
+				btn.label = f"{arg} ({btn.count})"
+
+			await self.message.edit(embed=self.create_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
+			
+		return callback
+
+	async def cancel(self, interaction):
+		if interaction.user == self.ctx.author:
+			await self.end()
+		else:
+			await interaction.response.send_message('Only poll creator can stop this poll.', ephemeral=True)
+	
+	async def end(self):
+		self.ended = True
+		self.stop()
+
+		winners = [choice for choice, choosers in self.args.items() if len(choosers) == len(max(self.args.values(), key=lambda c: len(c)))]
+		text = '\n'.join(f'{self.nums[i]} `{choice}`: [`{len(choosers)}`] {", ".join(u.display_name for u in list(choosers)[:3]) + (f", and `{len(choosers)-3}` more" if len(choosers) > 3 else "")}' for i, (choice, choosers) in enumerate(self.args.items()))
+
+		embed = discord.Embed(title=self.title, description=text, color=self.c)
+		embed.add_field(name=f'The winner{[" is", "s are"][len(winners)>1]} **{", ".join(winners)}**', value=f'\n\n*Poll ended on {discord.utils.format_dt(dt.datetime.now(), "F")} ({discord.utils.format_dt(dt.datetime.now(), "R")})*')
+		embed.set_author(name=f"{self.ctx.author} has created a poll", icon_url=self.ctx.author.display_avatar.url)
+
+		self.children[-1].disabled = True
+		for choice, btn in self.btns.items():
+			btn.disabled = True
+			if choice in winners:
+				btn.style = discord.ButtonStyle.success
+			else:
+				btn.style = discord.ButtonStyle.secondary
+
+		await self.message.edit(embed=embed, view=self)
+		
 class CariResults(discord.ui.View):
 	def __init__(self, ctx, msg, data):
 		super().__init__()

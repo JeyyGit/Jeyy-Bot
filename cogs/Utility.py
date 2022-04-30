@@ -38,7 +38,7 @@ from utils.imaging import (
 	circly
 )
 
-from utils.views import FileView, EmbedBuilder, AnsiMaker, CariMenu, SounderView
+from utils.views import FileView, EmbedBuilder, AnsiMaker, CariMenu, SounderView, PollView
 from utils.converters import ToImage
 from utils.trocr import TROCR
 from utils.sounder import Sounder
@@ -536,73 +536,33 @@ class Utility(commands.Cog):
 		else:
 			await ctx.reply(f"I choose `{random.choice(choose)}`.", mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True, aliases=['polling', 'voting'], usage="[title] [timeout(s)] [*arguments]", hidden=True)
-	@commands.cooldown(1, 30, commands.BucketType.user)
-	async def poll(self, ctx, title:str, timeout:int, *args):
+	@commands.command(cooldown_after_parsing=True, aliases=['polling', 'voting'], usage="[title] [timeout] [*choices]", hidden=True)
+	@commands.cooldown(1, 10, commands.BucketType.user)
+	async def poll(self, ctx, title, timeout, *choices):
 		"""Start a poll
-		Please put title or options in \"\" for phrases\nmin opt: `2` | min timeout: `10`s\nmax opt: `9` | max timeout: `1000`s \n\nExample : `j;polling \"Jeyy bot good?\" 60 yes no \"absolutely yes\"`
+		Please put title or options in \"\" for phrases\nTimeout format is `{number}s/h/d`\nmin choices: `2` | min timeout: `10`s\nmax choices: `10` | max timeout: `7`days \n\nExample : `j;polling \"Jeyy bot good?\" 3h yes no \"absolutely yes\"`
 		"""
-		if not args or len(args) < 2:
-			await ctx.reply("Minimal argument is 2", mention_author=False)
-			return
-		if len(args) > 9:
-			await ctx.reply("Max argument is 9", mention_author=False)
-			return
-		if timeout < 10:
-			await ctx.reply("Minimal timout is 10s", mention_author=False)
-			return
-		if timeout > 1000:
-			await ctx.reply("Max timout is 1000s", mention_author=False)
-			return
+		if timeout.lower().endswith('d'):
+			timeout = int(timeout.strip('d')) * 3600 * 24
+		elif timeout.lower().endswith('h'):
+			timeout = int(timeout.strip('h')) * 3600
+		elif timeout.lower().endswith('m'):
+			timeout = int(timeout.strip('m')) * 60
+		elif timeout.lower().endswith('s'):
+			timeout = int(timeout.strip('s'))
+		else:
+			timeout = int(timeout)
 
-		cand = []
+		if timeout > 604800 or timeout < 10:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Timeout must be more than 10s and less than 1 week.', mention_author=False)
 
-		all_nums = ["\U00000031", "\U00000032", "\U00000033", "\U00000034", "\U00000035", "\U00000036", "\U00000037", "\U00000038", "\U00000039"]
-		nums = [all_nums[i] for i in range(len(args))]
-		for i in range(len(args)):
-			cand.append(f"{nums[i]}\U0000fe0f\U000020e3 `{args[i]}` : ")
-
-		text = "\n".join(cand)
-		embed = discord.Embed(title=title, description=text, color=self.bot.c).set_author(name=f"{ctx.author.display_name} has created a poll", icon_url=ctx.author.avatar.url).set_footer(text=f"timeout : {timeout}s | poll will be updated every 5s")
-		sent = await ctx.reply(embed=embed, mention_author=False)
-
-		for num in nums:
-			await sent.add_reaction(f"{num}\U0000fe0f\U000020e3")
-
-		for i in range(0, timeout, 5):
-			await asyncio.sleep(5)
-			cand = []
-			users = {}
-			fetch = await ctx.fetch_message(sent.id)
-			for j, reaction in enumerate(fetch.reactions):
-				voted = []
-				async for user in reaction.users():
-					if user.bot == False:
-						voted.append(user.display_name)
-
-				users[j] = voted
-
-			for j, num in enumerate(nums):
-				cand.append(f"{num}\U0000fe0f\U000020e3 `{args[j]}` : [`{len(users[j])}`] {', '.join(users[j])}")
-
-			text = "\n".join(cand)
-			if embed.description != text:
-				embed.description = text
-				await sent.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none())
-
-		values = users.values()
-		highest_val = [x for x in values if len(x) == max(map(len, values))]
-		highest_num = [i for i in users if users[i] in highest_val]
-		winner = ", ".join([f"`{args[arg]}`" for arg in highest_num])
-
-		embed.add_field(name=f"The winner(s) is {winner} with {len(highest_val[0])} vote(s)!", value="\u200b")
-		embed.set_footer(text="Poll has ended.")
-		await sent.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none())
-		try:
-			await sent.clear_reactions()
-		except:
-			for num in nums:
-				await sent.remove_reaction(f"{num}\U0000fe0f\U000020e3", self.bot.user)
+		if len(choices) < 2 or len(choices) > 10:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Choices must be more than 2 and less than 10.', mention_author=False)
+		
+		poll_view = PollView(ctx, title, timeout, choices)
+		await poll_view.start()
 
 	@commands.group(invoke_without_command=True, cooldown_after_parsing=True, aliases=["trans", "tr"], usage="[destination] [text]")
 	@commands.cooldown(1, 5, commands.BucketType.user)

@@ -1007,6 +1007,8 @@ class PollView(discord.ui.View):
 		self.ended = False
 		self.message = None
 		self.c = None
+		self.cd = commands.CooldownMapping.from_cooldown(1, 3, lambda i: i.user)
+		self.ping_result = []
 		
 		for arg in args:
 			btn = PollButton(label=f'{arg} (0)', style=discord.ButtonStyle.primary)
@@ -1017,6 +1019,17 @@ class PollView(discord.ui.View):
 		cancel_btn = discord.ui.Button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
 		cancel_btn.callback = self.cancel
 		self.add_item(cancel_btn)
+
+		ping_btn = discord.ui.Button(label='Ping me the result', emoji='\U0001f4cc', style=discord.ButtonStyle.secondary)
+		ping_btn.callback = self.ping
+		self.add_item(ping_btn)
+
+	async def interaction_check(self, interaction):
+		retry_after = self.cd.update_rate_limit(interaction)
+		if retry_after:
+			await interaction.response.send_message(f'Slow down! You\'re on cooldown. Retry after {int(retry_after)}s', ephemeral=True)
+			return False
+		return True
 
 	async def start(self):
 		self.c = self.ctx.bot.c
@@ -1074,6 +1087,14 @@ class PollView(discord.ui.View):
 			await self.end()
 		else:
 			await interaction.response.send_message('Only poll creator can stop this poll.', ephemeral=True)
+
+	async def ping(self, interaction):
+		if interaction.user not in self.ping_result:
+			self.ping_result.append(interaction.user)
+			await interaction.response.send_message(f'Okay {interaction.user.mention}, you will be dmed when the poll ends.', ephemeral=True)
+		else:
+			self.ping_result.remove(interaction.user)
+			await interaction.response.send_message(f'Okay {interaction.user.mention}, you won\'t be dmed when the poll ends.', ephemeral=True)
 	
 	async def end(self):
 		self.ended = True
@@ -1086,13 +1107,21 @@ class PollView(discord.ui.View):
 		embed.add_field(name=f'The winner{[" is", "s are"][len(winners)>1]} **{", ".join(winners)}**', value=f'\n\n*Poll ended on {discord.utils.format_dt(dt.datetime.now(), "F")} ({discord.utils.format_dt(dt.datetime.now(), "R")})*')
 		embed.set_author(name=f"{self.ctx.author} has created a poll", icon_url=self.ctx.author.display_avatar.url)
 
-		self.children[-1].disabled = True
+		for child in self.children[-2:]:
+			child.disabled = True
+			
 		for choice, btn in self.btns.items():
 			btn.disabled = True
 			if choice in winners:
 				btn.style = discord.ButtonStyle.success
 			else:
 				btn.style = discord.ButtonStyle.secondary
+		
+		reference_view = discord.ui.View(timeout=None)
+		reference_view.add_item(discord.ui.Button(label='Jump to message', url=self.message.jump_url))
+
+		for user in self.ping_result:
+			await user.send(f'{user.mention}, poll `{self.title}` is ended.', view=reference_view)
 
 		await self.message.edit(embed=embed, view=self)
 		

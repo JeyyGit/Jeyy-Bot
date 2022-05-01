@@ -1,21 +1,17 @@
 
-from unicodedata import name
+import inspect
 from jishaku.codeblocks import codeblock_converter
-from PIL import Image, ImageDraw, ImageOps
 from difflib import get_close_matches
-from discord.ext import commands, tasks
+from discord.ext import commands
 from io import BytesIO, StringIO
-from itsdangerous import exc
 from tabulate import tabulate
-import aiohttp
+import urllib.parse
 import asyncio
 import datetime as dt
 import discord
 import humanize
 import importlib
-import logging
 import random
-import re
 import time
 
 
@@ -219,7 +215,7 @@ class Bots(commands.Cog, name='Bot'):
 
 	@commands.command(aliases=['src'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def source(self, ctx):
+	async def source(self, ctx, *, command=None):
 		"""See bot's source code"""
 		# await ctx.trigger_typing()
 		# num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
@@ -229,10 +225,38 @@ class Bots(commands.Cog, name='Bot'):
 		# 	async with session.get(url) as response:
 		# 		buf = BytesIO(await response.read())
 		# 		await ctx.reply("||ish closed source :^||", file=discord.File(buf, f"error_code_{num}.jpg", spoiler=True), mention_author=False, delete_after=10)
-		view = discord.ui.View()
-		view.add_item(discord.ui.Button(label='Jeyy Bot Source Code', url='https://github.com/JeyyGit/Jeyy-Bot'))
 		
-		await ctx.reply('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
+		base = 'https://github.com/JeyyGit/Jeyy-Bot'
+		branch = 'main'
+
+		view = discord.ui.View()
+
+		if command is None:
+			view.add_item(discord.ui.Button(label='Jeyy Bot Source Code', url='https://github.com/JeyyGit/Jeyy-Bot'))
+			return await ctx.reply('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
+
+		command = command.lower()
+		if command == 'help':
+			sub = type(self.bot.help_command)
+			module = sub.__module__.replace('.', '/')
+			lines, line_no = inspect.getsourcelines(sub)
+		else:
+			cmd = self.bot.get_command(command)
+			if not cmd:
+				return await ctx.reply(f'No command called "{command}" found.')
+			if cmd.cog.__class__.__name__ == 'Jishaku':
+				view.add_item(discord.ui.Button(label=f'Source code for Jishaku commands', url='https://github.com/Gorialis/jishaku'))
+				return await ctx.reply('<https://github.com/Gorialis/jishaku>', view=view)
+			elif not cmd.cog:
+				module = 'Jeyy%20Bot'
+			else:			
+				module = cmd.callback.__module__.replace('.', '/')
+			lines, line_no = inspect.getsourcelines(cmd.callback)
+
+		link = f'{base}/blob/{branch}/{module}.py#L{line_no}-L{line_no+len(lines)-1}'
+		
+		view.add_item(discord.ui.Button(label=f'Source code for {command}', url=link))
+		await ctx.reply(f'<{link}>', view=view)
 
 	@commands.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)

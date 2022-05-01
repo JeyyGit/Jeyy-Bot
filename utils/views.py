@@ -1109,7 +1109,7 @@ class PollView(discord.ui.View):
 
 		for child in self.children[-2:]:
 			child.disabled = True
-			
+
 		for choice, btn in self.btns.items():
 			btn.disabled = True
 			if choice in winners:
@@ -1121,8 +1121,11 @@ class PollView(discord.ui.View):
 		reference_view.add_item(discord.ui.Button(label='Jump to message', url=self.message.jump_url))
 
 		for user in self.ping_result:
-			await user.send(f'{user.mention}, poll `{self.title}` is ended.', view=reference_view)
-
+			try:
+				await user.send(f'{user.mention}, poll `{self.title}` is ended.', view=reference_view)
+			except:
+				...
+				
 		await self.message.edit(embed=embed, view=self)
 		
 class CariResults(discord.ui.View):

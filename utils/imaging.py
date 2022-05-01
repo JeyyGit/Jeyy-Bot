@@ -2,13 +2,16 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence, ImageOp
 from colorthief import ColorThief
 from glitch_this import ImageGlitcher
 from imgaug import augmenters as iaa
-from io import BytesIO, StringIO
+from io import BytesIO
 from jishaku.functools import executor_function
 from os.path import basename, dirname
 from skimage.transform import swirl
 from textwrap import TextWrapper
 from wand.image import Image as wImage
 import albumentations as alb
+from pyvista import examples
+import pyvista as pv
+import imageio
 import cv2
 import datetime as dt
 import glob
@@ -27,6 +30,8 @@ from utils.useful import osc
 
 if True:
 	res = 300
+	pv.global_theme.transparent_background = True
+	cow_mesh = examples.download_cow().smooth()
 	glitcher = ImageGlitcher()
 	grass = Image.open("./image/game/grass64x.png").convert('RGBA')
 	water = Image.open("./image/game/water64x.png").convert('RGBA')
@@ -4028,6 +4033,86 @@ def fanning(circled):
 
 	return wand_gif(frames, durations=40)
 
+@executor_function
+def rippling(img):
+	bg = Image.new('RGBA', (300, 300), 'black')
+	img = ImageOps.flip(ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA'))
+	bg.paste(img, (0, 0), img)
+	bg = bg.convert('RGB')
+
+	buf = BytesIO()
+	bg.save(buf, 'PNG')
+	buf.seek(0)
+
+	tex = pv.Texture(imageio.imread(buf))
+	x = np.arange(-10, 10, 0.25)
+	y = np.arange(-10, 10, 0.25)
+	x, y = np.meshgrid(x, y)
+	r = np.sqrt(x**2 + y**2)
+	z = np.sin(r)
+
+	grid = pv.StructuredGrid(x, y, z)
+	grid.texture_map_to_plane(inplace=True)
+
+	pts = grid.points.copy()
+	plotter = pv.Plotter(notebook=False, off_screen=True, window_size=[300, 300])
+
+	frames = []
+	nframe = 15
+	for phase in np.linspace(0, 2 * np.pi + 0.41, nframe + 1)[:nframe]:
+		z = np.sin(r + phase)
+		pts[:, -1] = z.ravel()
+
+		plotter.add_mesh(grid, smooth_shading=True, texture=tex)
+		plotter.update_coordinates(pts, render=False)
+		plotter.mesh.compute_normals(cell_normals=False, inplace=True)
+
+		if plotter._first_time:
+			plotter._on_first_render_request()
+			plotter.render()
+		else:
+			plotter.update()
+			frames.append(Image.fromarray(plotter.image))
+		plotter.clear()
+
+	plotter.close()
+	return wand_gif(frames, 60)
+
+@executor_function
+def cowing(img):
+	bg = Image.new('RGBA', (300, 300), 'black')
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	bg.paste(img, (0, 0), img)
+	bg = bg.convert('RGB')
+
+	buf = BytesIO()
+	bg.save(buf, 'PNG')
+	buf.seek(0)
+
+	tex = pv.Texture(imageio.imread(buf))
+
+	mesh = cow_mesh.copy(deep=False)
+	mesh.texture_map_to_plane(inplace=True)
+
+	pl = pv.Plotter(off_screen=True, window_size=[350, 300])
+
+	camera = pv.Camera()
+	camera.position = 15, 0, 15
+	camera.focal_point = 0, 0, 0
+	pl.camera = camera
+
+	frames = []
+	for i in np.linspace(0, 360, 50):
+		rot = mesh.rotate_y(i, inplace=False)
+		actor = pl.add_mesh(rot, texture=tex)
+		buf = BytesIO()
+		pl.screenshot(buf)
+		buf.seek(0)
+		frames.append(Image.open(buf))
+		pl.remove_actor(actor)
+	pl.close()
+
+	return wand_gif(frames, 50)
 
 #
 # Utility

@@ -200,6 +200,11 @@ class JeyyContext(commands.Context):
 
 		return url
 
+	def get_ref(self, default=None):
+		if self.message.reference:
+			return self.message.reference.resolved
+		
+		return default
 
 class JeyyBot(commands.Bot):
 	def __init__(self, *args, **kwargs):

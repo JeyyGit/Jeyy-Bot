@@ -536,7 +536,7 @@ class Utility(commands.Cog):
 		else:
 			await ctx.reply(f"I choose `{random.choice(choose)}`.", mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True, aliases=['polling', 'voting'], usage="[title] [timeout] [*choices]", hidden=True)
+	@commands.command(cooldown_after_parsing=True, aliases=['polling', 'voting'], usage="[title] [timeout] [*choices]")
 	@commands.cooldown(1, 10, commands.BucketType.user)
 	async def poll(self, ctx, title, timeout, *choices):
 		"""Start a poll
@@ -1154,7 +1154,7 @@ class Utility(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 10, commands.BucketType.user)
-	async def trocr(self, ctx, lang, image: ToImage=None):
+	async def trocr(self, ctx, lang, image: ToImage = None):
 		"""Translate text on image"""
 		if image is None:
 			if ctx.message.reference and ctx.message.reference.resolved.attachments:
@@ -1174,7 +1174,7 @@ class Utility(commands.Cog):
 
 			await ctx.reply(file=discord.File(await trocr.run(), 'trocr.png'))
 
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def sounder(self, ctx):
 		sounder = Sounder()

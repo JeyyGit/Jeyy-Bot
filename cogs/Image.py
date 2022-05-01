@@ -26,8 +26,24 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def cow(self, ctx, imgb: ToImage = None):
+		async with ctx.typing():
+			buf = await cowing(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "cow.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def ripple(self, ctx, imgb: ToImage = None):
+		async with ctx.typing():
+			buf = await rippling(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "ripple.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def fan(self, ctx, imgb: ToImage = None):
-		"""\U0001f32c"""
+		"""I'm a fan"""
 		async with ctx.typing():
 			circled = await circly(imgb or await ToImage.none(ctx), (100, 100))
 
@@ -388,10 +404,10 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await mcmapping(_input)
 			await ctx.reply(file=discord.File(buf, "mcmap.png"), mention_author=False)
 
-	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.command(aliases=['scroll', 'bar'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def scroll(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Scroll away"""
+	async def bars(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+		"""Moving bars"""
 		async with ctx.typing():
 			_input = await ctx.to_image(_input)
 

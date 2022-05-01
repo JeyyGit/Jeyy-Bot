@@ -1040,7 +1040,7 @@ class PollView(discord.ui.View):
 			await self.end()
 
 	def create_embed(self):
-		text = '\n'.join(f'{self.nums[i]} `{choice}`: [`{len(choosers)}`] {", ".join(u.display_name for u in list(choosers)[:3]) + (f", and `{len(choosers)-3}` more" if len(choosers) > 3 else "")}' for i, (choice, choosers) in enumerate(self.args.items()))
+		text = '\n'.join(f'{self.nums[i]} `{choice}`: [`{len(choosers)}`] {", ".join(u.display_name for u in list(choosers)[:3]) + (f", and **{len(choosers)-3}** more" if len(choosers) > 3 else "")}' for i, (choice, choosers) in enumerate(self.args.items()))
 		
 		ends = self.created_at + dt.timedelta(seconds=self.timeout)
 		text += f'\n\n*Poll ends on {discord.utils.format_dt(ends, "F")} ({discord.utils.format_dt(ends, "R")})*'

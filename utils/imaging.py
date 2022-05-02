@@ -4104,7 +4104,43 @@ def cowing(img):
 	frames = []
 	for i in np.linspace(0, 360, 50):
 		rot = mesh.rotate_y(i, inplace=False)
-		actor = pl.add_mesh(rot, texture=tex)
+		actor = pl.add_mesh(rot, texture=tex, smooth_shading=True)
+		buf = BytesIO()
+		pl.screenshot(buf)
+		buf.seek(0)
+		frames.append(Image.open(buf))
+		pl.remove_actor(actor)
+	pl.close()
+
+	return wand_gif(frames, 50)
+
+@executor_function
+def globe_func(img):
+	bg = Image.new('RGBA', (300, 300), 'black')
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	bg.paste(img, (0, 0), img)
+	bg = bg.convert('RGB')
+
+	buf = BytesIO()
+	bg.save(buf, 'PNG')
+	buf.seek(0)
+
+	tex = pv.Texture(imageio.imread(buf))
+
+	mesh = pv.Sphere(5).smooth()
+	mesh.texture_map_to_sphere(inplace=True)
+
+	pl = pv.Plotter(off_screen=True, window_size=[350, 300])
+
+	camera = pv.Camera()
+	camera.position = -15, 15, 0
+	camera.focal_point = 0, 0, 0
+	pl.camera = camera
+
+	frames = []
+	for i in np.linspace(0, 360, 50):
+		rot = mesh.rotate_y(i, inplace=False)
+		actor = pl.add_mesh(rot, texture=tex, smooth_shading=True, metallic=1)
 		buf = BytesIO()
 		pl.screenshot(buf)
 		buf.seek(0)

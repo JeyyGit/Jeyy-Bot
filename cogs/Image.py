@@ -24,9 +24,19 @@ class IMAGE(commands.Cog, name="Image"):
 	async def on_ready(self):
 		print(f"Image Cog Loaded")
 
+	@commands.command(aliases=['planet'], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def globe(self, ctx, imgb: ToImage = None):
+		"""Planet Y00U"""
+		async with ctx.typing():
+			buf = await globe_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "globe.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def cow(self, ctx, imgb: ToImage = None):
+		"""Mama cow"""
 		async with ctx.typing():
 			buf = await cowing(imgb or await ToImage.none(ctx))
 
@@ -35,6 +45,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def ripple(self, ctx, imgb: ToImage = None):
+		"""Water ripple"""
 		async with ctx.typing():
 			buf = await rippling(imgb or await ToImage.none(ctx))
 

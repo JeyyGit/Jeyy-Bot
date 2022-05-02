@@ -4034,7 +4034,7 @@ def fanning(circled):
 	return wand_gif(frames, durations=40)
 
 @executor_function
-def rippling(img):
+def ripple_func(img):
 	bg = Image.new('RGBA', (300, 300), 'black')
 	img = ImageOps.flip(ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA'))
 	bg.paste(img, (0, 0), img)
@@ -4079,7 +4079,7 @@ def rippling(img):
 	return wand_gif(frames, 60)
 
 @executor_function
-def cowing(img):
+def cow_func(img):
 	bg = Image.new('RGBA', (300, 300), 'black')
 	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
 	bg.paste(img, (0, 0), img)
@@ -4138,7 +4138,7 @@ def globe_func(img):
 	pl.camera = camera
 
 	frames = []
-	for i in np.linspace(0, 360, 50):
+	for i in np.linspace(0, 360, 30):
 		rot = mesh.rotate_y(i, inplace=False)
 		actor = pl.add_mesh(rot, texture=tex, smooth_shading=True, metallic=1)
 		buf = BytesIO()

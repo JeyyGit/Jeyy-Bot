@@ -38,15 +38,12 @@ from utils.imaging import (
 	circly
 )
 
-from utils.views import FileView, EmbedBuilder, AnsiMaker, CariMenu, SounderView, PollView
+from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
 from utils.converters import ToImage
 from utils.trocr import TROCR
 from utils.sounder import Sounder
 
 service = services.Chromedriver(binary='../chromedriver', log_file=os.devnull)
-# browser = browsers.Chrome(**{"goog:chromeOptions":{
-#   'args': ['--headless', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage']
-# }})
 browser = browsers.Chrome()
 browser.capabilities = {"goog:chromeOptions": {"args": ["--no-sandbox", "--headless", "--disable-dev-shm-usage"]}}
 

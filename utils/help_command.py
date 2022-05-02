@@ -12,7 +12,8 @@ class JeyyHelp(commands.MinimalHelpCommand):
 		return self.context
 		
 	async def send_bot_help(self, mapping):
-		await HelpView(self.context, self).start_cog_help(mapping)
+		view = HelpView(self.context, mapping, self)
+		await view.start_help()
 
 	async def send_command_help(self, command):
 		ctx = self.get_context()
@@ -52,7 +53,17 @@ class JeyyHelp(commands.MinimalHelpCommand):
 		await ctx.reply(embed=embed, mention_author=False)
 
 	async def send_cog_help(self, cog):
-		commands = await self.filter_commands(cog.get_commands(), sort=True)
-		await self.context.reply(embed=HelpView(self.context, self).create_cog_embed(cog, commands))
+		view = HelpView(self.context, self.get_bot_mapping(), self)
+
+		for c, commands in view.mapping.items():
+			commands = await self.filter_commands(commands, sort=True)
+			if getattr(c, 'hidden', False) or not cog or cog.qualified_name == 'Jishaku':
+				continue
+
+			view.embed_mapping[c] = view.create_cog_embeds(cog, commands)
+		
+		await view.change_cog_to(cog)
+		
+
 
 	

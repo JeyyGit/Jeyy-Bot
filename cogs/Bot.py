@@ -415,7 +415,7 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.group(invoke_without_command=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def api(self, ctx, endpoint=None):
-		"""Info for JeyyAPI"""
+		"""Info for [JeyyAPI](https://api.jeyy.xyz)"""
 		if endpoint is None:
 			s = time.perf_counter()
 			r = await self.bot.session.get("https://api.jeyy.xyz/general/ping")

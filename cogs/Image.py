@@ -38,7 +38,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def cow(self, ctx, imgb: ToImage = None):
 		"""Mama cow"""
 		async with ctx.typing():
-			buf = await cowing(imgb or await ToImage.none(ctx))
+			buf = await cow_func(imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "cow.gif"))
 
@@ -47,7 +47,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def ripple(self, ctx, imgb: ToImage = None):
 		"""Water ripple"""
 		async with ctx.typing():
-			buf = await rippling(imgb or await ToImage.none(ctx))
+			buf = await ripple_func(imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "ripple.gif"))
 
@@ -65,6 +65,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def painting(self, ctx, imgb: ToImage = None):
+		"""Bob Rozz"""
 		async with ctx.typing():
 			buf = await oil_painting(imgb or await ToImage.none(ctx))
 
@@ -93,6 +94,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def logoff(self, ctx, user: typing.Union[discord.Member, discord.User]=None):
+		"""When you logoff"""
 		async with ctx.typing():
 			user = user or ctx.author
 
@@ -144,7 +146,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL> [frequency=0.05] [amplitude<1|2|3|4|5>=3]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def wave(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, frequency: float=0.05, amplitude: typing.Literal[1, 2, 3, 4, 5]=3):
-		"""wavey"""
+		"""Me wavey wavey"""
 		async with ctx.typing():
 			_input = await ctx.to_image(_input)
 
@@ -174,6 +176,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(aliases=["yt"], usage="<Member|User> <title>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def youtube(self, ctx, author: typing.Union[discord.Member, discord.User], *, title):
+		"""Storytime when-"""
 		async with ctx.typing():
 			pfp = BytesIO(await author.display_avatar.read())
 
@@ -316,7 +319,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def tv(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Am i stuck"""
+		"""Look ma!"""
 		async with ctx.typing():
 			_input = await ctx.to_image(_input)
 
@@ -383,7 +386,7 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await killing(_input)
 			await ctx.reply(file=discord.File(buf, "shoot.gif"), mention_author=False)
 
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def recent(self, ctx, channel: discord.TextChannel=None):
 		async with ctx.typing():
@@ -408,7 +411,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(aliases=['map'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def mcmap(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Scroll away"""
+		"""Minecraft map"""
 		async with ctx.typing():
 			_input = await ctx.to_image(_input)
 
@@ -425,7 +428,7 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await scrolling(_input)
 			await ctx.reply(file=discord.File(buf, "scroll.gif"), mention_author=False)
 
-	@commands.command(aliases=["rev"], usage="<User|Member|Emoji|URL>")
+	@commands.command(aliases=["rev"], usage="<User|Member|Emoji|URL>", hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def reveal(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
 		"""Scroll away"""
@@ -435,7 +438,7 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await revealing(_input)
 			await ctx.reply(file=discord.File(buf, "reveal.gif"), mention_author=False)
 
-	@commands.command(aliases=["sub"], usage="<User|Member|Emoji|URL>")
+	@commands.command(aliases=["sub"], usage="<User|Member|Emoji|URL>", hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def subtract(self, ctx, _input1: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str], _input2: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]):
 		"""It's just a simple math"""

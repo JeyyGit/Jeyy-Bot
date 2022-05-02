@@ -377,7 +377,7 @@ class Api(commands.Cog):
 		embed.description = f"Total questions : {count}"
 		await sent.edit(embed=embed, view=None, allowed_mentions=discord.AllowedMentions.none())
 
-	@commands.group()
+	@commands.group(invoke_without_command=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def anime(self, ctx):
 		"""Sends a waifu image/gif"""

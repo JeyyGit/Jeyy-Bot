@@ -1,10 +1,12 @@
 import asyncio
 import datetime as dt
+import typing
 import discord
 import humanize
 import importlib
 import numpy as np
 from io import StringIO, BytesIO
+from requests import options
 from tabulate import tabulate
 from bs4 import BeautifulSoup
 from jishaku.functools import executor_function
@@ -42,17 +44,23 @@ class DelView(BaseView):
 		await interaction.delete_original_message()
 
 # Bot cog
-class CogButton(discord.ui.Button):
-	def __init__(self, cid, **kwargs):
-		self.cid = cid
-		super().__init__(**kwargs)
-
 class HelpView(discord.ui.View):
-	def __init__(self, ctx, help_command, *, timeout=None):
-		self.ctx = ctx
-		self.help = help_command
-		self.message = None
+	def __init__(self, ctx, mapping, help_command, *, timeout = None):
 		super().__init__(timeout=timeout)
+		self.ctx = ctx
+		self.mapping = mapping
+		self.help = help_command
+		self.embed_mapping = {}
+		self.embeds = []
+		self.length = 0
+		self.index = 0
+		self.button_first = None
+		self.button_previous = None
+		self.button_index = None
+		self.button_next = None
+		self.button_last = None
+		self.message = None
+		self.menu = HelpMenu(self)
 
 	async def interaction_check(self, interaction):
 		if interaction.user != self.ctx.author:
@@ -61,23 +69,16 @@ class HelpView(discord.ui.View):
 		
 		return True
 
-	async def del_button_callback(self, interaction):
-		await self.message.delete()
-		self.stop()
-
-	async def start_cog_help(self, mapping):
-		for i, (cog, commands) in enumerate(mapping.items()):
+	async def start_help(self):
+		for i, (cog, commands) in enumerate(self.mapping.items()):
 			commands = await self.help.filter_commands(commands, sort=True)
 			if getattr(cog, 'hidden', False) or not cog or cog.qualified_name == 'Jishaku':
 				continue
 
-			await self.create_cog_ui(i, cog, commands)
-
-		del_button = discord.ui.Button(emoji="\U0001f6d1", style=discord.ButtonStyle.red)
-		del_button.callback = self.del_button_callback
-
-		self.add_item(del_button)
-
+			self.embed_mapping[cog] = self.create_cog_embeds(cog, commands)
+			self.menu.append_option(discord.SelectOption(label=cog.qualified_name, description=cog.description))
+		
+		self.add_item(self.menu)
 		self.message = await self.ctx.reply(embed=self.create_home_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	def create_home_embed(self):
@@ -85,44 +86,142 @@ class HelpView(discord.ui.View):
 		embed.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar.url)
 		embed.add_field(name="Categories:", value="\n".join(f"\U000025ab\U0000fe0f {cog.qualified_name}" for cog in self.ctx.bot.cogs.values() if not (getattr(cog, 'hidden', False) or not cog or cog.qualified_name == 'Jishaku')), inline=False)
 		return embed
-			
-	def create_cog_embed(self, cog, commands):
-		embed = discord.Embed(title="Help", description="List of commands available", color=self.ctx.bot.c)
-		embed.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar.url)
-		embed.set_thumbnail(url=getattr(cog, 'thumbnail', discord.Embed.Empty))
-		embed.add_field(name=f"-=: {cog.qualified_name} :=-", value=cog.description, inline=False)
 
-		for command in commands:
-			embed.add_field(name=f"`{command.name}`", value=command.short_doc or "-", inline=True)
+	def create_cog_embeds(self, cog, commands):
+		embeds = []
+		chunks = self.ctx.chunk(commands, per=9)
 
-		if len(commands) % 3 != 0:
-			for _ in range(3 - len(commands) % 3):
-				embed.add_field(name="\u200b", value="\u200b", inline=True)
+		for chunk in chunks:
+			embed = discord.Embed(title="Help", description="List of commands available", color=self.ctx.bot.c)
+			embed.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar.url)
+			embed.set_thumbnail(url=getattr(cog, 'thumbnail', discord.Embed.Empty))
+			embed.add_field(name=f"-=: {cog.qualified_name} :=-", value=cog.description, inline=False)
 
-		embed.add_field(name="\u200b", value=f"Use `{self.ctx.clean_prefix}help [command]` for more info on a command.", inline=False)
+			for command in chunk:
+				embed.add_field(name=f"`{command.name}`", value=command.short_doc or "-", inline=True)
+
+			if len(chunk) % 3 != 0:
+				for _ in range(3 - len(chunk) % 3):
+					embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+			embed.add_field(name="\u200b", value=f"Use `{self.ctx.clean_prefix}help [command]` for more info on a command.", inline=False)
+			embeds.append(embed)
+
+		return embeds
 		
-		return embed
+	async def change_cog_to(self, cog):
+		self.embeds = self.embed_mapping[cog]
 
-	async def create_cog_ui(self, cid, cog, commands):
-		button = CogButton(cid, label=cog.qualified_name, style=discord.ButtonStyle.primary)
-		button.callback = self.create_callback(cid, cog, commands)
+		while any(isinstance(child, discord.ui.Button) for child in self.children):
+			for child in self.children:
+				if isinstance(child, discord.ui.Button):
+					self.remove_item(child)
 
-		self.add_item(button)
+		self.length = len(self.embeds)
+		self.index = 0
+		
+		self.button_first = discord.ui.Button(style=discord.ButtonStyle.secondary, label="\u00AB")
+		self.button_previous = discord.ui.Button(style=discord.ButtonStyle.secondary, label="\u2039")
+		self.button_index = discord.ui.Button(style=discord.ButtonStyle.red, emoji="\U0001f6d1", label=f"Page 1 of {self.length}")
+		self.button_next = discord.ui.Button(style=discord.ButtonStyle.secondary, label="\u203A")
+		self.button_last = discord.ui.Button(style=discord.ButtonStyle.secondary, label="\u00BB")
 
-	def create_callback(self, cid, cog, commands):
+		self.button_first.callback = self.button_first_callback
+		self.button_previous.callback = self.button_previous_callback
+		self.button_index.callback = self.button_index_callback
+		self.button_next.callback = self.button_next_callback
+		self.button_last.callback = self.button_last_callback
+		
+		self.button_next.disabled = False
+		self.button_last.disabled = False
+		self.button_previous.disabled = False
+		self.button_first.disabled = False
 
-		async def callback(interaction):
-			for btn in self.children:
-				if isinstance(btn, CogButton):
-					if btn.cid == cid:
-						btn.disabled = True
-						btn.style = discord.ButtonStyle.secondary
-					else:
-						btn.disabled = False
-						btn.style = discord.ButtonStyle.primary
-			await self.message.edit(embed=self.create_cog_embed(cog, commands), view=self)
+		if self.index == self.length-1:
+			self.button_next.disabled = True
+			self.button_last.disabled = True
 
-		return callback
+		if self.index == 0:
+			self.button_previous.disabled = True
+			self.button_first.disabled = True
+
+		self.add_item(self.button_first)
+		self.add_item(self.button_previous)
+		self.add_item(self.button_index)
+		self.add_item(self.button_next)
+		self.add_item(self.button_last)
+
+		if self.message is None:
+			self.message = await self.ctx.reply(embed=self.embeds[0], view=self)
+		else:
+			await self.message.edit(embed=self.embeds[0], view=self)
+
+	async def button_first_callback(self, interaction):
+		if self.index == 0:
+			return
+
+		self.index = 0
+		await self.update()
+
+	async def button_previous_callback(self, interaction):
+		if self.index == 0:
+			return
+
+		self.index -= 1
+		await self.update()
+
+	async def button_index_callback(self, interaction):
+		await self.message.delete()
+		self.stop()
+
+	async def button_next_callback(self, interaction):
+		if self.index == self.length-1:
+			return
+
+		self.index += 1
+		await self.update()
+
+	async def button_last_callback(self, interaction):
+		if self.index == self.length-1:
+			return
+
+		self.index = self.length-1
+		await self.update()
+		
+	async def update(self):
+		self.button_index.label = f"Page {self.index+1} of {self.length}"
+
+		self.button_next.disabled = False
+		self.button_last.disabled = False
+		self.button_previous.disabled = False
+		self.button_first.disabled = False
+
+		if self.index == self.length-1:
+			self.button_next.disabled = True
+			self.button_last.disabled = True
+
+		if self.index == 0:
+			self.button_previous.disabled = True
+			self.button_first.disabled = True
+
+		await self.message.edit(embed=self.embeds[self.index], view=self)
+
+class HelpMenu(discord.ui.Select):
+	def __init__(self, view):
+		super().__init__(placeholder='Select Category')
+		self.parent_view = view
+		self.previous = None
+
+	async def callback(self, interaction: discord.Interaction):
+		if self.previous == self.values[0]:
+			return
+		self.previous = self.values[0]
+
+		cog = discord.utils.get(self.parent_view.mapping, qualified_name=self.values[0])
+		
+		await self.parent_view.change_cog_to(cog)
+
+# class HelpMenu(discord.ui.S)
 
 class EndpointView(discord.ui.View):
 	def __init__(self, msg, results):
@@ -1373,3 +1472,5 @@ class AkiView(discord.ui.View):
 			return False
 
 		return True
+
+# temp

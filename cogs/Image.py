@@ -24,6 +24,15 @@ class IMAGE(commands.Cog, name="Image"):
 	async def on_ready(self):
 		print(f"Image Cog Loaded")
 
+	@commands.command(aliases=['crack'], usage="<User|Member|Emoji|URL>", hidden=True)
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def cracks(self, ctx, imgb: ToImage = None):
+		"""It's cracking!"""
+		async with ctx.typing():
+			buf = await cracks_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "japanify.png"))
+
 	@commands.command(aliases=['planet'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def globe(self, ctx, imgb: ToImage = None):

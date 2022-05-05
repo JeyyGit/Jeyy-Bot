@@ -1,3 +1,4 @@
+from bisect import bisect_left
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence, ImageOps, ImageEnhance, ImageChops
 from colorthief import ColorThief
 from glitch_this import ImageGlitcher
@@ -145,6 +146,7 @@ if True:
 	shot_hell = Image.open("./image/shot/hell.jpg").resize((400, 400)).convert('RGBA')
 
 	fan_img = Image.open("./image/fan.png").resize((400, 400)).convert('RGBA')
+	warm_palette = Image.open("./image/warm_palette.png").convert('RGBA')
 
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
@@ -207,7 +209,7 @@ if True:
 		'╌': woffu,
 		'╎': wofft,
 		'╍': woffs,
-		'╏': woffb,  
+		'╏': woffb,
 		'┏': wonut, 
 		'┓': wonts,
 		'┗': wonbu, 
@@ -298,7 +300,7 @@ if True:
 		't': '1 11111 1',
 		'u': '11111 00001 11111',
 		'v': '111 0001 00001 0001 111', 
-		'w': '1111 00001 0111 00001 1111',  
+		'w': '1111 00001 0111 00001 1111',
 		'x': '10001 0101 001 0101 10001', 
 		'y': '1 01 00111 01 1' , 
 		'z': '10001 11001 10101 10011 10001',
@@ -381,6 +383,7 @@ if True:
 	wstat_reg = ImageFont.truetype('./image/NotoSans-Regular.ttf', 20)
 	wstat_bold_20 = ImageFont.truetype('./image/NotoSans-Bold.ttf', 20)
 	wstat_bold_30 = ImageFont.truetype('./image/NotoSans-Bold.ttf', 30)
+
 
 class Ball:
 	def __init__(self, x, y, r, color, collision_type):
@@ -551,6 +554,27 @@ class String:
 		pos_2 = (self.body_2.position[0], 300-self.body_2.position[1])
 		drawing.line([pos_1, pos_2], 'black')
 
+# class Palette:
+# 	def __init__(self, palette_img):
+# 		self.palette = {}
+# 		width, height = palette_img.size
+# 		palette_pixels = palette_img.load()
+# 		for j in range(height):
+# 			for i in range(width):
+# 				brightness = self.luminosity(palette_pixels[i, j])
+# 				self.palette[brightness] = palette_pixels[i, j]
+# 		self.sorted_keys = sorted(self.palette.keys())
+
+# 	def luminosity(self, pixel):
+# 		if len(pixel) > 3 and not pixel[3]:
+# 			return 0
+# 		r, g, b = pixel[:3]
+# 		return 0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2)
+
+# 	def __getitem__(self, key):
+# 		i = bisect_left(self.sorted_keys, key)
+# 		brightness = max(self.sorted_keys) if i == len(self.sorted_keys) else self.sorted_keys[i]
+# 		return self.palette[brightness]
 
 #
 # Fun
@@ -858,48 +882,48 @@ def lever_gif(img1, img2):
 	return igif
 
 def img_to_iso(image, best):
-    with Image.open(image) as image4:
-        # best = 64
-        im = image4.resize((best, best)).convert("RGBA")
-        im = ImageOps.mirror(im)
-        h = []
-        x = 0
+	with Image.open(image) as image4:
+		# best = 64
+		im = image4.resize((best, best)).convert("RGBA")
+		im = ImageOps.mirror(im)
+		h = []
+		x = 0
 
-        dat = [(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), (94, 174, 174), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), (174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), (219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)]
-        dat2 = "123456789gplocdvhr%"
+		dat = [(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), (94, 174, 174), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), (174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), (219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)]
+		dat2 = "123456789gplocdvhr%"
 
-        data = list(im.getdata())
+		data = list(im.getdata())
 
-        data = reversed(data)
+		data = reversed(data)
 
-        for p in data:
-            x += 1
-            p = list(p)
+		for p in data:
+			x += 1
+			p = list(p)
 
-            def myFunc(e):
-                r = p[0]
-                g = p[1]
-                b = p[2]
+			def myFunc(e):
+				r = p[0]
+				g = p[1]
+				b = p[2]
 
-                er = e[0]
-                eg = e[1]
-                eb = e[2]
+				er = e[0]
+				eg = e[1]
+				eb = e[2]
 
-                return abs(r - er) + abs(g - eg) + abs(b - eb)
+				return abs(r - er) + abs(g - eg) + abs(b - eb)
 
-            if p[3] < 5:
-                h.append("0")
-            else:
-                newlis = dat.copy()
-                newlis.sort(key=myFunc)
-                h.append(dat2[dat.index(newlis[0])])
+			if p[3] < 5:
+				h.append("0")
+			else:
+				newlis = dat.copy()
+				newlis.sort(key=myFunc)
+				h.append(dat2[dat.index(newlis[0])])
 
-            if x % im.width == 0:
-              h.append("-")
+			if x % im.width == 0:
+				h.append("-")
 
-        text = ''.join(h)
+		text = ''.join(h)
 
-        return text
+		return text
 
 @executor_function
 def gif_to_iso(image):
@@ -1739,7 +1763,7 @@ def baller(img):
 	for i in range(32):
 		for j in range(32):
 			balls.append(Ball(60+i*6, 320+j*6, 2, tuple(colors[i][j]), 1))
-        
+		
 	walls = [
 		Wall(0, 0, 0, res+100),
 		Wall(0, 0, res, 0),
@@ -1761,7 +1785,7 @@ def baller(img):
 
 		for ball in balls:
 			ball.draw(draw)
-      
+	  
 		if i == 85:
 			space.gravity = 0, 1500
 
@@ -4149,6 +4173,63 @@ def globe_func(img):
 	pl.close()
 
 	return wand_gif(frames, 50)
+
+@executor_function
+def cracks_func(img):
+	# code adapted from 
+	# https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/img_processing/japanify.py and
+	# https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/img_processing/steal_colors_with_same_brightness.py
+	
+	def contrastpoints(image, j, width, threshold):
+		contrast = []
+		for i in range(width - 3):
+			ave1 = sum(image[i + 0, j][:3]) / 3
+			ave2 = sum(image[i + 1, j][:3]) / 3
+			ave3 = sum(image[i + 2, j][:3]) / 3
+			if abs(ave2 - ave1) > threshold and abs(ave1 - ave3) > (threshold / 2):
+				contrast.append(i)
+		return contrast
+
+	def luminosity(pixel):
+		if len(pixel) > 3 and not pixel[3]:
+			return 0
+		r, g, b = pixel[:3]
+		return 0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2)
+	
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	width, height = img.size
+	im = img.load()
+
+	for j in range(height):
+		contrast = contrastpoints(im, j - 1 if j else 0, width, 20)
+		m = 0
+		for i in range(width):
+			if m < len(contrast) and i >= contrast[m]:
+				im[i, j] = (0, 0, 0)
+				m += 1
+
+	palette = {}
+	pwidth, pheight = warm_palette.size
+	palette_pixels = warm_palette.load()
+
+	for j in range(pheight):
+		for i in range(pwidth):
+			brightness = luminosity(palette_pixels[i, j])
+			palette[brightness] = palette_pixels[i, j]
+
+	sorted_keys = sorted(palette.keys())
+
+	for j in range(height):
+		for i in range(width):
+			at = bisect_left(sorted_keys, luminosity(im[i, j]))
+			brightness = max(sorted_keys) if at == len(sorted_keys) else sorted_keys[at]
+			im[i, j] = palette[brightness]
+
+	buf = BytesIO()
+	img.save(buf, 'PNG')
+	buf.seek(0)
+
+	return buf
 
 #
 # Utility

@@ -547,7 +547,7 @@ class Fun(commands.Cog):
 
 	@build.command(cooldown_after_parsing=True, usage="[build name] [code]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def create(self, ctx, build_name=None, *, code=None):
+	async def create(self, ctx, build_name, *, code):
 		"""Save and share your build publicly"""
 		if not build_name.replace("\u2800", "").replace("\u200b", "").replace("\uFEFF", "").strip(" "):
 			return await ctx.reply("Missing build name.", mention_author=False)

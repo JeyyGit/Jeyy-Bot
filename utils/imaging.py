@@ -11,6 +11,7 @@ from textwrap import TextWrapper
 from wand.image import Image as wImage
 import albumentations as alb
 from pyvista import examples
+from pixelsort import pixelsort
 import pyvista as pv
 import imageio
 import cv2
@@ -554,27 +555,6 @@ class String:
 		pos_2 = (self.body_2.position[0], 300-self.body_2.position[1])
 		drawing.line([pos_1, pos_2], 'black')
 
-# class Palette:
-# 	def __init__(self, palette_img):
-# 		self.palette = {}
-# 		width, height = palette_img.size
-# 		palette_pixels = palette_img.load()
-# 		for j in range(height):
-# 			for i in range(width):
-# 				brightness = self.luminosity(palette_pixels[i, j])
-# 				self.palette[brightness] = palette_pixels[i, j]
-# 		self.sorted_keys = sorted(self.palette.keys())
-
-# 	def luminosity(self, pixel):
-# 		if len(pixel) > 3 and not pixel[3]:
-# 			return 0
-# 		r, g, b = pixel[:3]
-# 		return 0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2)
-
-# 	def __getitem__(self, key):
-# 		i = bisect_left(self.sorted_keys, key)
-# 		brightness = max(self.sorted_keys) if i == len(self.sorted_keys) else self.sorted_keys[i]
-# 		return self.palette[brightness]
 
 #
 # Fun
@@ -4176,10 +4156,10 @@ def globe_func(img):
 
 @executor_function
 def cracks_func(img):
-	# code adapted from 
+	# code adapted with changes from
 	# https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/img_processing/japanify.py and
 	# https://github.com/Lucas-C/dotfiles_and_notes/blob/master/languages/python/img_processing/steal_colors_with_same_brightness.py
-	
+
 	def contrastpoints(image, j, width, threshold):
 		contrast = []
 		for i in range(width - 3):
@@ -4230,6 +4210,17 @@ def cracks_func(img):
 	buf.seek(0)
 
 	return buf
+
+@executor_function
+def melt_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+
+	frames = []
+	for _ in range(5):
+		spike = pixelsort(img, interval_function='random', angle=90)
+		frames.append(spike)
+
+	return wand_gif(frames, 100)
 
 #
 # Utility

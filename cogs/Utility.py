@@ -557,6 +557,14 @@ class Utility(commands.Cog):
 		if len(choices) < 2 or len(choices) > 10:
 			ctx.command.reset_cooldown(ctx)
 			return await ctx.reply('Choices must be more than 2 and less than 10.', mention_author=False)
+
+		if len(title) > 256:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Title length must be less than 256 characters.')
+
+		if any(len(choice) > 80 for choice in choices):
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Each choice length must be less than 80 characters.')
 		
 		poll_view = PollView(ctx, title, timeout, choices)
 		await poll_view.start()

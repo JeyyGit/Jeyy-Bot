@@ -33,7 +33,7 @@ class IMAGE(commands.Cog, name="Image"):
 
 			await ctx.reply(file=discord.File(buf, "melt.gif"))
 
-	@commands.command(aliases=['crack'], usage="<User|Member|Emoji|URL>", hidden=True)
+	@commands.command(aliases=['crack'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def cracks(self, ctx, imgb: ToImage = None):
 		"""It's cracking!"""
@@ -45,7 +45,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(aliases=['planet'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def globe(self, ctx, imgb: ToImage = None):
-		"""Planet Y00U"""
+		"""Planet Y0-oU"""
 		async with ctx.typing():
 			buf = await globe_func(imgb or await ToImage.none(ctx))
 
@@ -54,7 +54,7 @@ class IMAGE(commands.Cog, name="Image"):
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def cow(self, ctx, imgb: ToImage = None):
-		"""Mama cow"""
+		"""Holy cow!"""
 		async with ctx.typing():
 			buf = await cow_func(imgb or await ToImage.none(ctx))
 

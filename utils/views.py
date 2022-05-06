@@ -1115,11 +1115,11 @@ class PollView(discord.ui.View):
 			self.btns[arg] = btn
 			self.add_item(btn)
 
-		cancel_btn = discord.ui.Button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
+		cancel_btn = discord.ui.Button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red, row=4)
 		cancel_btn.callback = self.cancel
 		self.add_item(cancel_btn)
 
-		ping_btn = discord.ui.Button(label='Ping me the result', emoji='\U0001f4cc', style=discord.ButtonStyle.secondary)
+		ping_btn = discord.ui.Button(label='Ping me the result', emoji='\U0001f4cc', style=discord.ButtonStyle.secondary, row=4)
 		ping_btn.callback = self.ping
 		self.add_item(ping_btn)
 

@@ -70,7 +70,7 @@ class HelpView(discord.ui.View):
 		return True
 
 	async def start_help(self):
-		for i, (cog, commands) in enumerate(self.mapping.items()):
+		for cog, commands in self.mapping.items():
 			commands = await self.help.filter_commands(commands, sort=True)
 			if getattr(cog, 'hidden', False) or not cog or cog.qualified_name == 'Jishaku':
 				continue
@@ -112,10 +112,9 @@ class HelpView(discord.ui.View):
 	async def change_cog_to(self, cog):
 		self.embeds = self.embed_mapping[cog]
 
-		while any(isinstance(child, discord.ui.Button) for child in self.children):
-			for child in self.children:
-				if isinstance(child, discord.ui.Button):
-					self.remove_item(child)
+		for child in self.children[:]:
+			if isinstance(child, discord.ui.Button):
+				self.remove_item(child)
 
 		self.length = len(self.embeds)
 		self.index = 0
@@ -628,10 +627,10 @@ class PourView(discord.ui.View):
 			if isinstance(btn, BottleButton):
 				self.remove_item(btn)
 
-		while any(isinstance(btn, BottleButton) for btn in self.children):
-			for btn in self.children:
-				if isinstance(btn, BottleButton):
-					self.remove_item(btn)
+
+		for btn in self.children[:]:
+			if isinstance(btn, BottleButton):
+				self.remove_item(btn)
 
 		for i, bottle_data in enumerate(levels[self.level], start=1):
 			bottle = Bottle(i, [Liquid(color) for color in bottle_data])
@@ -663,25 +662,15 @@ class PourView(discord.ui.View):
 		self.state = 0
 		self.selected = None
 
-		for btn in self.children:
-			if btn.custom_id == 'cancel_btn':
-				btn.disabled = True
-				continue
-			if btn.custom_id == 'reset_btn' or btn.custom_id == 'exit_btn':
-				btn.disabled = False
-				continue
+		for btn in self.children[:]:
 			if isinstance(btn, BottleButton) or btn.custom_id == 'next_lvl_btn':
 				self.remove_item(btn)
-
-		while any(isinstance(btn, BottleButton) for btn in self.children):
-			for btn in self.children:
-				if isinstance(btn, BottleButton):
-					self.remove_item(btn)
-
-		while 'next_lvl_btn' in [b.custom_id for b in self.children]:
-			for btn in self.children:
-				if btn.custom_id == 'next_lvl_btn':
-					self.remove_item(btn)
+			elif btn.custom_id == 'cancel_btn':
+				btn.disabled = True
+				continue
+			elif btn.custom_id == 'reset_btn' or btn.custom_id == 'exit_btn':
+				btn.disabled = False
+				continue
 
 		for i, bottle_data in enumerate(levels[self.level], start=1):
 			bottle = Bottle(i, [Liquid(color) for color in bottle_data])
@@ -766,7 +755,7 @@ class EmbedBuilder(discord.ui.View):
 
 class AnsiMaker(discord.ui.View):
 	def __init__(self, ctx, text):
-		super().__init__()
+		super().__init__(timeout=None)
 		self.ctx = ctx
 		self.msg = None
 		self.text = text
@@ -1472,5 +1461,3 @@ class AkiView(discord.ui.View):
 			return False
 
 		return True
-
-# temp

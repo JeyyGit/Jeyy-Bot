@@ -222,9 +222,9 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await paparazzing(_input)
 			await ctx.reply(file=discord.File(buf, "paparazzi.gif"), mention_author=False)
 
-	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.command(name='print', usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def print(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def _print(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
 		"""Out of ink"""
 		async with ctx.typing():
 			_input = await ctx.to_image(_input)

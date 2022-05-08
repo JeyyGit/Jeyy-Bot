@@ -580,8 +580,11 @@ class Utility(commands.Cog):
 			return ctx.command.reset_cooldown(ctx)
 
 		if not text:
-			await ctx.reply("Missing `text`.", mention_author=False)
-			return ctx.command.reset_cooldown(ctx)
+			if ctx.message.reference and ctx.message.reference.resolved.content:
+				text = ctx.message.reference.resolved.content
+			else:
+				await ctx.reply("Missing `text`.", mention_author=False)
+				return ctx.command.reset_cooldown(ctx)
 
 		async with ctx.typing():
 			try:
@@ -598,9 +601,12 @@ class Utility(commands.Cog):
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	async def translate_from(self, ctx, from_lang, destination_lang, *, text:commands.clean_content=None):
 		if not text:
-			await ctx.reply("Missing `text`.", mention_author=False)
-			ctx.command.reset_cooldown(ctx)
-			return
+			if ctx.message.reference and ctx.message.reference.resolved.content:
+				text = ctx.message.reference.resolved.content
+			else:
+				await ctx.reply("Missing `text`.", mention_author=False)
+				ctx.command.reset_cooldown(ctx)
+				return
 
 		async with ctx.typing():
 			translated, source, destination = await self.translate_from_func(from_lang, destination_lang, text)

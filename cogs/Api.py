@@ -277,7 +277,7 @@ class Api(commands.Cog):
 							break
 
 						except:
-							if res['nsfw'] == False:
+							if res.get('nsfw') is False:
 								name = res['title']
 								url = res['url']
 								embed = discord.Embed(title=name, description=f"<:upvote:596577438461591562> {res['ups']}", color=self.bot.c).set_image(url=url).set_footer(text=f"Posted by u/{res['author']} on r/{res['subreddit']}")

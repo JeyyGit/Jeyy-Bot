@@ -252,7 +252,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def shear(self, ctx, imgb: ToImage = None, axis: typing.Literal['Y', 'y', 'X', 'x']='x'):
 		"""Shearing tears"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, shearing, imgb or await ToImage.none(ctx), axis)
+			buf = await shearing(imgb or await ToImage.none(ctx), axis)
 
 			await ctx.reply(file=discord.File(buf, "shear.gif"), mention_author=False)
 
@@ -270,7 +270,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def hearts(self, ctx, imgb: ToImage = None, rainbow:bool=False):
 		"""Love is in the air"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, loving, imgb or await ToImage.none(ctx), rainbow)
+			buf = await loving(imgb or await ToImage.none(ctx), rainbow)
 			await ctx.reply(file=discord.File(buf, "hearts.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
@@ -298,7 +298,7 @@ class IMAGE(commands.Cog, name="Image"):
 		async with ctx.typing():
 			if level < 1 or level > 5:
 				return await ctx.reply("Boiling level should be an integer between 1 and 5, inclusive.", mention_author=False)
-			buf = await self.cache_check(ctx, boiling, imgb or await ToImage.none(ctx), level)
+			buf = await boiling(imgb or await ToImage.none(ctx), level)
 
 			await ctx.reply(file=discord.File(buf, "boil.gif"), mention_author=False)
 
@@ -334,7 +334,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def earthquake(self, ctx, imgb: ToImage = None, power:int=3):
 		"""SAVE YOURSELF"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, power, imgb or await ToImage.none(ctx))
+			buf = await earthquaking(imgb or await ToImage.none(ctx), power)
 
 			await ctx.reply(file=discord.File(buf, "earthquake.gif"), mention_author=False)
 
@@ -812,7 +812,7 @@ class IMAGE(commands.Cog, name="Image"):
 			return ctx.reply("Glitch level must be between 1 and 10.", mention_author=False)
 
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, glitching, imgb or await ToImage.none(ctx), level)
+			buf = await glitching(imgb or await ToImage.none(ctx), level)
 			await ctx.reply(file=discord.File(buf, "glitch.gif"), mention_author=False)
 
 def setup(bot):

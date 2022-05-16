@@ -4222,6 +4222,59 @@ def melt_func(img):
 
 	return wand_gif(frames, 100)
 
+@executor_function
+def gameboy_camera_func(img):
+	imgs = Image.open(img)
+
+	frames = []
+	durations = []
+	for n, frame in enumerate(ImageSequence.Iterator(imgs)):
+		if n > 10:
+			break
+		img = np.array(ImageOps.contain(frame, (300, 300)).convert('L'))
+
+		for i in range(img.shape[0]):
+			for j in range(img.shape[1]):
+				if img[i][j] >= 236:
+					img[i][j] = 255
+				elif img[i][j] >= 216:
+					img[i][j] = 255 - ((i%2)*(j%2)*83)
+				elif img[i][j] >= 196:
+					img[i][j] = 255 - (((j+i+1)%2)*83)
+				elif img[i][j] >= 176:
+					img[i][j] = 172 + (((i+1)%2)*(j%2)*83)
+				elif img[i][j] >= 157:
+					img[i][j] = 172
+				elif img[i][j] >= 137:
+					img[i][j] = 172 - ((i%2)*(j%2)*86)
+				elif img[i][j] >= 117:
+					img[i][j] = 172 - (((j+i+1)%2)*86)
+				elif img[i][j] >= 97:
+					img[i][j] = 86 + (((i+1)%2)*(j%2)*86)
+				elif img[i][j] >= 78:
+					img[i][j] = 86
+				elif img[i][j] >= 58:
+					img[i][j] = 86 - ((i%2)*(j%2)*86)
+				elif img[i][j] >= 38:
+					img[i][j] = 86 - (((j+i+1)%2)*86)
+				elif img[i][j] >= 18:
+					img[i][j] = 0 + (((i+1)%2)*(j%2)*86)
+				else:
+					img[i][j] = 0
+		
+		fobj = BytesIO()
+		Image.fromarray(img).save(fobj, "GIF")
+		frame = Image.open(fobj)
+		frames.append(frame)
+		durations.append(frame.info.get('duration', 100))
+	
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
+	igif.seek(0)
+
+	return igif
+	
+
 #
 # Utility
 # #

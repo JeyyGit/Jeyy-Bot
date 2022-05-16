@@ -18,11 +18,21 @@ class IMAGE(commands.Cog, name="Image"):
 	
 	def __init__(self, bot):
 		self.bot = bot
+		self.bot.image_cache = {}
 		self.thumbnail = "https://cdn.jeyy.xyz/image/patpat_4fe81e.gif"
 
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Image Cog Loaded")
+
+	@commands.command(aliases=['gb_cam', 'gbc'], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def gameboy_camera(self, ctx, imgb: ToImage = None):
+		"""Can't play kirby here"""
+		async with ctx.typing():
+			buf = await gameboy_camera_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "gameboy_camera.gif"))
 
 	@commands.command(aliases=['melts'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)

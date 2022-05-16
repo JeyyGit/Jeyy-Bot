@@ -1,3 +1,4 @@
+from unittest import result
 from discord.ext import commands
 from io import BytesIO
 import discord
@@ -11,6 +12,7 @@ importlib.reload(converters)
 
 from utils.imaging import *
 from utils.converters import ToImage
+from utils.useful import Queue
 
 
 class IMAGE(commands.Cog, name="Image"):
@@ -25,12 +27,28 @@ class IMAGE(commands.Cog, name="Image"):
 	async def on_ready(self):
 		print(f"Image Cog Loaded")
 
+	async def cache_check(self, ctx, func, buf, *args):
+		cmd = ctx.command.qualified_name
+		img_data = list(Image.open(buf).getdata())
+
+		self.bot.image_cache.setdefault(cmd, Queue(25))
+
+		for img_cache, img_result in self.bot.image_cache[cmd].queue:
+			if img_cache == img_data:
+				img_result.seek(0)
+				return img_result
+
+		buf = await func(buf, *args)
+		self.bot.image_cache[cmd].put((img_data, buf))
+
+		return buf
+
 	@commands.command(aliases=['gb_cam', 'gbc'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def gameboy_camera(self, ctx, imgb: ToImage = None):
 		"""Can't play kirby here"""
 		async with ctx.typing():
-			buf = await gameboy_camera_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, gameboy_camera_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "gameboy_camera.gif"))
 
@@ -50,14 +68,14 @@ class IMAGE(commands.Cog, name="Image"):
 		async with ctx.typing():
 			buf = await cracks_func(imgb or await ToImage.none(ctx))
 
-			await ctx.reply(file=discord.File(buf, "japanify.png"))
+			await ctx.reply(file=discord.File(buf, "cracks.png"))
 
 	@commands.command(aliases=['planet'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def globe(self, ctx, imgb: ToImage = None):
 		"""Planet Y0-oU"""
 		async with ctx.typing():
-			buf = await globe_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, globe_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "globe.gif"))
 
@@ -66,7 +84,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def cow(self, ctx, imgb: ToImage = None):
 		"""Holy cow!"""
 		async with ctx.typing():
-			buf = await cow_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, cow_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "cow.gif"))
 
@@ -85,8 +103,7 @@ class IMAGE(commands.Cog, name="Image"):
 		"""I'm a fan"""
 		async with ctx.typing():
 			circled = await circly(imgb or await ToImage.none(ctx), (100, 100))
-
-			buf = await fanning(circled)
+			buf = await self.cache_check(ctx, fanning, circled)
 
 			await ctx.reply(file=discord.File(buf, "fan.gif"))
 
@@ -95,28 +112,26 @@ class IMAGE(commands.Cog, name="Image"):
 	async def painting(self, ctx, imgb: ToImage = None):
 		"""Bob Rozz"""
 		async with ctx.typing():
-			buf = await oil_painting(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, oil_painting, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "oil_painting.gif"))
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def undilate(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def undilate(self, ctx, imgb: ToImage = None):
 		"""Remove water"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, undilating, imgb or await ToImage.none(ctx))
 
-			buf = await undilating(_input)
 			await ctx.reply(file=discord.File(buf, "undilate.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def dilate(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def dilate(self, ctx, imgb: ToImage = None):
 		"""Add water"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, dilating, imgb or await ToImage.none(ctx))
 
-			buf = await dilating(_input)
 			await ctx.reply(file=discord.File(buf, "dilate.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
@@ -133,72 +148,65 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def cloth(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def cloth(self, ctx, imgb: ToImage = None):
 		"""It's still wet"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, clothing, imgb or await ToImage.none(ctx))
 
-			buf = await clothing(_input)
 			await ctx.reply(file=discord.File(buf, "cloth.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def bubble(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def bubble(self, ctx, imgb: ToImage = None):
 		"""Blub blub"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, bubbling, imgb or await ToImage.none(ctx))
 
-			buf = await bubbling(_input)
 			await ctx.reply(file=discord.File(buf, "bubble.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def pattern(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def pattern(self, ctx, imgb: ToImage = None):
 		"""Stitch pattern"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, patterning, imgb or await ToImage.none(ctx))
 
-			buf = await patterning(_input)
 			await ctx.reply(file=discord.File(buf, "pattern.gif"), mention_author=False)
 
 	@commands.command(aliases=["ad", "advertize"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def ads(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def ads(self, ctx, imgb: ToImage = None):
 		"""CLICK FOR MORE!!!"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, advertizing, imgb or await ToImage.none(ctx))
 
-			buf = await advertizing(_input)
 			await ctx.reply(file=discord.File(buf, "ads.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL> [frequency=0.05] [amplitude<1|2|3|4|5>=3]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def wave(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, frequency: float=0.05, amplitude: typing.Literal[1, 2, 3, 4, 5]=3):
+	async def wave(self, ctx, imgb: ToImage = None, frequency: float=0.05, amplitude: typing.Literal[1, 2, 3, 4, 5]=3):
 		"""Me wavey wavey"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, waving, imgb or await ToImage.none(ctx), frequency, amplitude*10)
 
-			buf = await waving(_input, frequency, amplitude*10)
 			await ctx.reply(file=discord.File(buf, "wave.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def warp(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def warp(self, ctx, imgb: ToImage = None):
 		"""wwaaaaarrrpppp"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, warping, imgb or await ToImage.none(ctx))
 
-			buf = await warping(_input)
 			await ctx.reply(file=discord.File(buf, "warp.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def sensitive(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Emoji Movie pt.2"""
+	async def sensitive(self, ctx, imgb: ToImage = None):
+		"""! TW !"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, sensitiving, imgb or await ToImage.none(ctx))
 
-			buf = await sensitiving(_input)
 			await ctx.reply(file=discord.File(buf, "sensitive.gif"), mention_author=False)
 
 	@commands.command(aliases=["yt"], usage="<Member|User> <title>")
@@ -214,204 +222,183 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def matrix(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def matrix(self, ctx, imgb: ToImage = None):
 		"""9874730847802234"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, matrixing, imgb or await ToImage.none(ctx))
 
-			buf = await matrixing(_input)
 			await ctx.reply(file=discord.File(buf, "matrix.gif"), mention_author=False)
 
 	@commands.command(aliases=["pprz", "ppz"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def paparazzi(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def paparazzi(self, ctx, imgb: ToImage = None):
 		"""Going to Met Gala"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, paparazzing, imgb or await ToImage.none(ctx))
 
-			buf = await paparazzing(_input)
 			await ctx.reply(file=discord.File(buf, "paparazzi.gif"), mention_author=False)
 
 	@commands.command(name='print', usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def _print(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def _print(self, ctx, imgb: ToImage = None):
 		"""Out of ink"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, printing, imgb or await ToImage.none(ctx))
 
-			buf = await printing(_input)
 			await ctx.reply(file=discord.File(buf, "print.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL> <X|Y=X>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def shear(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, axis: typing.Literal['Y', 'y', 'X', 'x']='x'):
+	async def shear(self, ctx, imgb: ToImage = None, axis: typing.Literal['Y', 'y', 'X', 'x']='x'):
 		"""Shearing tears"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, shearing, imgb or await ToImage.none(ctx), axis)
 
-			buf = await shearing(_input, axis)
 			await ctx.reply(file=discord.File(buf, "shear.gif"), mention_author=False)
 
 	@commands.command(aliases=['magnifying'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def magnify(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def magnify(self, ctx, imgb: ToImage = None):
 		"""Detective business"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, magnifying, imgb or await ToImage.none(ctx))
 
-			buf = await magnifying(_input)
 			await ctx.reply(file=discord.File(buf, "magnify.gif"), mention_author=False)
 
 	@commands.command(aliases=['love', 'loves', 'heart'], usage="<User|Member|Emoji|URL> <rainbow=false>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def hearts(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, rainbow:bool=False):
+	async def hearts(self, ctx, imgb: ToImage = None, rainbow:bool=False):
 		"""Love is in the air"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
-
-			buf = await loving(_input, rainbow)
+			buf = await self.cache_check(ctx, loving, imgb or await ToImage.none(ctx), rainbow)
 			await ctx.reply(file=discord.File(buf, "hearts.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def cartoon(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def cartoon(self, ctx, imgb: ToImage = None):
 		"""Cartoonify"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, cartooning, imgb or await ToImage.none(ctx))
 
-			buf = await cartooning(_input)
 			await ctx.reply(file=discord.File(buf, "cartoon.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def canny(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def canny(self, ctx, imgb: ToImage = None):
 		"""Canny Edges"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, canning, imgb or await ToImage.none(ctx))
 
-			buf = await canning(_input)
 			await ctx.reply(file=discord.File(buf, "canny.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL> <level=2>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def boil(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, level:int=2):
+	async def boil(self, ctx, imgb: ToImage = None, level:int=2):
 		"""It's HOT!"""
 		async with ctx.typing():
 			if level < 1 or level > 5:
 				return await ctx.reply("Boiling level should be an integer between 1 and 5, inclusive.", mention_author=False)
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, boiling, imgb or await ToImage.none(ctx), level)
 
-			buf = await boiling(_input, level)
 			await ctx.reply(file=discord.File(buf, "boil.gif"), mention_author=False)
 
 	@commands.command(aliases=['abs'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def abstract(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def abstract(self, ctx, imgb: ToImage = None):
 		"""Piccasso"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, abstracting, imgb or await ToImage.none(ctx))
 
-			buf = await abstracting(_input)
 			await ctx.reply(file=discord.File(buf, "abstract.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def shock(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def shock(self, ctx, imgb: ToImage = None):
 		"""WHAT!"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, shocking, imgb or await ToImage.none(ctx))
 
-			buf = await shocking(_input)
 			await ctx.reply(file=discord.File(buf, "shock.gif"), mention_author=False)
 
 	@commands.command(aliases=["inf", "infinite"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def infinity(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def infinity(self, ctx, imgb: ToImage = None):
 		"""Never ending"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, infiniting, imgb or await ToImage.none(ctx))
 
-			buf = await infiniting(_input)
 			await ctx.reply(file=discord.File(buf, "infinity.gif"), mention_author=False)
 
 	@commands.command(aliases=['eq'], usage="<User|Member|Emoji|URL> <level=3>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def earthquake(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, power:int=3):
+	async def earthquake(self, ctx, imgb: ToImage = None, power:int=3):
 		"""SAVE YOURSELF"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, power, imgb or await ToImage.none(ctx))
 
-			buf = await earthquaking(_input, power)
-			await ctx.reply(file=discord.File(buf, "earth-quake.gif"), mention_author=False)
+			await ctx.reply(file=discord.File(buf, "earthquake.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def tv(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def tv(self, ctx, imgb: ToImage = None):
 		"""Look ma!"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, tving, imgb or await ToImage.none(ctx))
 
-			buf = await tving(_input)
 			await ctx.reply(file=discord.File(buf, "tv.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def roll(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def roll(self, ctx, imgb: ToImage = None):
 		"""Wheel simulator"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, rolling, imgb or await ToImage.none(ctx))
 
-			buf = await rolling(_input)
 			await ctx.reply(file=discord.File(buf, "roll.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def lamp(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def lamp(self, ctx, imgb: ToImage = None):
 		"""It's flickering..."""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, lamping, imgb or await ToImage.none(ctx))
 
-			buf = await lamping(_input)
 			await ctx.reply(file=discord.File(buf, "lamp.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def rain(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def rain(self, ctx, imgb: ToImage = None):
 		"""Bring your umbrella"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, raining, imgb or await ToImage.none(ctx))
 
-			buf = await raining(_input)
 			await ctx.reply(file=discord.File(buf, "rain.gif"), mention_author=False)
 
 	@commands.command(aliases=['optic'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def optics(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def optics(self, ctx, imgb: ToImage = None):
 		"""Optical Distortion"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, opticing, imgb or await ToImage.none(ctx))
 
-			buf = await opticing(_input)
 			await ctx.reply(file=discord.File(buf, "optics.gif"), mention_author=False)
 
 	@commands.command(name='half-invert', aliases=['hi', 'halfinvert', 'halfert'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def halfinvert(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def halfinvert(self, ctx, imgb: ToImage = None):
 		"""Why is it not full invertion?"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, halfinverting, imgb or await ToImage.none(ctx))
 
-			buf = await halfinverting(_input)
 			await ctx.reply(file=discord.File(buf, "half-invert.gif"), mention_author=False)
 
 	@commands.command(aliases=["kills"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def shoot(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Create a touching sort movie"""
+	async def shoot(self, ctx, imgb: ToImage = None):
+		"""A touching short movie"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, killing, imgb or await ToImage.none(ctx))
 
-			buf = await killing(_input)
 			await ctx.reply(file=discord.File(buf, "shoot.gif"), mention_author=False)
 
 	@commands.command(hidden=True)
@@ -438,32 +425,29 @@ class IMAGE(commands.Cog, name="Image"):
 	
 	@commands.command(aliases=['map'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def mcmap(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def mcmap(self, ctx, imgb: ToImage = None):
 		"""Minecraft map"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, mcmapping, imgb or await ToImage.none(ctx))
 
-			buf = await mcmapping(_input)
 			await ctx.reply(file=discord.File(buf, "mcmap.png"), mention_author=False)
 
 	@commands.command(aliases=['scroll', 'bar'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def bars(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def bars(self, ctx, imgb: ToImage = None):
 		"""Moving bars"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, scrolling, imgb or await ToImage.none(ctx))
 
-			buf = await scrolling(_input)
 			await ctx.reply(file=discord.File(buf, "scroll.gif"), mention_author=False)
 
 	@commands.command(aliases=["rev"], usage="<User|Member|Emoji|URL>", hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def reveal(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def reveal(self, ctx, imgb: ToImage = None):
 		"""Scroll away"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, revealing, imgb or await ToImage.none(ctx))
 
-			buf = await revealing(_input)
 			await ctx.reply(file=discord.File(buf, "reveal.gif"), mention_author=False)
 
 	@commands.command(aliases=["sub"], usage="<User|Member|Emoji|URL>", hidden=True)
@@ -482,151 +466,134 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(aliases=["rad"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def radiate(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def radiate(self, ctx, imgb: ToImage = None):
 		"""Radiates good energy"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, radiating, imgb or await ToImage.none(ctx))
 
-			buf = await radiating(_input)
 			await ctx.reply(file=discord.File(buf, "radiate.gif"), mention_author=False)
 
 	@commands.command(aliases=["gal"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def gallery(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def gallery(self, ctx, imgb: ToImage = None):
 		"""Create a moving gallery"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, moves, imgb or await ToImage.none(ctx))
 
-			buf = await moves(_input)
 			await ctx.reply(file=discord.File(buf, "gallery.gif"), mention_author=False)
 
 	@commands.command(aliases=["layer", "lay"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def layers(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def layers(self, ctx, imgb: ToImage = None):
 		"""Shows layers with mirror
 		Works on other gif
 		"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, layerss, imgb or await ToImage.none(ctx))
 
-			buf = await layerss(_input)
 			await ctx.reply(file=discord.File(buf, "layers.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def clock(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def clock(self, ctx, imgb: ToImage = None):
 		"""Tick-tock"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, clocking, imgb or await ToImage.none(ctx))
 
-			buf = await clocking(_input)
 			await ctx.reply(file=discord.File(buf, "pie.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def heat(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def heat(self, ctx, imgb: ToImage = None):
 		"""Feels like on the dessert"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, pixelle, imgb or await ToImage.none(ctx))
 
-			buf = await pixelle(_input)
 			await ctx.reply(file=discord.File(buf, "heat.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def fry(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def fry(self, ctx, imgb: ToImage = None):
 		"""Till golden brown"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, friedy, imgb or await ToImage.none(ctx))
 
-			buf = await friedy(_input)
 			await ctx.reply(file=discord.File(buf, "fry.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def blur(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def blur(self, ctx, imgb: ToImage = None):
 		"""I need glasses"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, blurrys, imgb or await ToImage.none(ctx))
 
-			buf = await blurrys(_input)
 			await ctx.reply(file=discord.File(buf, "outoffocus.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def explicit(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def explicit(self, ctx, imgb: ToImage = None):
 		"""Parental Advisory required"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, explicity, imgb or await ToImage.none(ctx))
 
-			buf = await explicity(_input)
 			await ctx.reply(file=discord.File(buf, "explicit_content.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def shift(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def shift(self, ctx, imgb: ToImage = None):
 		"""I'm not tripping, you are"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, shifty, imgb or await ToImage.none(ctx))
 
-			buf = await shifty(_input)
 			await ctx.reply(file=discord.File(buf, "shift.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def zoom(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def zoom(self, ctx, imgb: ToImage = None):
 		"""Zoom in"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, zoomie, imgb or await ToImage.none(ctx))
 
-			buf = await zoomie(_input)
 			await ctx.reply(file=discord.File(buf, "zoom.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def disco(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def disco(self, ctx, imgb: ToImage = None):
 		"""Discordtics"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, discotic, imgb or await ToImage.none(ctx))
 
-			buf = await discotic(_input)
 			await ctx.reply(file=discord.File(buf, "disco.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, aliases=['scanner'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def scan(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, *, flags=None):
+	async def scan(self, ctx, imgb: ToImage = None, *, flags=None):
 		"""Scan gifs"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
-
 			if flags and "--side" in flags:
-				buf = await time_scan_side(_input)
+				buf = await self.cache_check(ctx, time_scan_side, imgb or await ToImage.none(ctx))
 			else:
-				buf = await time_scan(_input)
+				buf = await self.cache_check(ctx, time_scan, imgb or await ToImage.none(ctx))
 			if not buf:
 				return await ctx.reply("Only accept gif member avatar, emojis, url, tenor formats.", mention_author=False)
 			await ctx.reply(file=discord.File(buf, "scan.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, aliases=['pats', 'pet', 'petpet'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def patpat(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def patpat(self, ctx, imgb: ToImage = None):
 		"""Pat-pat--"""
 		async with ctx.typing():
-			
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, patpats, imgb or await ToImage.none(ctx))
 
-			buf = await patpats(_input)
 			await ctx.reply(file=discord.File(buf, "patpat.gif"), mention_author=False)
 	
 	@commands.command(cooldown_after_parsing=True, aliases=['equation', 'equ'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 10, commands.BucketType.user)
-	async def equations(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def equations(self, ctx, imgb: ToImage = None):
 		"""You're confused"""
 		async with ctx.typing():
-			
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, equa, imgb or await ToImage.none(ctx))
 
-			buf = await equa(_input)
 			await ctx.reply(file=discord.File(buf, "equations.gif"), mention_author=False)
 	
 	@commands.command(aliases=['ava'], usage="<User|Member>")
@@ -660,24 +627,20 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def bomb(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def bomb(self, ctx, imgb: ToImage = None):
 		"""Incoming explosion!"""
 		async with ctx.typing():
+			buf = await self.cache_check(ctx, dabomb, imgb or await ToImage.none(ctx))
 
-			_input = await ctx.to_image(_input)
-
-			buf = await dabomb(_input)
 			await ctx.reply(file=discord.File(buf, "nuclear bomb.gif"), mention_author=False)
 
 	@commands.command(aliases=['hell', 'elmo', 'flame'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def burn(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def burn(self, ctx, imgb: ToImage = None):
 		"""HAHAHAHAH"""
 		async with ctx.typing():
+			buf = await self.cache_check(ctx, burning, imgb or await ToImage.none(ctx))
 
-			data = await ctx.to_image(_input)
-
-			buf = await burning(data)
 			await ctx.reply(file=discord.File(buf, "flaming elmo.gif"), mention_author=False)
 
 	@commands.command(aliases=['screams', 'screaming', 'AAA'])
@@ -742,13 +705,10 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(cooldown_after_parsing=True, name="bonk", usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def bonkyy(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def bonkyy(self, ctx, imgb: ToImage = None):
 		"""Bonk someone"""
 		async with ctx.typing():
-			
-			_input = await ctx.to_image(_input)
-
-			buf = await bonk(_input)
+			buf = await self.cache_check(ctx, bonk, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "bonked.gif"), mention_author=False)
 	
@@ -837,25 +797,22 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(cooldown_after_parsing=True, aliases=["ball"], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 10, commands.BucketType.user)
-	async def balls(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
+	async def balls(self, ctx, imgb: ToImage = None):
 		"""Ballz"""
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
+			buf = await self.cache_check(ctx, baller, imgb or await ToImage.none(ctx))
 
-			buf = await baller(_input)
 			await ctx.reply(file=discord.File(buf, "balls.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL> <level=3>")
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	async def glitch(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None, level:int=3):
+	async def glitch(self, ctx, imgb: ToImage = None, level:int=3):
 		"""Glitchify"""
 		if level < 1 or level > 10:
 			return ctx.reply("Glitch level must be between 1 and 10.", mention_author=False)
 
 		async with ctx.typing():
-			_input = await ctx.to_image(_input)
-
-			buf = await glitching(_input, level)
+			buf = await self.cache_check(ctx, glitching, imgb or await ToImage.none(ctx), level)
 			await ctx.reply(file=discord.File(buf, "glitch.gif"), mention_author=False)
 
 def setup(bot):

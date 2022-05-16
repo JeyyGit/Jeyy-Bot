@@ -4059,7 +4059,7 @@ def ripple_func(img):
 	grid.texture_map_to_plane(inplace=True)
 
 	pts = grid.points.copy()
-	plotter = pv.Plotter(notebook=False, off_screen=True, window_size=[300, 300])
+	plotter = pv.Plotter(notebook=False, off_screen=True, window_size=[300, 250])
 
 	frames = []
 	nframe = 15

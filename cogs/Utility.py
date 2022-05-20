@@ -1074,7 +1074,7 @@ class Utility(commands.Cog):
 				back_view.add_item(discord.ui.Button(label=f'Back to #{ctx.channel}', url=og.jump_url))
 				await msg.edit(view=back_view)
 			except:
-				return await ctx.reply('Could not send the result to your dm. Please make sure you have yout dm open.', mention_author=False)
+				return await ctx.reply('Could not send the result to your dm. Please make sure you have your dm open.', mention_author=False)
 			
 	@commands.command(hidden=True)
 	async def cari(self, ctx, *, cari):

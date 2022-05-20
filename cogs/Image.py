@@ -4,6 +4,7 @@ from io import BytesIO
 import discord
 import importlib
 import typing
+from collections import OrderedDict
 
 from utils import imaging, useful, converters
 importlib.reload(useful)
@@ -29,17 +30,17 @@ class IMAGE(commands.Cog, name="Image"):
 
 	async def cache_check(self, ctx, func, buf, *args):
 		cmd = ctx.command.qualified_name
-		img_data = list(Image.open(buf).getdata())
+		img_data = str(list(Image.open(buf).getdata()))
 
-		self.bot.image_cache.setdefault(cmd, Queue(25))
+		self.bot.image_cache.setdefault(cmd, OrderedDict())
 
-		for img_cache, img_result in self.bot.image_cache[cmd].queue:
-			if img_cache == img_data:
-				img_result.seek(0)
-				return img_result
-
+		result = self.bot.image_cache[cmd].get(img_data)
+		if result:
+			result.seek(0)
+			return result
+			
 		buf = await func(buf, *args)
-		self.bot.image_cache[cmd].put((img_data, buf))
+		self.bot.image_cache[cmd][img_data] = buf
 
 		return buf
 

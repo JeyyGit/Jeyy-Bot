@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(aliases=['flame'], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def fire(self, ctx, imgb: ToImage = None):
+		"""It's hot in here"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, fire_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "fire.gif"))
+
 	@commands.command(aliases=['gb_cam', 'gbc'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def gameboy_camera(self, ctx, imgb: ToImage = None):
@@ -637,7 +646,7 @@ class IMAGE(commands.Cog, name="Image"):
 
 			await ctx.reply(file=discord.File(buf, "nuclear bomb.gif"), mention_author=False)
 
-	@commands.command(aliases=['hell', 'elmo', 'flame'], usage="<User|Member|Emoji|URL>")
+	@commands.command(aliases=['hell', 'elmo'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def burn(self, ctx, imgb: ToImage = None):
 		"""HAHAHAHAH"""

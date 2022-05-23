@@ -141,10 +141,10 @@ class JeyyContext(commands.Context):
 
 		return _input
 
-	def to_df(self, img, **kwargs):
+	def to_df(self, img, duration=50, **kwargs):
 		if isinstance(img, list):
 			igif = BytesIO()
-			img[0].save(igif, format='GIF', append_images=img[1:], save_all=True, **kwargs)
+			img[0].save(igif, format='GIF', append_images=img[1:], save_all=True, duration=duration, **kwargs)
 			igif.seek(0)
 			return discord.File(igif, 'output.gif')
 		else:

@@ -4274,6 +4274,68 @@ def gameboy_camera_func(img):
 
 	return igif
 	
+@executor_function
+def fire_func(img):
+	img = Image.open(img)
+	colors = [(20, 21, 128), (33, 34, 182), (41, 53, 215), (41, 98, 232), (39, 115, 234)]
+
+	frames = []
+	if hasattr(img, 'n_frames') and img.n_frames > 1:
+		durations = []
+		for i, frame in enumerate(ImageSequence.Iterator(img)):
+			if i > 50:
+				break
+			frame = ImageOps.contain(frame, (300, 300)).convert('RGBA')
+			frame_np = cv2.cvtColor(np.array(frame), cv2.COLOR_RGBA2BGRA)
+			edges = cv2.Canny(frame_np, 300, 300)
+			indices = np.where(edges != [0])
+			blank = np.zeros((300, 300, 4), np.uint8)
+			for x, y in zip(indices[0], indices[1]):
+				for i in range(random.randint(5, 35)):
+					try:
+						if i < 3: pct = 0.5
+						elif i < 8: pct = 0.4
+						elif i < 15: pct = 0.3
+						elif i < 20: pct = 0.2
+						else: pct = 0.1
+						if random.random() < pct:
+							blank[abs(x-i)][y] = *random.choice(colors), 255
+					except:
+						...
+			is_success, buf = cv2.imencode(".png", blank)
+			buf = BytesIO(buf)
+			m = Image.open(buf)
+			frame.paste(m, (0, 0), m)
+			frames.append(frame)
+			durations.append(int(frame.info.get('duration', 50)))
+		return wand_gif(frames, durations)
+	else:
+		img = ImageOps.contain(img, (300, 300)).convert('RGBA')
+		img_np = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+		edges = cv2.Canny(img_np, 300, 300)
+		indices = np.where(edges != [0])
+		for _ in range(5):
+			frame = img.copy()
+			blank = np.zeros((300, 300, 4), np.uint8)
+			for x, y in zip(indices[0], indices[1]):
+				for i in range(random.randint(5, 35)):
+					try:
+						if i < 3: pct = 0.5
+						elif i < 8: pct = 0.4
+						elif i < 15: pct = 0.3
+						elif i < 20: pct = 0.2
+						else: pct = 0.1
+						if random.random() < pct:
+							blank[abs(x-i)][y] = *random.choice(colors), 255
+					except:
+						...
+			is_success, buf = cv2.imencode(".png", blank)
+			buf = BytesIO(buf)
+			m = Image.open(buf)
+			frame.paste(m, (0, 0), m)
+			frames.append(frame)
+
+		return wand_gif(frames, 50)
 
 #
 # Utility

@@ -42,7 +42,7 @@ class IMAGE(commands.Cog, name="Image"):
 		buf = await func(buf, *args)
 		self.bot.image_cache[cmd][img_data] = buf
 		if len(self.bot.image_cache[cmd]) > 25:
-			self.bot.image_cache.popitem(last=True)
+			self.bot.image_cache[cmd].popitem(last=True)
 
 		return buf
 

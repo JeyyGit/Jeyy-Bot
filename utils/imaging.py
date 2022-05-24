@@ -3034,7 +3034,7 @@ def opticing(img):
 		transform = alb.OpticalDistortion((0.2*i, 0.2*i), (0.1, 0.1), border_mode=cv2.BORDER_REFLECT_101, p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3067,7 +3067,7 @@ def raining(img):
 			transform = alb.RandomRain(blur_value=3, p=1, drop_length=20)
 			result = transform(image=npimg)['image']
 
-			is_success, buf = cv2.imencode(".png", result)
+			_, buf = cv2.imencode(".png", result)
 			buf = BytesIO(buf)
 			frame = Image.open(buf)
 
@@ -3087,7 +3087,7 @@ def raining(img):
 			transform = alb.RandomRain(blur_value=3, p=1, drop_length=20)
 			result = transform(image=img)['image']
 
-			is_success, buf = cv2.imencode(".png", result)
+			_, buf = cv2.imencode(".png", result)
 			buf = BytesIO(buf)
 			frame = Image.open(buf)
 
@@ -3116,7 +3116,7 @@ def lamping(img):
 		transform = alb.RandomBrightnessContrast(p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3143,7 +3143,7 @@ def rolling(img):
 		transform = alb.ShiftScaleRotate((0, 0), (0, 0), (i*4, i*4), p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3167,7 +3167,7 @@ def tving(img):
 	transform_optical = alb.OpticalDistortion((1.5, 1.5), (0.1, 0.1), p=1)
 
 	result = transform_optical(image=img)['image']
-	is_success, buf = cv2.imencode(".png", result)
+	_, buf = cv2.imencode(".png", result)
 	buf = BytesIO(buf)
 	bulb = ImageOps.crop(Image.open(buf), 20)
 
@@ -3179,7 +3179,7 @@ def tving(img):
 		transform_tv = alb.GaussNoise((8000, 10000), mean=0, p=1)
 		result = transform_tv(image=bulb)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		noise = Image.open(buf).convert('RGBA')
 		
@@ -3216,7 +3216,7 @@ def earthquaking(img, power):
 		transform = alb.MotionBlur((power*9, power*10), p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3243,7 +3243,7 @@ def infiniting(img):
 		transform = alb.GridDistortion(1, (i, i), p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3271,7 +3271,7 @@ def shocking(img):
 	for i in range(1, 6):
 		result = iaa.imgcorruptlike.ZoomBlur(i).augment_image(img)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3309,7 +3309,7 @@ def boiling(img, level):
 			npimg = cv2.cvtColor(np.array(bg), cv2.COLOR_RGB2BGR)
 			result = iaa.imgcorruptlike.ElasticTransform(severity=level).augment_image(npimg)
 
-			is_success, buf = cv2.imencode(".png", result)
+			_, buf = cv2.imencode(".png", result)
 			buf = BytesIO(buf)
 			frame = Image.open(buf)
 
@@ -3329,7 +3329,7 @@ def boiling(img, level):
 		for i in range(15):
 			result = iaa.imgcorruptlike.ElasticTransform(severity=level).augment_image(img)
 
-			is_success, buf = cv2.imencode(".png", result)
+			_, buf = cv2.imencode(".png", result)
 			buf = BytesIO(buf)
 			frame = Image.open(buf)
 
@@ -3356,7 +3356,7 @@ def abstracting(img):
 	for _ in range(10):
 		result = iaa.RegularGridVoronoi(n_rows=15, n_cols=15, p_drop_points=0.5, p_replace=1, max_size=None).augment_image(img)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3384,7 +3384,7 @@ def canning(img):
 		npimg = cv2.cvtColor(np.array(ImageOps.contain(frame.convert('RGB'), (300, 300))), cv2.COLOR_RGB2BGR)
 		result = iaa.Canny(1, sobel_kernel_size=4, colorizer=iaa.RandomColorsBinaryImageColorizer(color_true=255, color_false=0)).augment_image(npimg)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		new_frame = Image.open(buf)
 
@@ -3416,7 +3416,7 @@ def cartooning(img):
 		npimg = cv2.cvtColor(np.array(bg), cv2.COLOR_RGB2BGR)
 		result = iaa.Cartoon(edge_prevalence=1, seed=0).augment_image(npimg)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3508,7 +3508,7 @@ def shearing(img, axis):
 		else:
 			result = iaa.ShearY((i*7, i*7), cval=255).augment_image(img)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -3533,7 +3533,7 @@ def printing(img):
 
 	shear = iaa.ShearX((337, 337), cval=255, fit_output=True).augment_image(img)
 
-	is_success, buf = cv2.imencode(".png", shear)
+	_, buf = cv2.imencode(".png", shear)
 	buf = BytesIO(buf)
 	img = Image.open(buf).convert('RGBA').rotate(15, expand=True)
 
@@ -3597,7 +3597,7 @@ def paparazzing(img):
 		transform = alb.RandomBrightnessContrast(p=1)
 		result = transform(image=img)['image']
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 		canv = Image.new('RGB', (400, 225), 'white')
@@ -3660,7 +3660,7 @@ def emojifying(img):
 
 	# cnv = pf.build(A.f, A.d, thumbs, A.t, A.s, A.n, A.p, A.c)
 
-	# is_success, buf = cv2.imencode(".png", cnv)
+	# _, buf = cv2.imencode(".png", cnv)
 	# buf = BytesIO(buf)
 	# img = Image.open(buf).resize((400, 400))
 	# buf = BytesIO()
@@ -3959,7 +3959,7 @@ def dilating(img):
 	frames = []
 	for i in range(1, 100):
 		dst = cv2.dilate(img, kernel, iterations=i)
-		is_success, buf = cv2.imencode(".png", dst)
+		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
 	
@@ -3981,7 +3981,7 @@ def undilating(img):
 	durations = []
 	for i in range(100, 0, -1):
 		dst = cv2.dilate(img, kernel, iterations=i)
-		is_success, buf = cv2.imencode(".png", dst)
+		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
 		durations.append(50)
@@ -4008,7 +4008,7 @@ def oil_painting(img):
 		img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 		result = cv2.xphoto.oilPainting(img, 7, 3)
 
-		is_success, buf = cv2.imencode(".png", result)
+		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
@@ -4292,17 +4292,17 @@ def fire_func(img):
 			blank = np.zeros((300, 300, 4), np.uint8)
 			for x, y in zip(indices[0], indices[1]):
 				for i in range(random.randint(5, 35)):
+					if i < 3: pct = 0.5
+					elif i < 8: pct = 0.4
+					elif i < 15: pct = 0.3
+					elif i < 20: pct = 0.2
+					else: pct = 0.1
 					try:
-						if i < 3: pct = 0.5
-						elif i < 8: pct = 0.4
-						elif i < 15: pct = 0.3
-						elif i < 20: pct = 0.2
-						else: pct = 0.1
 						if random.random() < pct:
 							blank[abs(x-i)][y] = *random.choice(colors), 255
 					except:
 						...
-			is_success, buf = cv2.imencode(".png", blank)
+			_, buf = cv2.imencode(".png", blank)
 			buf = BytesIO(buf)
 			m = Image.open(buf)
 			frame.paste(m, (0, 0), m)
@@ -4329,7 +4329,7 @@ def fire_func(img):
 							blank[abs(x-i)][y] = *random.choice(colors), 255
 					except:
 						...
-			is_success, buf = cv2.imencode(".png", blank)
+			_, buf = cv2.imencode(".png", blank)
 			buf = BytesIO(buf)
 			m = Image.open(buf)
 			frame.paste(m, (0, 0), m)

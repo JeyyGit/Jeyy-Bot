@@ -1659,7 +1659,7 @@ def prosecutoring(name, text):
 # image
 # #
 
-def wand_gif(frames, durations):
+def wand_gif(frames, durations=50):
 
 	if isinstance(durations, int):
 		durations = [durations] * len(frames)
@@ -3025,9 +3025,9 @@ def halfinverting(img):
 @executor_function
 def opticing(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
-	bg = Image.new('RGBA', img.size, 'white')
-	bg.paste(img, (0, 0), img)
-	img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGBA2BGRA)
+	# bg = Image.new('RGBA', img.size, 'white')
+	# bg.paste(img, (0, 0), img)
+	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
 	for i in range(45):
@@ -3038,12 +3038,13 @@ def opticing(img):
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
-		fobj = BytesIO()
-		frame.save(fobj, "GIF")
-		frame = Image.open(fobj)
+		# fobj = BytesIO()
+		# frame.save(fobj, "GIF")
+		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	frames += frames[::-1]
+	return wand_gif(frames)
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
@@ -3055,11 +3056,12 @@ def opticing(img):
 def raining(img):
 	img = Image.open(img)
 	if img.is_animated:
-		duration = img.info['duration']
+		duration = []
 		frames = []
 		for i, frame in enumerate(ImageSequence.Iterator(img)):
 			if i > 100:
 				break
+			duration.append(frame.info.get('duuration', 50))
 			im = ImageOps.contain(frame.convert('RGBA'), (300, 300))
 			bg = Image.new('RGBA', im.size, 'white')
 			bg.paste(im, (0, 0), im)
@@ -3134,13 +3136,13 @@ def lamping(img):
 @executor_function
 def rolling(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
-	bg = Image.new('RGBA', img.size, 'white')
-	bg.paste(img, (0, 0), img)
-	img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGB2BGR)
+	# bg = Image.new('RGBA', img.size, 'white')
+	# bg.paste(img, (0, 0), img)
+	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
 	for i in range(0, 90, 2):
-		transform = alb.ShiftScaleRotate((0, 0), (0, 0), (i*4, i*4), p=1)
+		transform = alb.ShiftScaleRotate((0, 0), (0, 0), (i*4, i*4), p=1, border_mode=cv2.BORDER_TRANSPARENT)
 		result = transform(image=img)['image']
 
 		_, buf = cv2.imencode(".png", result)
@@ -3202,9 +3204,9 @@ def tving(img):
 @executor_function
 def earthquaking(img, power):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
-	bg = Image.new('RGBA', img.size, 'white')
-	bg.paste(img, (0, 0), img)
-	img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGBA2BGRA)
+	# bg = Image.new('RGBA', img.size, 'white')
+	# bg.paste(img, (0, 0), img)
+	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	if power < 1:
 		power = 1
@@ -3220,11 +3222,12 @@ def earthquaking(img, power):
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
-		fobj = BytesIO()
-		frame.save(fobj, "GIF")
-		frame = Image.open(fobj)
+		# fobj = BytesIO()
+		# frame.save(fobj, "GIF")
+		# frame = Image.open(fobj)
 		frames.append(frame)
 
+	return wand_gif(frames, 50)
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
 	igif.seek(0)
@@ -3234,9 +3237,9 @@ def earthquaking(img, power):
 @executor_function
 def infiniting(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
-	bg = Image.new('RGBA', img.size, 'white')
-	bg.paste(img, (0, 0), img)
-	img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGBA2BGRA)
+	# bg = Image.new('RGBA', img.size, 'white')
+	# bg.paste(img, (0, 0), img)
+	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
 	for i in range(90):
@@ -3247,13 +3250,15 @@ def infiniting(img):
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
 
-		fobj = BytesIO()
-		frame.save(fobj, "GIF")
-		frame = Image.open(fobj)
+		# fobj = BytesIO()
+		# frame.save(fobj, "GIF")
+		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	durations = [50]*90
 	durations[0] = 500
+	return wand_gif(frames, durations)
+
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
@@ -3953,7 +3958,7 @@ def dilating(img):
 	img = Image.open(img).convert('RGBA')
 	if img.size[0] > 400 or img.size[1] > 400:
 		img = ImageOps.contain(img, (400, 400))
-	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
 	frames = []
@@ -4277,7 +4282,10 @@ def gameboy_camera_func(img):
 @executor_function
 def fire_func(img):
 	img = Image.open(img)
-	colors = [(20, 21, 128), (33, 34, 182), (41, 53, 215), (41, 98, 232), (39, 115, 234)]
+	colors = [
+		(20, 21, 128), (33, 34, 182), (41, 53, 215), (41, 98, 232), (39, 115, 234),
+		(0, 90, 255), (0, 154, 255)
+	]
 
 	frames = []
 	if hasattr(img, 'n_frames') and img.n_frames > 1:
@@ -4336,6 +4344,27 @@ def fire_func(img):
 			frames.append(frame)
 
 		return wand_gif(frames, 50)
+
+@executor_function
+def endless_func(img):
+	img = Image.open(img)
+	pts1 = np.float32([[0, 0], [300, 0], [0, 300], [300, 300]])
+	pts2 = np.float32([[100, 200], [200, 200], [0, 301], [300, 301]])
+	M = cv2.getPerspectiveTransform(pts1, pts2)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 100:
+			break
+		durations.append(frame.info.get('duration', 50))
+		frame = cv2.cvtColor(np.array(frame.resize((300, 300)).convert('RGBA')), cv2.COLOR_RGBA2BGRA)
+		dst = cv2.warpPerspective(frame, M, (300, 300), borderMode=cv2.BORDER_WRAP)
+		_, buf = cv2.imencode(".png", dst)
+		buf = BytesIO(buf)
+		frames.append(Image.open(buf))
+
+	return wand_gif(frames, durations)
 
 #
 # Utility

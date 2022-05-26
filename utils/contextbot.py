@@ -12,9 +12,10 @@ import decouple
 import re
 
 
-from utils.useful import chunk, Queue, Prey
+from utils.useful import chunk, Queue
 from utils.paginator import Paginator
 from utils.imaging import wand_gif
+from utils.converters import ToImage
 
 
 url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
@@ -111,6 +112,8 @@ class JeyyContext(commands.Context):
 		if _input is None:
 			_input = BytesIO(await self.author.display_avatar.read())
 			_input.seek(0)
+		elif isinstance(_input, int):
+			return await ToImage().convert(self, str(_input))
 		elif isinstance(_input, discord.Emoji | discord.PartialEmoji):
 			_input = BytesIO(await _input.read())
 			_input.seek(0)

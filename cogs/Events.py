@@ -206,7 +206,7 @@ class Events(commands.Cog):
 		Bots : {len([m for m in guild.members if m.bot])}
 		Created at: {discord.utils.format_dt(guild.created_at, 'F')}
 		""", color=self.bot.c)
-		embed.set_thumbnail(url=guild.icon.url)
+		embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
 		embed.set_footer(text=f"Now in {len(self.bot.guilds)} servers with {sum(g.member_count for g in self.bot.guilds)} members.", icon_url=self.bot.user.avatar.url)
 		await self.bot.get_channel(779893084791635969).send(embed=embed)
 
@@ -224,7 +224,7 @@ class Events(commands.Cog):
 		Bots : {len([m for m in guild.members if m.bot])}
 		Created at: {discord.utils.format_dt(guild.created_at, 'F')}
 		""", color=self.bot.c)
-		embed.set_thumbnail(url=guild.icon.url)
+		embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
 		embed.set_footer(text=f"Now in {len(self.bot.guilds)} servers with {sum([g.member_count for g in self.bot.guilds])} members.", icon_url=self.bot.user.avatar.url)
 		await self.bot.get_channel(779893084791635969).send(embed=embed)
 

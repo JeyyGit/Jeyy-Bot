@@ -77,7 +77,8 @@ class JeyyContext(commands.Context):
 			buf = BytesIO(await self.message.reference.resolved.attachments[0].read())
 			buf.seek(0)
 			return buf
-		elif self.message.reference and self.message.reference.resolved.content:
+		elif (ref := self.message.reference) and (content := ref.resolved.content):
+			return await ToImage().convert(content)
 			url = re.findall(url_regex, self.message.reference.resolved.content)
 			if not url:
 				url = await emoji_to_url(_input)
@@ -103,7 +104,7 @@ class JeyyContext(commands.Context):
 				_input.seek(0)
 				return _input
 	
-		if self.message.stickers and self.message.stickers[0].format != discord.StickerFormatType.lottie:
+		if (stickers := self.message.stickers) and stickers[0].format != discord.StickerFormatType.lottie:
 			response = await self.bot.session.get(self.message.stickers[0].url)
 			buf = BytesIO(await response.read())
 			buf.seek(0)

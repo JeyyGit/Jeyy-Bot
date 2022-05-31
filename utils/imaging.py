@@ -4358,13 +4358,65 @@ def endless_func(img):
 		if i > 100:
 			break
 		durations.append(frame.info.get('duration', 50))
-		frame = cv2.cvtColor(np.array(frame.resize((300, 300)).convert('RGBA')), cv2.COLOR_RGBA2BGRA)
+		frame = cv2.cvtColor(np.array(ImageOps.contain(frame.convert('RGBA'), (300, 300))), cv2.COLOR_RGBA2BGRA)
 		dst = cv2.warpPerspective(frame, M, (300, 300), borderMode=cv2.BORDER_WRAP)
 		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
 
 	return wand_gif(frames, durations)
+
+@executor_function
+def bayer_func(img):
+	img = Image.open(img)
+	frames = []
+	durations = []
+	for frame in ImageSequence.Iterator(img):
+		if frame.tell() > 100:
+			break
+		durations.append(frame.info.get('duration', 50))
+		npa = np.array(ImageOps.contain(frame.convert('RGB'), (100, 100), Image.BICUBIC), dtype=np.uint8)
+		w, h, _ = npa.shape
+		ra = np.zeros((2*w, 2*h, 3), dtype=np.uint8)
+		ra[::2, ::2, 2] = npa[:, :, 2]
+		ra[1::2, ::2, 1] = npa[:, :, 1]
+		ra[::2, 1::2, 1] = npa[:, :, 1]
+		ra[1::2, 1::2, 0] = npa[:, :, 0]
+		frames.append(ImageOps.contain(Image.fromarray(ra, "RGB"), (300, 300)))
+
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
+	igif.seek(0)
+
+	return igif
+
+@executor_function
+def slice_func(img):
+	img = ImageOps.fit(Image.open(img), (512, 512)).convert('RGBA')
+	npa = np.array(img)
+	frames = []
+	frames.append(img)
+	for i in range(1, 8):
+		if i % 2 == 0:
+			for x in range(512):
+				w = int(512 / 2 ** i)
+				if x % w // (w//2) == 0:
+					npa[x] = np.roll(npa[x], w)
+				else:
+					npa[x] = np.roll(npa[x], -w)
+			npa = np.rot90(npa)
+			frames.append(Image.fromarray(npa).rotate(0))
+		else:
+			for x in range(512):
+				w = int(512 / 2 ** i)
+				if x % w // (w//2) == 0:
+					npa[x] = np.roll(npa[x], w)
+				else:
+					npa[x] = np.roll(npa[x], -w)
+			npa = np.rot90(npa, -1)
+			frames.append(Image.fromarray(np.rot90(npa)).rotate(0))
+
+	return wand_gif(frames, 1000)
 
 #
 # Utility

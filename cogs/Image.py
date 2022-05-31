@@ -48,6 +48,24 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def slice(self, ctx, imgb: ToImage = None):
+		"""Thin slices"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, slice_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "slice.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def bayer(self, ctx, imgb: ToImage = None):
+		"""Bayer filter"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, bayer_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "bayer.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def endless(self, ctx, imgb: ToImage = None):
 		"""Un-ending"""
 		async with ctx.typing():

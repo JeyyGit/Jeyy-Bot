@@ -323,6 +323,7 @@ if True:
 	golf_flag = Image.open("./image/golf/flag.png").convert("RGBA")#.resize((15, 15))
 	font_arial = ImageFont.truetype("./image/arial.ttf", 24)
 	font_arial2 = ImageFont.truetype("./image/arial.ttf", 12)
+	font_arial3 = ImageFont.truetype("./image/arial.ttf", 20)
 
 	red_carpet = Image.open('./image/redcarpet.png').convert('RGBA')
 	flashes = Image.open('./image/Paparazzi_flashes.gif')
@@ -4417,6 +4418,56 @@ def slice_func(img):
 			frames.append(Image.fromarray(np.rot90(npa)).rotate(0))
 
 	return wand_gif(frames, 1000)
+
+@executor_function
+def spikes_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	w, h = img.size
+	line_length = 20
+	frames = []
+	for _ in range(10):
+		canv = Image.new('RGBA', (w, h))
+		draw = ImageDraw.Draw(canv)
+		for _ in range(5000):
+			x1, y1 = random.randint(20, w-20), random.randint(20, h-20)
+			angle = random.randint(0, 360)
+			x2, y2 = x1 + line_length * math.cos(angle), y1 + line_length*math.sin(angle)
+			mx, my = (x2 + x1) / 2, (y2 + y1) / 2
+			draw.line([x1, y1, x2, y2], img.getpixel((mx, my)))
+		frames.append(canv)
+	return wand_gif(frames, 100)
+
+@executor_function
+def blocks_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	w, h = img.size
+	line_length = 20
+	frames = []
+	for _ in range(10):
+		canv = Image.new('RGBA', (w, h))
+		draw = ImageDraw.Draw(canv)
+		for _ in range(5000):
+			x1, y1 = random.randint(20, w-20), random.randint(20, h-20)
+			angle = random.randint(0, 360)
+			x2, y2 = x1 + line_length * math.cos(angle), y1 + line_length*math.sin(angle)
+			mx, my = (x2 + x1) / 2, (y2 + y1) / 2
+			draw.rectangle([x1, y1, x2, y2], img.getpixel((mx, my)))
+		frames.append(canv)
+	return wand_gif(frames, 100)
+
+@executor_function
+def letters_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	w, h = img.size
+	frames = []
+	for _ in range(10):
+		canv = Image.new('RGBA', (w, h))
+		draw = ImageDraw.Draw(canv)
+		for _ in range(1000):
+			x, y = random.randint(20, w-20), random.randint(20, h-20)
+			draw.text([x, y], random.choice(string.ascii_letters), img.getpixel((x, y)), font_arial3, 'mm')
+		frames.append(canv)
+	return wand_gif(frames, 100)
 
 #
 # Utility

@@ -48,6 +48,33 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def letters(self, ctx, imgb: ToImage = None):
+		"""Learn ABC"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, letters_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "letters.gif"))
+
+	@commands.command(aliases=['block', 'rectangle', 'rectangles', 'rect', 'rects'], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def blocks(self, ctx, imgb: ToImage = None):
+		"""Blocky art"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, blocks_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "blocks.gif"))
+
+	@commands.command(aliases=['spike', 'line', 'lines'], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def spikes(self, ctx, imgb: ToImage = None):
+		"""Sharp edges"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, spikes_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "spikes.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def slice(self, ctx, imgb: ToImage = None):
 		"""Thin slices"""
 		async with ctx.typing():

@@ -1,10 +1,7 @@
 from akinator.async_aki import Akinator
 from discord.ext import commands
-from io import BytesIO, StringIO
+from io import BytesIO
 import aiohttp
-import akinator
-import asyncio
-import datetime as dt
 import discord
 import importlib
 import json
@@ -14,8 +11,9 @@ import re
 import typing
 import xkcd
 
-from utils import views
+from utils import views, converters
 importlib.reload(views)
+importlib.reload(converters)
 
 from utils.views import (
 	ConfirmView,
@@ -23,6 +21,8 @@ from utils.views import (
 	DeleteView,
 	AkiView
 )
+
+from utils.converters import ToImage
 
 url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
@@ -112,6 +112,22 @@ class Api(commands.Cog):
 			delview.message = await ctx.reply(embed=embed, view=delview, delete_after=60, mention_author=False)
 		else:
 			await ctx.reply("That command is NSFW. You can open it on NSFW channel only.", mention_author=False)
+
+	@commands.command()
+	@commands.cooldown(1, 5, commands.BucketType.channel)
+	async def dream(self, ctx, image: ToImage = None):
+		async with ctx.typing():
+			buf = image or await ToImage.none(ctx)
+			r = await self.bot.session.post(
+				'https://api.deepai.org/api/deepdream', 
+				data={'image': buf.read()}, 
+				headers={'api-key': ctx.keys('DEEPAIKEY')}
+			)
+			js = await r.json()
+			res = await self.bot.session.get(js['output_url'])
+			buf = BytesIO(await res.read())
+			buf.seek(0)
+		await ctx.reply(file=discord.File(buf, 'dream.png'))
 
 	@commands.command(cooldown_after_parsing=True, hidden=True)
 	@commands.cooldown(1, 5, commands.BucketType.user)

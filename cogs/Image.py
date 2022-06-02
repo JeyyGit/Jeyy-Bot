@@ -169,7 +169,7 @@ class IMAGE(commands.Cog, name="Image"):
 		"""I'm a fan"""
 		async with ctx.typing():
 			circled = await circly(imgb or await ToImage.none(ctx), (100, 100))
-			buf = await self.cache_check(ctx, fanning, circled)
+			buf = await self.cache_check(ctx, fan_func, circled)
 
 			await ctx.reply(file=discord.File(buf, "fan.gif"))
 
@@ -178,7 +178,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def undilate(self, ctx, imgb: ToImage = None):
 		"""Remove water"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, undilating, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, undilate_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "undilate.gif"), mention_author=False)
 
@@ -187,7 +187,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def dilate(self, ctx, imgb: ToImage = None):
 		"""Add water"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, dilating, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, dilate_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "dilate.gif"), mention_author=False)
 
@@ -200,7 +200,7 @@ class IMAGE(commands.Cog, name="Image"):
 
 			img = await ctx.to_image(user)
 
-			buf = await logoffing(img)
+			buf = await logoff_func(img)
 			await ctx.reply(f'> {user} logging off discord <a:discordwhite:846643324790243339>', file=discord.File(buf, 'logoff.gif'), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
@@ -208,7 +208,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def cloth(self, ctx, imgb: ToImage = None):
 		"""It's still wet"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, clothing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, cloth_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "cloth.gif"), mention_author=False)
 
@@ -217,7 +217,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def bubble(self, ctx, imgb: ToImage = None):
 		"""Blub blub"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, bubbling, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, bubble_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "bubble.gif"), mention_author=False)
 
@@ -226,7 +226,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def pattern(self, ctx, imgb: ToImage = None):
 		"""Stitch pattern"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, patterning, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, pattern_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "pattern.gif"), mention_author=False)
 
@@ -235,7 +235,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def ads(self, ctx, imgb: ToImage = None):
 		"""CLICK FOR MORE!!!"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, advertizing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, advertize_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "ads.gif"), mention_author=False)
 
@@ -253,7 +253,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def warp(self, ctx, imgb: ToImage = None):
 		"""wwaaaaarrrpppp"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, warping, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, warp_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "warp.gif"), mention_author=False)
 
@@ -262,7 +262,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def sensitive(self, ctx, imgb: ToImage = None):
 		"""! TW !"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, sensitiving, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, sensitive_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "sensitive.gif"), mention_author=False)
 
@@ -273,7 +273,7 @@ class IMAGE(commands.Cog, name="Image"):
 		async with ctx.typing():
 			pfp = BytesIO(await author.display_avatar.read())
 
-			buf = await youtubing(pfp, author.name, title)
+			buf = await youtube_func(pfp, author.name, title)
 
 			await ctx.reply(file=discord.File(buf, "youtube.gif"), mention_author=False)
 
@@ -282,7 +282,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def matrix(self, ctx, imgb: ToImage = None):
 		"""9874730847802234"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, matrixing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, matrix_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "matrix.gif"), mention_author=False)
 
@@ -291,7 +291,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def paparazzi(self, ctx, imgb: ToImage = None):
 		"""Going to Met Gala"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, paparazzing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, paparazzi_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "paparazzi.gif"), mention_author=False)
 
@@ -300,7 +300,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def _print(self, ctx, imgb: ToImage = None):
 		"""Out of ink"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, printing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, print_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "print.gif"), mention_author=False)
 
@@ -309,7 +309,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def shear(self, ctx, imgb: ToImage = None, axis: typing.Literal['Y', 'y', 'X', 'x']='x'):
 		"""Shearing tears"""
 		async with ctx.typing():
-			buf = await shearing(imgb or await ToImage.none(ctx), axis)
+			buf = await shear_func(imgb or await ToImage.none(ctx), axis)
 
 			await ctx.reply(file=discord.File(buf, "shear.gif"), mention_author=False)
 
@@ -318,7 +318,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def magnify(self, ctx, imgb: ToImage = None):
 		"""Detective business"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, magnifying, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, magnify_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "magnify.gif"), mention_author=False)
 
@@ -327,7 +327,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def hearts(self, ctx, imgb: ToImage = None, rainbow:bool=False):
 		"""Love is in the air"""
 		async with ctx.typing():
-			buf = await loving(imgb or await ToImage.none(ctx), rainbow)
+			buf = await love_func(imgb or await ToImage.none(ctx), rainbow)
 			await ctx.reply(file=discord.File(buf, "hearts.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
@@ -335,7 +335,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def cartoon(self, ctx, imgb: ToImage = None):
 		"""Cartoonify"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, cartooning, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, cartoon_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "cartoon.gif"), mention_author=False)
 
@@ -344,7 +344,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def canny(self, ctx, imgb: ToImage = None):
 		"""Canny Edges"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, canning, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, canny_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "canny.gif"), mention_author=False)
 
@@ -355,7 +355,7 @@ class IMAGE(commands.Cog, name="Image"):
 		async with ctx.typing():
 			if level < 1 or level > 5:
 				return await ctx.reply("Boiling level should be an integer between 1 and 5, inclusive.", mention_author=False)
-			buf = await boiling(imgb or await ToImage.none(ctx), level)
+			buf = await boil_func(imgb or await ToImage.none(ctx), level)
 
 			await ctx.reply(file=discord.File(buf, "boil.gif"), mention_author=False)
 
@@ -364,7 +364,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def abstract(self, ctx, imgb: ToImage = None):
 		"""Piccasso"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, abstracting, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, abstract_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "abstract.gif"), mention_author=False)
 
@@ -373,7 +373,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def shock(self, ctx, imgb: ToImage = None):
 		"""WHAT!"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, shocking, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, shock_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "shock.gif"), mention_author=False)
 
@@ -382,7 +382,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def infinity(self, ctx, imgb: ToImage = None):
 		"""Never ending"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, infiniting, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, infinity_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "infinity.gif"), mention_author=False)
 
@@ -391,7 +391,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def earthquake(self, ctx, imgb: ToImage = None, power:int=3):
 		"""SAVE YOURSELF"""
 		async with ctx.typing():
-			buf = await earthquaking(imgb or await ToImage.none(ctx), power)
+			buf = await earthquake_func(imgb or await ToImage.none(ctx), power)
 
 			await ctx.reply(file=discord.File(buf, "earthquake.gif"), mention_author=False)
 
@@ -400,7 +400,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def tv(self, ctx, imgb: ToImage = None):
 		"""Look ma!"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, tving, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, tv_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "tv.gif"), mention_author=False)
 
@@ -409,7 +409,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def roll(self, ctx, imgb: ToImage = None):
 		"""Wheel simulator"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, rolling, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, roll_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "roll.gif"), mention_author=False)
 
@@ -418,7 +418,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def lamp(self, ctx, imgb: ToImage = None):
 		"""It's flickering..."""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, lamping, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, lamp_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "lamp.gif"), mention_author=False)
 
@@ -427,7 +427,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def rain(self, ctx, imgb: ToImage = None):
 		"""Bring your umbrella"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, raining, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, rain_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "rain.gif"), mention_author=False)
 
@@ -436,7 +436,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def optics(self, ctx, imgb: ToImage = None):
 		"""Optical Distortion"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, opticing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, optic_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "optics.gif"), mention_author=False)
 
@@ -445,7 +445,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def halfinvert(self, ctx, imgb: ToImage = None):
 		"""Why is it not full invertion?"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, halfinverting, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, halfinvert_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "half-invert.gif"), mention_author=False)
 
@@ -454,7 +454,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def shoot(self, ctx, imgb: ToImage = None):
 		"""A touching short movie"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, killing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, shoot_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "shoot.gif"), mention_author=False)
 
@@ -477,7 +477,7 @@ class IMAGE(commands.Cog, name="Image"):
 
 			authors = authors[:3]
 			authors = [BytesIO(await auth.avatar.read()) for auth in authors]
-			buf = await historing(authors)
+			buf = await history_func(authors)
 		await ctx.reply(file=discord.File(buf, "recent.gif"), mention_author=False)
 	
 	@commands.command(aliases=['map'], usage="<User|Member|Emoji|URL>")
@@ -485,7 +485,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def mcmap(self, ctx, imgb: ToImage = None):
 		"""Minecraft map"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, mcmapping, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, mcmap_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "mcmap.png"), mention_author=False)
 
@@ -494,7 +494,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def bars(self, ctx, imgb: ToImage = None):
 		"""Moving bars"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, scrolling, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, scroll_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "scroll.gif"), mention_author=False)
 
@@ -503,7 +503,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def reveal(self, ctx, imgb: ToImage = None):
 		"""Scroll away"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, revealing, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, reveal_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "reveal.gif"), mention_author=False)
 
@@ -518,7 +518,7 @@ class IMAGE(commands.Cog, name="Image"):
 			_input1 = await ctx.to_image(_input1)
 			_input2 = await ctx.to_image(_input2)
 
-			buf = await subtracting(_input1, _input2)
+			buf = await subtract_func(_input1, _input2)
 			await ctx.reply(file=discord.File(buf, "subtract.gif"), mention_author=False)
 
 	@commands.command(aliases=["rad"], usage="<User|Member|Emoji|URL>")
@@ -526,7 +526,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def radiate(self, ctx, imgb: ToImage = None):
 		"""Radiates good energy"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, radiating, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, radiate_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "radiate.gif"), mention_author=False)
 
@@ -535,7 +535,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def gallery(self, ctx, imgb: ToImage = None):
 		"""Create a moving gallery"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, moves, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, gallery_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "gallery.gif"), mention_author=False)
 
@@ -546,7 +546,7 @@ class IMAGE(commands.Cog, name="Image"):
 		Works on other gif
 		"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, layerss, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, layer_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "layers.gif"), mention_author=False)
 
@@ -555,7 +555,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def clock(self, ctx, imgb: ToImage = None):
 		"""Tick-tock"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, clocking, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, clock_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "pie.gif"), mention_author=False)
 
@@ -564,7 +564,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def heat(self, ctx, imgb: ToImage = None):
 		"""Feels like on the dessert"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, pixelle, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, pixel_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "heat.gif"), mention_author=False)
 
@@ -573,7 +573,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def fry(self, ctx, imgb: ToImage = None):
 		"""Till golden brown"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, friedy, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, fry_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "fry.gif"), mention_author=False)
 
@@ -582,7 +582,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def blur(self, ctx, imgb: ToImage = None):
 		"""I need glasses"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, blurrys, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, blur_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "outoffocus.gif"), mention_author=False)
 
@@ -591,7 +591,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def explicit(self, ctx, imgb: ToImage = None):
 		"""Parental Advisory required"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, explicity, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, explicit_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "explicit_content.gif"), mention_author=False)
 
@@ -600,7 +600,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def shift(self, ctx, imgb: ToImage = None):
 		"""I'm not tripping, you are"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, shifty, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, shift_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "shift.gif"), mention_author=False)
 
@@ -609,7 +609,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def zoom(self, ctx, imgb: ToImage = None):
 		"""Zoom in"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, zoomie, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, zoom_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "zoom.gif"), mention_author=False)
 
@@ -618,7 +618,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def disco(self, ctx, imgb: ToImage = None):
 		"""Discordtics"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, discotic, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, discotic_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "disco.gif"), mention_author=False)
 
@@ -628,9 +628,9 @@ class IMAGE(commands.Cog, name="Image"):
 		"""Scan gifs"""
 		async with ctx.typing():
 			if flags and "--side" in flags:
-				buf = await self.cache_check(ctx, time_scan_side, imgb or await ToImage.none(ctx))
+				buf = await self.cache_check(ctx, time_scan_side_func, imgb or await ToImage.none(ctx))
 			else:
-				buf = await self.cache_check(ctx, time_scan, imgb or await ToImage.none(ctx))
+				buf = await self.cache_check(ctx, time_scan_func, imgb or await ToImage.none(ctx))
 			if not buf:
 				return await ctx.reply("Only accept gif member avatar, emojis, url, tenor formats.", mention_author=False)
 			await ctx.reply(file=discord.File(buf, "scan.gif"), mention_author=False)
@@ -640,7 +640,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def patpat(self, ctx, imgb: ToImage = None):
 		"""Pat-pat--"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, patpats, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, patpat_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "patpat.gif"), mention_author=False)
 	
@@ -649,7 +649,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def equations(self, ctx, imgb: ToImage = None):
 		"""You're confused"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, equa, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, equation_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "equations.gif"), mention_author=False)
 	
@@ -679,7 +679,7 @@ class IMAGE(commands.Cog, name="Image"):
 				dataD = await ctx.to_image(bonked)
 				dataR = await ctx.to_image(bonker)
 			
-			buf = await nohorni(dataD, dataR)
+			buf = await nohorni_func(dataD, dataR)
 			await ctx.reply(file=discord.File(buf, "hornijail.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
@@ -687,7 +687,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def bomb(self, ctx, imgb: ToImage = None):
 		"""Incoming explosion!"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, dabomb, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, bomb_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "nuclear bomb.gif"), mention_author=False)
 
@@ -696,7 +696,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def burn(self, ctx, imgb: ToImage = None):
 		"""HAHAHAHAH"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, burning, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, burn_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "flaming elmo.gif"), mention_author=False)
 
@@ -712,7 +712,7 @@ class IMAGE(commands.Cog, name="Image"):
 			data = BytesIO(await asset.read())
 			data.seek(0)
 
-			buf = await screamm(data)
+			buf = await scream_func(data)
 			await ctx.reply(file=discord.File(buf, "screaam.gif"), mention_author=False)
 
 	@commands.command()
@@ -727,7 +727,7 @@ class IMAGE(commands.Cog, name="Image"):
 			data = BytesIO(await asset.read())
 			data.seek(0)
 
-			buf = await whyy(data)
+			buf = await why_func(data)
 			await ctx.reply(file=discord.File(buf, "screaam.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, aliases=['sob', 'crying'])
@@ -742,7 +742,7 @@ class IMAGE(commands.Cog, name="Image"):
 			data = BytesIO(await asset.read())
 			data.seek(0)
 
-			buf = await eughh(data)
+			buf = await eugh_func(data)
 			await ctx.reply(file=discord.File(buf, "eugh.gif"), mention_author=False)
 
 	@commands.command(aliases=['buffer'])
@@ -757,7 +757,7 @@ class IMAGE(commands.Cog, name="Image"):
 			data = BytesIO(await asset.read())
 			data.seek(0)
 
-			buf = await bufff(data)
+			buf = await buffering_func(data)
 			await ctx.reply(file=discord.File(buf, "uhhhh.gif"), mention_author=False)
 
 	@commands.command(cooldown_after_parsing=True, name="bonk", usage="<User|Member|Emoji|URL>")
@@ -765,7 +765,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def bonkyy(self, ctx, imgb: ToImage = None):
 		"""Bonk someone"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, bonk, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, bonk_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "bonked.gif"), mention_author=False)
 	
@@ -857,7 +857,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def balls(self, ctx, imgb: ToImage = None):
 		"""Ballz"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, baller, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, ball_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "balls.gif"), mention_author=False)
 
@@ -869,7 +869,7 @@ class IMAGE(commands.Cog, name="Image"):
 			return ctx.reply("Glitch level must be between 1 and 10.", mention_author=False)
 
 		async with ctx.typing():
-			buf = await glitching(imgb or await ToImage.none(ctx), level)
+			buf = await glitch_func(imgb or await ToImage.none(ctx), level)
 			await ctx.reply(file=discord.File(buf, "glitch.gif"), mention_author=False)
 
 def setup(bot):

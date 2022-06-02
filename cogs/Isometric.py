@@ -30,8 +30,8 @@ from utils.imaging import (
 	letters,
 	codes,
 	codeses,
-	isometric_draw,
-	iso_gif,
+	isometric_func,
+	isometric_gif_func,
 	land,
 	lever_gif,
 	img_to_iso,
@@ -42,12 +42,12 @@ from utils.imaging import (
 	liquid,
 	wordle_keyboard,
 	wordle_statistic,
-	wordling,
+	wordle_func,
 	create_stat,
 	typeracing,
-	attorning,
-	prosecutoring,
-	golfie
+	attorney_func,
+	prosecutor_func,
+	golf_func
 )
 
 from utils.views import (
@@ -175,7 +175,7 @@ class Fun(commands.Cog):
 							blocks1 = logic(blocks1)
 
 					blocks1 = blocks1.split()
-					buf1, c = await self.bot.loop.run_in_executor(None, isometric_draw, blocks1)
+					buf1, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks1)
 					# channel = self.bot.get_channel(851740000814628915) or self.bot.fetch_channel(851740000814628915)
 
 					blocks2 = blocks.replace('e', '／')
@@ -190,7 +190,7 @@ class Fun(commands.Cog):
 							blocks2 = logic(blocks2)
 
 					blocks2 = blocks2.split()
-					buf2, c = await self.bot.loop.run_in_executor(None, isometric_draw, blocks2)
+					buf2, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks2)
 
 					if not lgif:
 						# first = await channel.send(file=discord.File(buf1, "firststate.png"))
@@ -228,7 +228,7 @@ class Fun(commands.Cog):
 					if len(blocks) > 1:
 						blocks.pop()
 
-					igif, c = await iso_gif(blocks, "")
+					igif, c = await isometric_gif_func(blocks, "")
 
 					if not igif:
 							return await ctx.reply("Render time exceeds 15s limit.", mention_author=False)
@@ -256,7 +256,7 @@ class Fun(commands.Cog):
 						blocks.pop()
 						blocks.pop()
 
-						igif, c = await iso_gif(blocks, loop)
+						igif, c = await isometric_gif_func(blocks, loop)
 						if not igif:
 							return await ctx.reply("Render time exceeds 15s limit.", mention_author=False)
 						if c > 1000:
@@ -280,7 +280,7 @@ class Fun(commands.Cog):
 						# await ctx.send(f"processed code:\n```{blocks}```") ####	
 						
 						blocks = blocks.split()
-						buf, c = await self.bot.loop.run_in_executor(None, isometric_draw, blocks)
+						buf, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks)
 						end = time.perf_counter()
 						t = end - start
 						t = si_format(t, 4)+'s'
@@ -295,7 +295,7 @@ class Fun(commands.Cog):
 					if 'f' in blocks:
 						blocks = fences(blocks)
 					blocks = blocks.split()
-					buf, c = await self.bot.loop.run_in_executor(None, isometric_draw, blocks)
+					buf, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks)
 					end = time.perf_counter()
 					t = end - start
 					t = si_format(t, 4)+'s'
@@ -918,7 +918,7 @@ class Fun(commands.Cog):
 			return (message.channel == ctx.channel and message.author == ctx.author) or wordle_view.exit
 
 		while len([g for g in guesses if g is not None]) < 6 and guess.content.lower() != word:
-			board = await wordling(word, guesses)
+			board = await wordle_func(word, guesses)
 			keyboard = await wordle_keyboard(word, guesses)
 			board_file = discord.File(board, 'wordle.png')
 			keyboard_file = discord.File(keyboard, 'keyboard.png')
@@ -955,7 +955,7 @@ class Fun(commands.Cog):
 				await self.bot.db.execute('UPDATE wordle_stat SET played = played + 1 WHERE user_id = $1', ctx.author.id)
 			i += 1
 			
-		board = await wordling(word, guesses)
+		board = await wordle_func(word, guesses)
 		keyboard = await wordle_keyboard(word, guesses)
 		board_file = discord.File(board, 'wordle.png')
 		keyboard_file = discord.File(keyboard, 'keyboard.png')
@@ -1045,7 +1045,7 @@ class Fun(commands.Cog):
 		_map = random.choice(golf_maps)
 		startx, starty  = _map.start
 		finx, finy = _map.finish
-		first_img, posx, posy = await golfie(startx, starty, 0, 0, 1, _map, 0)
+		first_img, posx, posy = await golf_func(startx, starty, 0, 0, 1, _map, 0)
 		msg = await ctx.reply("Type shooting degree [0-360] and power [1-20], `exit` to exit\n`<degree> <power>`", file=discord.File(first_img, 'board.png'), mention_author=False)
 
 		def check(msg):
@@ -1077,7 +1077,7 @@ class Fun(commands.Cog):
 				power = 1
 
 			counter += 1
-			buf, posx, posy= await golfie(posx, posy, degree, power, 100, _map, counter)
+			buf, posx, posy= await golf_func(posx, posy, degree, power, 100, _map, counter)
 
 			await msg.delete()
 			msg = await ctx.reply(f"Type shooting degree [0-360] and power [1-20], `exit` to exit.\n`<degree> <power>`", file=discord.File(buf, 'board.gif'), mention_author=False)
@@ -1140,9 +1140,9 @@ class Fun(commands.Cog):
 				return await ctx.reply('Side must be one of these: `a`, `attorney`, `p`, `prosecutor`', mention_author=False)
 			async with ctx.typing():
 				if side.lower() in ['a', 'attorney']:
-					buf = await attorning(str(ctx.author), text)
+					buf = await attorney_func(str(ctx.author), text)
 				elif side.lower() in ['p', 'prosecutor']:
-					buf = await prosecutoring(str(ctx.author), text)
+					buf = await prosecutor_func(str(ctx.author), text)
 				if (bsize := buf.getbuffer().nbytes) > file_limit:
 					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
 				return await ctx.reply(file=discord.File(buf, 'ace.gif'), mention_author=False)
@@ -1185,7 +1185,7 @@ class Fun(commands.Cog):
 				name = result[0].value
 				text = result[1].value
 				async with ctx.typing():
-					buf = await attorning(name, text)
+					buf = await attorney_func(name, text)
 				if (bsize := buf.getbuffer().nbytes) > file_limit:
 					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
 				await ctx.reply(file=discord.File(buf, 'attorney.gif'), mention_author=False)
@@ -1209,7 +1209,7 @@ class Fun(commands.Cog):
 				name = result[0].value
 				text = result[1].value
 				async with ctx.typing():
-					buf = await prosecutoring(name, text)
+					buf = await prosecutor_func(name, text)
 				if (bsize := buf.getbuffer().nbytes) > file_limit:
 					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
 				await ctx.reply(file=discord.File(buf, 'prosecutor.gif'), mention_author=False)

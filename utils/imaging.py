@@ -561,7 +561,7 @@ class String:
 # Fun
 # #
 @executor_function
-def golfie(posx, posy, degree, power, ranges, _map, strokes):
+def golf_func(posx, posy, degree, power, ranges, _map, strokes):
 	space = pymunk.Space()
 	# space.gravity = 0, -1500
 	FPS = 60
@@ -658,7 +658,7 @@ def add_frame(frames, frame):
 	canvas = Image.open(fobj)
 	frames.append(canvas)
 
-def isometric_draw(shape):
+def isometric_func(shape):
 	"""Creates static isometric drawing"""
 	t = 4
 	resx = resy = 1024*5
@@ -706,7 +706,7 @@ def isometric_draw(shape):
 	return buf, count
 
 @executor_function
-def iso_gif(shape, loop):
+def isometric_gif_func(shape, loop):
 	"""Creates gif isometric drawing"""
 	t = 4
 	frames = []
@@ -918,7 +918,7 @@ def gif_to_iso(image):
 		frame.save(buf, 'PNG')
 		buf.seek(0)
 		code = img_to_iso(buf, 40)
-		new_frame, count = isometric_draw(code)
+		new_frame, count = isometric_func(code)
 		with Image.open(new_frame) as new_frame:
 			fobj = BytesIO()
 			new_frame.save(fobj, "GIF", transparency=0)
@@ -1410,7 +1410,7 @@ def liquid(blocks):
 	return res
 
 @executor_function
-def wordling(word, guesses):
+def wordle_func(word, guesses):
 	canvas = Image.new('RGBA', (500, 600), 'white')
 	draw = ImageDraw.Draw(canvas)
 	# word = list(word)
@@ -1547,7 +1547,7 @@ def shorten_ace(font, txt, length):
 	return '\n'.join(' '.join(line) for line in last)
 
 @executor_function
-def attorning(name, text):
+def attorney_func(name, text):
 	bg = ace_asset['court']['bg_l']
 	desk = ace_asset['court']['desk_l']
 	wright = random.choice(ace_asset['wright'])
@@ -1602,7 +1602,7 @@ def attorning(name, text):
 	return igif
 
 @executor_function
-def prosecutoring(name, text):
+def prosecutor_func(name, text):
 	bg = ace_asset['court']['bg_r']
 	desk = ace_asset['court']['desk_r']
 	miles = random.choice(ace_asset['miles'])
@@ -1725,7 +1725,7 @@ def match_fps(gif_buffer, max_duration=50):
 	return igif
 
 @executor_function
-def baller(img):
+def ball_func(img):
 	space = pymunk.Space()
 	space.gravity = 0, -3000
 	FPS = 60
@@ -1811,7 +1811,7 @@ def swirly(img):
 	return igif
 
 @executor_function
-def bonk(img):
+def bonk_func(img):
 	frames = []
 	npp = news.convert('RGBA')
 	npp = npp.resize((350, 350))
@@ -1911,7 +1911,7 @@ def types_gif(args, auth):
 	return igif, l
 
 @executor_function
-def nohorni(bonked, bonker):
+def nohorni_func(bonked, bonker):
 	bonked = Image.open(bonked).convert('RGBA')
 	bonked = bonked.resize((128, 128))
 	if bonker:
@@ -1936,7 +1936,7 @@ def nohorni(bonked, bonker):
 	return igif
 
 @executor_function
-def burning(img):
+def burn_func(img):
 	burn = Image.open(img).convert('RGBA')
 	burn = burn.resize((64, 64))
 	
@@ -1956,7 +1956,7 @@ def burning(img):
 	return igif
 
 @executor_function
-def eughh(img):
+def eugh_func(img):
 	
 	man = man_gif
 	eugh = Image.open(img).convert('RGBA')
@@ -1978,7 +1978,7 @@ def eughh(img):
 	return igif
 
 @executor_function
-def screamm(img):
+def scream_func(img):
 	
 	gif = scream_gif
 	img = Image.open(img).convert('RGBA')
@@ -1999,7 +1999,7 @@ def screamm(img):
 	return igif
 
 @executor_function
-def whyy(img):
+def why_func(img):
 	
 	gif = why_gif
 	img = Image.open(img).convert('RGBA')
@@ -2020,7 +2020,7 @@ def whyy(img):
 	return igif
 
 @executor_function
-def dabomb(img):
+def bomb_func(img):
 
 	bomb = bomb_gif
 
@@ -2058,7 +2058,7 @@ def dabomb(img):
 	return igif
 
 @executor_function
-def patpats(img):
+def patpat_func(img):
 	patted = Image.open(img).convert('RGBA')
 	patted =  ImageOps.fit(patted, (80, 80))
 
@@ -2088,7 +2088,7 @@ def patpats(img):
 	return igif
 
 @executor_function
-def equa(img):
+def equation_func(img):
 
 	gif = math_gif
 	img = Image.open(img).convert("RGBA")
@@ -2096,10 +2096,10 @@ def equa(img):
 
 	frames = []
 	#loc = random.choices([*range(0, 200)])[0]
-	loc = random.randint(0, 238-50)
+	loc = random.randint(0, 238-150)
 	#newframes = [f.copy() for f in ImageSequence.Iterator(gif)]
 	for i, frame in enumerate(ImageSequence.Iterator(gif)):
-		if loc < i < loc+50:
+		if loc < i < loc+150:
 			frame = frame.convert("RGBA")
 			frame = frame.resize((330, 330))
 
@@ -2123,7 +2123,7 @@ def equa(img):
 	return igif
 
 @executor_function
-def bufff(img):
+def buffering_func(img):
 	
 	gif = buffer_gif
 	img = Image.open(img).convert('RGBA')
@@ -2144,7 +2144,7 @@ def bufff(img):
 	return igif
 
 @executor_function
-def glitching(img, level):
+def glitch_func(img, level):
 	img = Image.open(img).convert('RGBA')
 
 	glitch = glitcher.glitch_image(img, level, gif=True, scan_lines=True, color_offset=True)
@@ -2197,7 +2197,7 @@ def pachinko_game():
 	return igif
 
 @executor_function
-def time_scan(img):
+def time_scan_func(img):
 	img = Image.open(match_fps(img, 50))
 	width, height = img.size
 	
@@ -2238,7 +2238,7 @@ def time_scan(img):
 	return igif
 
 @executor_function
-def time_scan_side(img):
+def time_scan_side_func(img):
 	img = Image.open(img)
 	width, height = img.size
 	FIXED_WIDTH = 200
@@ -2277,7 +2277,7 @@ def time_scan_side(img):
 	return igif
 
 @executor_function
-def zoomie(img):
+def zoom_func(img):
 	img = ImageOps.contain(Image.open(img), (400, 400)).convert('RGBA')
 	bg = Image.new('RGBA', img.size, (0, 0, 0, 0))
 	bg.paste(img, (0, 0), img)
@@ -2305,7 +2305,7 @@ def zoomie(img):
 	return igif
 
 @executor_function
-def discotic(img):
+def discotic_func(img):
 	img = Image.open(img).convert('RGB')
 	img = rescale(img, 200)
 
@@ -2360,7 +2360,7 @@ def discotic(img):
 	return igif
 
 @executor_function
-def shifty(img):
+def shift_func(img):
 	img = Image.open(img)
 	# img = img.resize((400, 400))
 	img = ImageOps.fit(img, (400, 400))
@@ -2410,7 +2410,7 @@ def shifty(img):
 	return igif
 
 @executor_function
-def explicity(img):
+def explicit_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -2436,7 +2436,7 @@ def explicity(img):
 	return igif
 
 @executor_function
-def blurrys(img):
+def blur_func(img):
 	img = Image.open(img).convert('RGBA').resize((400, 400))
 
 	frames = []
@@ -2460,7 +2460,7 @@ def blurrys(img):
 	return igif
 
 @executor_function
-def friedy(img):
+def fry_func(img):
 	img = Image.open(img).convert('RGBA').resize((400, 400))
 	enhancer = ImageEnhance.Sharpness(img)
 
@@ -2484,7 +2484,7 @@ def friedy(img):
 	return igif 
 
 @executor_function
-def pixelle(img):
+def pixel_func(img):
 	n = 320
 	img = Image.open(img).convert('RGBA').resize((n, n))
 	red = Image.new('RGBA', (n, n), 'red')
@@ -2510,7 +2510,7 @@ def pixelle(img):
 	return igif 
 
 @executor_function
-def moves(img):
+def gallery_func(img):
 	img = Image.open(img).resize((200, 200)).convert('RGBA')
 	gmi = img.copy().transpose(Image.FLIP_TOP_BOTTOM)
 
@@ -2552,7 +2552,7 @@ def moves(img):
 	return igif 
 
 @executor_function
-def layerss(img):
+def layer_func(img):
 	img = Image.open(img)
 
 	duration = img.info.get('duration', 100)
@@ -2601,7 +2601,7 @@ def layerss(img):
 	return igif
 
 @executor_function
-def clocking(img):
+def clock_func(img):
 	img = Image.open(img).resize((400, 400)).convert('RGBA')
 
 	frames = []
@@ -2648,7 +2648,7 @@ def clocking(img):
 	return igif
 
 @executor_function
-def radiating(img):
+def radiate_func(img):
 	img = Image.open(img).resize((728, 728)).convert('RGBA')
 
 	canvas0 = Image.new('RGBA', (728, 728), (0, 0, 0, 0))
@@ -2709,7 +2709,7 @@ def radiating(img):
 	return igif
 
 @executor_function
-def scrolling(img):
+def scroll_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -2737,7 +2737,7 @@ def scrolling(img):
 	return igif
 
 @executor_function
-def subtracting(img1, img2):
+def subtract_func(img1, img2):
 	im1 = Image.open(img1).resize((400, 400)).convert('RGBA')
 	im2 = Image.open(img2).resize((400, 400)).convert('RGBA')
 
@@ -2757,7 +2757,7 @@ def subtracting(img1, img2):
 	return igif
 
 @executor_function
-def revealing(img):
+def reveal_func(img):
 	img = Image.open(img).convert('RGBA')
 	canvas = Image.new('RGBA', img.size, 'white')
 	canvas.paste(img, (0, 0), img)
@@ -2791,7 +2791,7 @@ def revealing(img):
 	return igif
 
 @executor_function
-def paletting(img, c=5):
+def palette_func(img, c=5):
 	ct = ColorThief(img)
 	img = ImageOps.contain(Image.open(img), (400, 400)).convert('RGBA')
 	x, y = img.size
@@ -2811,7 +2811,7 @@ def paletting(img, c=5):
 	return buf
 
 @executor_function
-def mcmapping(img):
+def mcmap_func(img):
 	img = ImageOps.fit(Image.open(img), (390, 390))
 	img = ImageOps.posterize(img.convert('RGB'), 2).convert('RGBA')
 	img = img.resize((128, 128), resample=Image.BILINEAR)
@@ -2831,7 +2831,7 @@ def mcmapping(img):
 	return buf
 
 @executor_function
-def historing(imgs):
+def history_func(imgs):
 	img1, img2, img3 = [Image.open(img).resize((200, 200)).convert('RGBA') for img in imgs]
 	frames = []
 	# img1 = Image.new('RGBA', (200, 200), 'red')
@@ -2876,7 +2876,7 @@ def historing(imgs):
 	return igif 
 
 @executor_function
-def killing(img):
+def shoot_func(img):
 	dead = ImageOps.fit(Image.open(img), (100, 100)).convert('RGBA')
 	walk = dead.copy().resize((80, 80))
 
@@ -2927,7 +2927,7 @@ def killing(img):
 	return igif 
 
 @executor_function
-def halfinverting(img):
+def halfinvert_func(img):
 	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGB')
 	img = ImageOps.invert(img)
 	# img = img.filter(ImageFilter.GaussianBlur(3))
@@ -3024,7 +3024,7 @@ def halfinverting(img):
 	return igif
 
 @executor_function
-def opticing(img):
+def optic_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	# bg = Image.new('RGBA', img.size, 'white')
 	# bg.paste(img, (0, 0), img)
@@ -3054,7 +3054,7 @@ def opticing(img):
 	return igif
 
 @executor_function
-def raining(img):
+def rain_func(img):
 	img = Image.open(img)
 	if img.is_animated:
 		duration = []
@@ -3108,7 +3108,7 @@ def raining(img):
 	return igif
 
 @executor_function
-def lamping(img):
+def lamp_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	bg = Image.new('RGBA', img.size, 'white')
 	bg.paste(img, (0, 0), img)
@@ -3135,7 +3135,7 @@ def lamping(img):
 	return igif
 
 @executor_function
-def rolling(img):
+def roll_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
 	# bg = Image.new('RGBA', img.size, 'white')
 	# bg.paste(img, (0, 0), img)
@@ -3164,7 +3164,7 @@ def rolling(img):
 	return igif
 
 @executor_function
-def tving(img):
+def tv_func(img):
 	img = ImageOps.fit(Image.open(img), (350, 280)).convert('RGBA')
 	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 	transform_optical = alb.OpticalDistortion((1.5, 1.5), (0.1, 0.1), p=1)
@@ -3203,7 +3203,7 @@ def tving(img):
 	return igif
 
 @executor_function
-def earthquaking(img, power):
+def earthquake_func(img, power):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	# bg = Image.new('RGBA', img.size, 'white')
 	# bg.paste(img, (0, 0), img)
@@ -3236,7 +3236,7 @@ def earthquaking(img, power):
 	return igif
 
 @executor_function
-def infiniting(img):
+def infinity_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
 	# bg = Image.new('RGBA', img.size, 'white')
 	# bg.paste(img, (0, 0), img)
@@ -3267,7 +3267,7 @@ def infiniting(img):
 	return igif
 
 @executor_function
-def shocking(img):
+def shock_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	canvas = Image.new('RGBA', img.size, 'white')
 	canvas.paste(img, (0, 0), img)
@@ -3293,7 +3293,7 @@ def shocking(img):
 	return igif
 
 @executor_function
-def boiling(img, level):
+def boil_func(img, level):
 	if level < 1:
 		level = 1
 	elif level > 5:
@@ -3351,7 +3351,7 @@ def boiling(img, level):
 	return igif
 
 @executor_function
-def abstracting(img):
+def abstract_func(img):
 	img = Image.open(img)
 	img = ImageOps.contain(img.convert('RGBA'), (300, 300))
 	bg = Image.new('RGBA', img.size, 'white')
@@ -3378,7 +3378,7 @@ def abstracting(img):
 	return igif
 
 @executor_function
-def canning(img):
+def canny_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -3407,7 +3407,7 @@ def canning(img):
 	return igif
 
 @executor_function
-def cartooning(img):
+def cartoon_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -3439,7 +3439,7 @@ def cartooning(img):
 	return igif
 
 @executor_function
-def loving(img, rainbow):
+def love_func(img, rainbow):
 	img = ImageOps.contain(Image.open(img), (400, 400)).convert('RGBA')
 	canvas = Image.new('RGBA', img.size, (0, 0, 0, 0))
 	canvas.paste(img, (0, 0), img)
@@ -3468,7 +3468,7 @@ def loving(img, rainbow):
 	return igif
 
 @executor_function
-def magnifying(img):
+def magnify_func(img):
 	img = Image.open(img).resize((400, 400)).convert('RGBA')
 	canvas = Image.new('RGBA', (400, 400), (0, 0, 0, 0))
 	canvas.paste(img, (0, 0), img)
@@ -3500,7 +3500,7 @@ def magnifying(img):
 	return igif
 
 @executor_function
-def shearing(img, axis):
+def shear_func(img, axis):
 	img = Image.open(img)
 	img = ImageOps.contain(img.convert('RGBA'), (300, 300))
 	canvas = Image.new('RGBA', (300, 300), 'white')
@@ -3530,7 +3530,7 @@ def shearing(img, axis):
 	return igif
 
 @executor_function
-def printing(img):
+def print_func(img):
 	at = Image.new('RGBA', (85, 85), 'white')
 	img = Image.open(img).convert('RGBA').resize((85, 85))
 
@@ -3584,7 +3584,7 @@ def printing(img):
 	return igif
 
 @executor_function
-def paparazzing(img):
+def paparazzi_func(img):
 	img = ImageOps.fit(Image.open(img), (100, 100)).convert('RGBA')
 	rc = red_carpet.copy()
 	rc.paste(img, (150, 60), img)
@@ -3621,7 +3621,7 @@ def paparazzing(img):
 	return igif
 	
 @executor_function
-def matrixing(img):
+def matrix_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	x, y = img.size
 	
@@ -3649,7 +3649,7 @@ def matrixing(img):
 	return igif
 
 @executor_function
-def emojifying(img):
+def emojify_func(img):
 	# img = ImageOps.fit(Image.open(img), (400, 400)).convert('RGBA')
 
 	# class A:
@@ -3677,7 +3677,7 @@ def emojifying(img):
 	...
 
 @executor_function
-def youtubing(pfp, name, text):
+def youtube_func(pfp, name, text):
 	pfp = ImageOps.fit(Image.open(pfp), (50, 50)).convert('RGBA')
 
 	bg = Image.new('RGBA', pfp.size, (0, 0, 0, 0))
@@ -3715,7 +3715,7 @@ def youtubing(pfp, name, text):
 	return igif
 
 @executor_function
-def sensitiving(img):
+def sensitive_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -3742,7 +3742,7 @@ def sensitiving(img):
 	return igif
 
 @executor_function
-def warping(img):
+def warp_func(img):
 	trace = np.linspace(0, 2*np.pi, 100)
 	img = Image.open(img).resize((900, 300)).convert('RGBA')
 
@@ -3780,7 +3780,7 @@ def waving(img, freq, amp):
 	return wand_gif(frames, durations=50)
 
 @executor_function
-def advertizing(img):
+def advertize_func(img):
 	img = Image.open(img)
 
 	frames = []
@@ -3798,7 +3798,7 @@ def advertizing(img):
 	return wand_gif(frames, durations)
 
 @executor_function
-def patterning(img):
+def pattern_func(img):
 	img = ImageOps.fit(Image.open(img).convert('RGBA'), (400, 400))
 	frames = []
 	for _ in range(10):
@@ -3842,7 +3842,7 @@ def patterning(img):
 	return wand_gif(frames, 250)
 
 @executor_function
-def bubbling(img):
+def bubble_func(img):
 	img = Image.open(img).convert('RGBA').resize((300, 300))
 	colors = list(img.getdata())
 
@@ -3889,7 +3889,7 @@ def bubbling(img):
 	return wand_gif(frames, [50]*(len(frames)-1)+[500])
 		
 @executor_function
-def clothing(img):
+def cloth_func(img):
 	img = ImageOps.fit(Image.open(img), (20, 20)).convert('RGBA')
 	colors = list(img.getdata())
 	colors = np.array([colors[i:i+20] for i in range(0, len(colors), 20)])
@@ -3940,7 +3940,7 @@ def clothing(img):
 	return wand_gif(frames, FPS)
 
 @executor_function
-def logoffing(img):
+def logoff_func(img):
 	img = Image.open(img).convert('RGBA').resize((400, 400))
 	creep = random.choice(creeps)
 
@@ -3955,7 +3955,7 @@ def logoffing(img):
 	return igif
 
 @executor_function
-def dilating(img):
+def dilate_func(img):
 	img = Image.open(img).convert('RGBA')
 	if img.size[0] > 400 or img.size[1] > 400:
 		img = ImageOps.contain(img, (400, 400))
@@ -3976,7 +3976,7 @@ def dilating(img):
 	return igif
 
 @executor_function
-def undilating(img):
+def undilate_func(img):
 	img = Image.open(img).convert('RGBA')
 	if img.size[0] > 400 or img.size[1] > 400:
 		img = ImageOps.contain(img, (400, 400))
@@ -4001,37 +4001,7 @@ def undilating(img):
 	return igif
 
 @executor_function
-def oil_painting(img):
-	img = Image.open(img)
-
-	frames = []
-	durations = []
-	for i, frame in enumerate(ImageSequence.Iterator(img)):
-		if i > 100:
-			break
-		
-		img = ImageOps.contain(frame.convert('RGBA'), (400, 400))
-		img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-		result = cv2.xphoto.oilPainting(img, 7, 3)
-
-		_, buf = cv2.imencode(".png", result)
-		buf = BytesIO(buf)
-		frame = Image.open(buf)
-
-		fobj = BytesIO()
-		frame.save(fobj, "GIF")
-		frame = Image.open(fobj)
-		frames.append(frame)
-		durations.append(frame.info.get('duration', 100))
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
-
-@executor_function
-def fanning(circled):
+def fan_func(circled):
 	circled = Image.open(circled).convert('RGBA')
 
 	fan = fan_img.copy()
@@ -4235,9 +4205,9 @@ def gameboy_camera_func(img):
 	frames = []
 	durations = []
 	for n, frame in enumerate(ImageSequence.Iterator(imgs)):
-		if n > 10:
+		if n > 50:
 			break
-		img = np.array(ImageOps.contain(frame, (300, 300)).convert('L'))
+		img = np.array(ImageOps.contain(frame, (100, 100)).convert('L'))
 
 		for i in range(img.shape[0]):
 			for j in range(img.shape[1]):
@@ -4269,7 +4239,7 @@ def gameboy_camera_func(img):
 					img[i][j] = 0
 		
 		fobj = BytesIO()
-		Image.fromarray(img).save(fobj, "GIF")
+		Image.fromarray(img).resize((300, 300)).save(fobj, "GIF")
 		frame = Image.open(fobj)
 		frames.append(frame)
 		durations.append(frame.info.get('duration', 100))

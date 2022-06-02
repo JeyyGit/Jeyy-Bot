@@ -3618,34 +3618,6 @@ def matrix_func(img):
 	return igif
 
 @executor_function
-def emojify_func(img):
-	# img = ImageOps.fit(Image.open(img), (400, 400)).convert('RGBA')
-
-	# class A:
-	# 	f = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGR)	# input image
-	# 	d = '/home/jeyy/Jeyy Bot/image/ios_emojis'	# input folder
-	# 	x = 'temp_emojis'	# output thumbnails
-	# 	t = 16	# thumbnail pixel height
-	# 	s = 4	# rescaling factor
-	# 	n = 16	# number of rows
-	# 	p = 0.5	# proportional center of construction
-	# 	c = 1.0	# proportional chance of consumption
-
-	# thumbs = pf.convert_or_load(A.d, A.x, A.t)
-
-	# cnv = pf.build(A.f, A.d, thumbs, A.t, A.s, A.n, A.p, A.c)
-
-	# _, buf = cv2.imencode(".png", cnv)
-	# buf = BytesIO(buf)
-	# img = Image.open(buf).resize((400, 400))
-	# buf = BytesIO()
-	# img.save(buf, 'PNG')
-	# buf.seek(0)
-
-	# return buf
-	...
-
-@executor_function
 def youtube_func(pfp, name, text):
 	pfp = ImageOps.fit(Image.open(pfp), (50, 50)).convert('RGBA')
 
@@ -4372,7 +4344,8 @@ def spikes_func(img):
 			angle = random.randint(0, 360)
 			x2, y2 = x1 + line_length * math.cos(angle), y1 + line_length*math.sin(angle)
 			mx, my = (x2 + x1) / 2, (y2 + y1) / 2
-			draw.line([x1, y1, x2, y2], img.getpixel((mx, my)))
+			if (pix := img.getpixel((mx, my)))[-1] != 0:
+				draw.line([x1, y1, x2, y2], pix)
 		frames.append(canv)
 	return wand_gif(frames, 100)
 
@@ -4390,7 +4363,8 @@ def blocks_func(img):
 			angle = random.randint(0, 360)
 			x2, y2 = x1 + line_length * math.cos(angle), y1 + line_length*math.sin(angle)
 			mx, my = (x2 + x1) / 2, (y2 + y1) / 2
-			draw.rectangle([x1, y1, x2, y2], img.getpixel((mx, my)))
+			if (pix := img.getpixel((mx, my)))[-1] != 0:
+				draw.rectangle([x1, y1, x2, y2], pix)
 		frames.append(canv)
 	return wand_gif(frames, 100)
 
@@ -4404,7 +4378,8 @@ def letters_func(img):
 		draw = ImageDraw.Draw(canv)
 		for _ in range(1000):
 			x, y = random.randint(20, w-20), random.randint(20, h-20)
-			draw.text([x, y], random.choice(string.ascii_letters), img.getpixel((x, y)), font_arial3, 'mm')
+			if (pix := img.getpixel((x, y)))[-1] != 0:
+				draw.text([x, y], random.choice(string.ascii_letters), pix, font_arial3, 'mm')
 		frames.append(canv)
 	return wand_gif(frames, 100)
 

@@ -1,4 +1,3 @@
-from unittest import result
 from discord.ext import commands
 from io import BytesIO
 import discord
@@ -13,7 +12,6 @@ importlib.reload(converters)
 
 from utils.imaging import *
 from utils.converters import ToImage
-from utils.useful import Queue
 
 
 class IMAGE(commands.Cog, name="Image"):

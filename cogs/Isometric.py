@@ -44,7 +44,7 @@ from utils.imaging import (
 	wordle_statistic,
 	wordle_func,
 	create_stat,
-	typeracing,
+	typerace_func,
 	attorney_func,
 	prosecutor_func,
 	golf_func
@@ -1093,7 +1093,7 @@ class Fun(commands.Cog):
 		"""How fast can you type?"""
 		text = random.choice(list(filter(lambda q: len(q['text']) < 200 and len(q['text']) > 30 and len(textwrap.wrap(q['text'], width=25)) <= 8, self.quotes)))['text']
 		
-		buf = await typeracing(text)
+		buf = await typerace_func(text)
 
 		file = discord.File(buf, 'typerace.png')
 		desc = 'Type the text below as fast as you can!'

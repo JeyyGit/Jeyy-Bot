@@ -33,9 +33,9 @@ importlib.reload(converters)
 importlib.reload(sounder)
 
 from utils.imaging import (
-	wheeling,
-	scrappy,
-	circly
+	wheel_func,
+	scrap_func,
+	circle_func
 )
 
 from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
@@ -218,7 +218,7 @@ class Utility(commands.Cog):
 			return await ctx.reply("Max characters: `40`", mention_author=False)
 
 		async with ctx.typing():
-			buf = await scrappy(text)
+			buf = await scrap_func(text)
 			if not buf:
 				return await ctx.reply("No letters were detected.", mention_author=False)
 
@@ -507,7 +507,7 @@ class Utility(commands.Cog):
 			embed=discord.Embed(title="Picker Wheel", description="\n".join(_list), color=0x2F3136)
 			embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
 
-			buf, res, _time, last, c = await wheeling(args)
+			buf, res, _time, last, c = await wheel_func(args)
 
 			link1 = await ctx.upload_bytes(buf.getvalue(), 'image/gif', 'wheel spin')
 			link2 = await ctx.upload_bytes(last.getvalue(), 'image/png', 'wheel result')
@@ -860,7 +860,7 @@ class Utility(commands.Cog):
 
 		avatar = await ctx.to_image(message_id.author.display_avatar.with_size(32).url)
 
-		buf = await circly(avatar, (32, 32))
+		buf = await circle_func(avatar, (32, 32))
 		avamoji = await self.bot.get_guild(776385025552941077).create_custom_emoji(name="cool_dude" if message_id.author.id in self.bot.owner_ids else "ugly", image=buf.read())
 
 		await ctx.send(f">>> {avamoji} **{message_id.author}**\n{msg}", embed=message_id.embeds[0] if message_id.embeds else None, file=await message_id.attachments[0].to_file() if message_id.attachments else None, allowed_mentions=discord.AllowedMentions.none())
@@ -874,7 +874,7 @@ class Utility(commands.Cog):
 
 		avatar = await ctx.to_image(member.display_avatar.with_size(32).url)
 
-		buf = await circly(avatar, (32, 32))
+		buf = await circle_func(avatar, (32, 32))
 		avamoji = await self.bot.get_guild(776385025552941077).create_custom_emoji(name="cool_dude" if member.id in self.bot.owner_ids else "ugly", image=buf.read())
 
 		await ctx.send(f">>> {avamoji} **{member}**\n{content}", allowed_mentions=discord.AllowedMentions.none())

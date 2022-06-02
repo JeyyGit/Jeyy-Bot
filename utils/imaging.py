@@ -4637,7 +4637,7 @@ def wheel_6(args):
 	return igif, result, sum(durations), buf, c
 
 @executor_function
-def wheeling(args):
+def wheel_func(args):
 	l = len(args)
 	if l == 2: return wheel_2(args)
 	elif l == 3: return wheel_3(args)
@@ -4645,7 +4645,7 @@ def wheeling(args):
 	elif l == 6: return wheel_6(args)
 
 @executor_function
-def circly(img, size):
+def circle_func(img, size):
 	img = Image.open(img).resize((size))
 	mask = Image.new('RGBA', size, (0, 0, 0, 0))
 	mask_drawing = ImageDraw.Draw(mask)
@@ -4664,7 +4664,7 @@ def circly(img, size):
 	return wand_gif(frames, durations)
 
 @executor_function
-def scrappy(text):
+def scrap_func(text):
 	wrapped = TextWrapper(width=10).wrap(text.upper().strip())
 	wrapped = [row.center(max(len(row) for row in wrapped), ' ') for row in wrapped]
 
@@ -4706,7 +4706,7 @@ def scrappy(text):
 	return igif
 
 @executor_function
-def img_to_emoji(image, best):
+def img_to_emoji_func(image, best):
 	with Image.open(image) as image4:
 		# best = 64
 		im = image4.resize((best, best)).convert("RGBA")
@@ -4759,7 +4759,7 @@ def img_to_emoji(image, best):
 		return text
 
 @executor_function
-def typeracing(text):
+def typerace_func(text):
 	img = Image.new('RGB', (1200, 700), 'black')
 
 	lines = textwrap.wrap(text, width=25)
@@ -4775,7 +4775,7 @@ def typeracing(text):
 	return buf
 
 @executor_function
-def spotifies(title, artists, cover_buf, duration_seconds, start_timestamp):
+def spotify_func(title, artists, cover_buf, duration_seconds, start_timestamp):
 	def shorten(text, font, max_length):
 		res = ''
 		for c in text:
@@ -4823,7 +4823,7 @@ def spotifies(title, artists, cover_buf, duration_seconds, start_timestamp):
 	return buf
 
 @executor_function
-def playering(title, seconds_played, total_seconds, thumbnail_buf, line_1, line_2):
+def player_func(title, seconds_played, total_seconds, thumbnail_buf, line_1, line_2):
 	thumbnail = ImageOps.fit(Image.open(thumbnail_buf).convert('RGBA'), (455, 256))
 	color = ColorThief(thumbnail_buf).get_color(quality=1)
 	gray = np.mean((0.2989*color[0], 0.5870*color[1], 0.1140*color[2]))

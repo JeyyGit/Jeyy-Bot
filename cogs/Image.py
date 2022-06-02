@@ -168,7 +168,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def fan(self, ctx, imgb: ToImage = None):
 		"""I'm a fan"""
 		async with ctx.typing():
-			circled = await circly(imgb or await ToImage.none(ctx), (100, 100))
+			circled = await circle_func(imgb or await ToImage.none(ctx), (100, 100))
 			buf = await self.cache_check(ctx, fan_func, circled)
 
 			await ctx.reply(file=discord.File(buf, "fan.gif"))

@@ -637,27 +637,6 @@ def golf_func(posx, posy, degree, power, ranges, _map, strokes):
 
 	return igif, endx, endy
 
-def rescale(img, maxsize):
-	width, height = img.size
-
-	if width > maxsize or height > maxsize:
-		if width < height:
-			width = int((float(width) * float(maxsize / float(height))))
-			height = maxsize
-		else:
-			height = int((float(height) * float(maxsize / float(width))))
-			width = maxsize
-
-		return img.resize((width, height))
-
-	return img
-
-def add_frame(frames, frame):
-	fobj = BytesIO()
-	frame.save(fobj, "GIF")
-	canvas = Image.open(fobj)
-	frames.append(canvas)
-
 def isometric_func(shape):
 	"""Creates static isometric drawing"""
 	t = 4
@@ -2306,8 +2285,7 @@ def zoom_func(img):
 
 @executor_function
 def discotic_func(img):
-	img = Image.open(img).convert('RGB')
-	img = rescale(img, 200)
+	img = ImageOps.fit(Image.open(img), (200, 200)).convert('RGB')
 
 	w, h = img.size
 
@@ -2319,15 +2297,6 @@ def discotic_func(img):
 		(np.linspace(  1, 134, 18), np.linspace(  3,   2, 18), np.linspace(248, 125, 18)),
 		(np.linspace(135, 254, 18), np.linspace(  1,   0, 18), np.linspace(124,  24, 18))
 	)
-
-	"""
-	(255,   0,  24)
-	(255, 165,  44)
-	(255, 255,  65)
-	(  0, 128,  24)
-	(  0,   0, 249)
-	(134,   0, 125)
-	"""
 
 	c = 0
 	frames = []

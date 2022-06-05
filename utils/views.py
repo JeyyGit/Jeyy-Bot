@@ -1,6 +1,5 @@
 import asyncio
 import datetime as dt
-import typing
 import discord
 import humanize
 import importlib
@@ -15,6 +14,7 @@ from arsenic import stop_session, Session
 from discord.ext import commands
 
 from utils import pour_puzzle, sounder
+from utils.imaging import isometric_func, liquid
 importlib.reload(pour_puzzle)
 importlib.reload(sounder)
 
@@ -219,8 +219,6 @@ class HelpMenu(discord.ui.Select):
 		cog = discord.utils.get(self.parent_view.mapping, qualified_name=self.values[0])
 		
 		await self.parent_view.change_cog_to(cog)
-
-# class HelpMenu(discord.ui.S)
 
 class EndpointView(discord.ui.View):
 	def __init__(self, msg, results):
@@ -682,6 +680,215 @@ class PourView(discord.ui.View):
 		url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
 		embed.set_image(url=url)
 		await interaction.message.edit(embed=embed, view=self)
+
+class BlockSelector(discord.ui.Select):
+	def __init__(self, selector_pos):
+		options = [
+			discord.SelectOption(label=f'Grass Block', value='1'),
+			discord.SelectOption(label=f'Water', value='2'),
+			discord.SelectOption(label=f'Sand Block', value='3'),
+			discord.SelectOption(label=f'Stone Block', value='4'),
+			discord.SelectOption(label=f'Wood Planks', value='5'),
+			discord.SelectOption(label=f'Glass Block', value='6'),
+			discord.SelectOption(label=f'Redstone Block', value='7'),
+			discord.SelectOption(label=f'Brick Block', value='9'),
+			discord.SelectOption(label=f'Iron Block', value='8'),
+			discord.SelectOption(label=f'Gold Block', value='g'),
+			discord.SelectOption(label=f'Diamond Block', value='d'),
+			discord.SelectOption(label=f'Purple Block', value='p'),
+			discord.SelectOption(label=f'Coal Block', value='c'),
+			discord.SelectOption(label=f'Leaf Block', value='l'),
+			discord.SelectOption(label=f'Wooden Log', value='o'),
+			discord.SelectOption(label=f'Hay Bale', value='h'),
+			discord.SelectOption(label=f'Poppy', value='y'),
+			discord.SelectOption(label=f'Cake', value='k'),
+			discord.SelectOption(label=f'Lava', value='v'),
+		]
+		super().__init__(placeholder=f'Grass Block | {tuple(reversed(selector_pos))}' ,options=options, row=0)
+
+	async def callback(self, interaction):
+		self.view.block = self.values[0]
+
+class InteractiveIsoView(discord.ui.View):
+	block_names = {
+		'1': 'Grass Block',
+		'2': 'Water',
+		'3': 'Sand Block',
+		'4': 'Stone Block',
+		'5': 'Wooden Planks',
+		'6': 'Glass Block',
+		'7': 'Redstone Block',
+		'8': 'Iron Block',
+		'9': 'Brick Block',
+		'g': 'Gold Block',
+		'p': 'Purple Block',
+		'd': 'Diamond Block',
+		'c': 'Coal Block',
+		'l': 'Leaf Block',
+		'o': 'Wooden Log',
+		'h': 'Hay Bale',
+		'v': 'Lava',
+		'y': 'Poppy',
+		'k': 'Cake'
+	}
+	def __init__(self, ctx, shape = [50, 50, 50], selector_pos = None):
+		super().__init__(timeout=None)
+		self.ctx = ctx
+		self.box = np.zeros(shape, np.uint8).astype(str)
+		self.block = '1'
+		self.selector_pos = selector_pos or [i//2 for i in shape]
+		self.prev_pos = None
+		self.message = None
+		self.block_selector = BlockSelector(self.selector_pos)
+		self.n_blocks = 0
+		self.add_item(self.block_selector)
+
+		self.selatan_btn = discord.ui.Button(emoji='<:arrow_s:981825970703056916>', style=discord.ButtonStyle.secondary, row=1)
+		self.selatan_btn.callback = self.selatan_arrow
+		self.add_item(self.selatan_btn)
+
+		self.up_btn = discord.ui.Button(emoji='<:arrow_up:981825975170007090>', style=discord.ButtonStyle.secondary, row=1)
+		self.up_btn.callback = self.up_arrow
+		self.add_item(self.up_btn)
+
+		self.barat_btn = discord.ui.Button(emoji='<:arrow_b:981825966278058004>', style=discord.ButtonStyle.secondary, row=1)
+		self.barat_btn.callback = self.barat_arrow
+		self.add_item(self.barat_btn)
+
+		self.destroy_btn = discord.ui.Button(emoji='\U0001f4a5', style=discord.ButtonStyle.danger, disabled=True, row=2)
+		self.destroy_btn.callback = self.destroy
+		self.add_item(self.destroy_btn)
+
+		self.place_btn = discord.ui.Button(emoji='<:minecraft:638603467358994442>', style=discord.ButtonStyle.success, row=2)
+		self.place_btn.callback = self.place
+		self.add_item(self.place_btn)
+
+		self.finish_btn = discord.ui.Button(label='finish', style=discord.ButtonStyle.primary, disabled=True, row=2)
+		self.finish_btn.callback = self.finish
+		self.add_item(self.finish_btn)
+
+		self.timur_btn = discord.ui.Button(emoji='<:arrow_t:981825973492277248>', style=discord.ButtonStyle.secondary, row=3)
+		self.timur_btn.callback = self.timur_arrow
+		self.add_item(self.timur_btn)
+
+		self.down_btn = discord.ui.Button(emoji='<:arrow_down:981825966433239050>', style=discord.ButtonStyle.secondary, row=3)
+		self.down_btn.callback = self.down_arrow
+		self.add_item(self.down_btn)
+
+		self.utara_btn = discord.ui.Button(emoji='<:arrow_u:981825975216136192>', style=discord.ButtonStyle.secondary, row=3)
+		self.utara_btn.callback = self.utara_arrow
+		self.add_item(self.utara_btn)
+
+	async def interaction_check(self, interaction):
+		if interaction.user != self.ctx.author:
+			await interaction.response.send_message("You can't use this button!", ephemeral=True)
+			return False
+		
+		return True
+
+	async def update(self):
+		self.destroy_btn.disabled = self.box[tuple(self.selector_pos)] == '0'
+		self.finish_btn.disabled = np.all(self.box == '0')
+
+		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in self.box])
+		if '2' in code or 'v' in code:
+			code = liquid(code)
+
+		buf, _ = await self.ctx.bot.loop.run_in_executor(None, isometric_func, code.split(), self.selector_pos)
+		link = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
+		self.block_selector.placeholder = f'{self.block_names[self.block]} | {tuple(reversed(self.selector_pos))}'
+		await self.message.edit(link, view=self, allowed_mentions=discord.AllowedMentions.none())
+
+	async def selatan_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[2] > 0:
+			self.utara_btn.disabled = False
+		self.selector_pos[2] -= 1
+		if self.selector_pos[2] == 0:
+			self.selatan_btn.disabled = True
+		
+		await self.update()
+
+	async def up_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[0] > 0:
+			self.down_btn.disabled = False
+		self.selector_pos[0] += 1
+		if self.selector_pos[0] == self.box.shape[0] - 1:
+			self.up_btn.disabled = True
+		
+		await self.update()
+
+	async def barat_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[1] > 0:
+			self.timur_btn.disabled = False
+		self.selector_pos[1] -= 1
+		if self.selector_pos[1] == 0:
+			self.barat_btn.disabled = True
+		
+		await self.update()
+
+	async def destroy(self, interaction):
+		await interaction.response.defer()
+
+		self.box[tuple(self.selector_pos)] = '0'
+
+		await self.update()
+
+	async def place(self, interaction):
+		await interaction.response.defer()
+
+		self.box[tuple(self.selector_pos)] = self.block
+
+		await self.update()
+
+	async def finish(self, interaction: discord.Interaction):
+		await interaction.response.defer()
+
+		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in self.box])
+
+		if '2' in code or 'v' in code:
+			code = liquid(code)
+
+		buf, _ = await self.ctx.bot.loop.run_in_executor(None, isometric_func, code.split())
+		await self.ctx.reply(file=discord.File(buf, 'interactive_iso.png'), mention_author=False)
+
+		for child in self.children[:]:
+			child.disabled = True
+		await self.message.edit(view=self)
+		self.stop()
+
+	async def timur_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[1] < self.box.shape[1] - 1:
+			self.barat_btn.disabled = False
+		self.selector_pos[1] += 1
+		if self.selector_pos[1] == self.box.shape[1] - 1:
+			self.timur_btn.disabled = True
+		
+		await self.update()
+
+	async def down_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[0] < self.box.shape[0] - 1:
+			self.up_btn.disabled = False
+		self.selector_pos[0] -= 1
+		if self.selector_pos[0] == 0:
+			self.down_btn.disabled = True
+		
+		await self.update()
+
+	async def utara_arrow(self, interaction):
+		await interaction.response.defer()
+		if self.selector_pos[2] < self.box.shape[2] - 1:
+			self.selatan_btn.disabled = False
+		self.selector_pos[2] += 1
+		if self.selector_pos[2] == self.box.shape[2] - 1:
+			self.utara_btn.disabled = True
+		
+		await self.update()
+
 
 # Utility cog
 class FileView(discord.ui.View):

@@ -3,6 +3,7 @@ from click import style
 from discord.ext import commands
 from io import BytesIO, StringIO
 from itsdangerous import exc
+from matplotlib import interactive
 from matplotlib.image import thumbnail
 from si_prefix import si_format
 from difflib import SequenceMatcher
@@ -51,6 +52,7 @@ from utils.imaging import (
 )
 
 from utils.views import (
+	InteractiveIsoView,
 	Switch,
 	BuildView,
 	NonoView,
@@ -120,6 +122,7 @@ class Fun(commands.Cog):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def isometric(self, ctx, *, blocks=None):
 		"""Draw your own blocks"""
+		# return await ctx.reply('Command is on maintenance')
 		async with ctx.typing():
 			if not blocks:
 				await ctx.send_help("isometric")
@@ -221,7 +224,6 @@ class Fun(commands.Cog):
 				if blocks[-1] == "gif":
 					blocks = ' '.join(blocks)
 					if 'f' in blocks:
-
 						blocks = fences(blocks)
 
 					blocks = blocks.split()
@@ -277,7 +279,6 @@ class Fun(commands.Cog):
 						blocks = ' '.join(blocks)
 						if 'f' in blocks:
 							blocks = fences(blocks)
-						# await ctx.send(f"processed code:\n```{blocks}```") ####	
 						
 						blocks = blocks.split()
 						buf, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks)
@@ -304,6 +305,19 @@ class Fun(commands.Cog):
 						ctx.command.reset_cooldown(ctx)
 					else:
 						await ctx.reply(f"`finished in {t}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric_draw.png"), mention_author=False)
+
+	@isometric.command()
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	# @commands.is_owner()
+	async def interactive(self, ctx):
+		interactive_view = InteractiveIsoView(ctx, [50, 50, 50])
+
+		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in interactive_view.box])
+
+		buf, _ = await self.bot.loop.run_in_executor(None, isometric_func, code.split(), interactive_view.selector_pos)
+		link = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
+
+		interactive_view.message = await ctx.reply(link, view=interactive_view, mention_author=False)
 
 	@isometric.command(cooldown_after_parsing=True, name='help')
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -1257,7 +1271,6 @@ class Fun(commands.Cog):
 		embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 
 		view.msg = await ctx.reply(embed=embed, view=view, mention_author=False)
-
 
 def setup(bot):
 	bot.add_cog(Fun(bot))

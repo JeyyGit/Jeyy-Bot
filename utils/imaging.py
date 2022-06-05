@@ -8,6 +8,7 @@ from jishaku.functools import executor_function
 from os.path import basename, dirname
 from skimage.transform import swirl
 from textwrap import TextWrapper
+from soupsieve import select
 from wand.image import Image as wImage
 import albumentations as alb
 from pyvista import examples
@@ -120,6 +121,9 @@ if True:
 
 	leoff = Image.open("./image/game/lever_off64x.png").convert('RGBA')
 	leon = Image.open("./image/game/lever_on64x.png").convert('RGBA')
+
+	selector_back = Image.open("./image/game/selector_back.png").convert('RGBA')
+	selector_front = Image.open("./image/game/selector_front.png").convert('RGBA')
 
 	hands = [Image.open(f"./image/pat/{i}.png") for i in range(1, 6)]
 	news = Image.open("./image/newspaper.png")
@@ -637,7 +641,7 @@ def golf_func(posx, posy, degree, power, ranges, _map, strokes):
 
 	return igif, endx, endy
 
-def isometric_func(shape):
+def isometric_func(shape, selector_pos=None):
 	"""Creates static isometric drawing"""
 	t = 4
 	resx = resy = 1024*5
@@ -649,19 +653,21 @@ def isometric_func(shape):
 	i = j = lvl = count = 0
 	for row in shape:
 		for val in row:
-			# if val.isnumeric():
-			# 	val = int(val)
-			
 			fx = mid + j*t*7 - i*t*7
 			fy = mid + j*t*4 + i*t*4 - lvl*t*7
 			# fx = mid + j*t*7 - i*t*7
 			# fy = mid + j*t*6 + i*t*6 - lvl*t*7
 
-			# [canvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
-			for code in code_dict:
-				if code == val:
-					canvas.paste(code_dict[code], (fx, fy), code_dict[code])
-					break
+			selected = False
+			if [lvl, i, j] == selector_pos:
+				canvas.paste(selector_back, (fx, fy),selector_back)
+				selected = True
+
+			if (img := code_dict.get(val)):
+				canvas.paste(img, (fx, fy), img)
+
+			if selected:
+				canvas.paste(selector_front, (fx, fy), selector_front)
 			
 			j += 1
 			if val == "-":
@@ -669,11 +675,11 @@ def isometric_func(shape):
 				j = 0
 				lvl += 1
 
-			if val in codes:
+			if val in codes or selected:
 				count += 1
 		j = 0
 		i += 1
-	
+
 	if count == 0:
 		return 1, count
 

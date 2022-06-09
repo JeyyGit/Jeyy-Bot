@@ -308,7 +308,6 @@ class Fun(commands.Cog):
 
 	@isometric.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	# @commands.is_owner()
 	async def interactive(self, ctx):
 		interactive_view = InteractiveIsoView(ctx, [50, 50, 50])
 

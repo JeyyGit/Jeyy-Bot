@@ -3711,7 +3711,7 @@ def warp_func(img):
 	return wand_gif(frames, 50)
 
 @executor_function
-def waving(img, freq, amp):
+def wave_func(img, freq, amp):
 	img = Image.open(img)
 	img = ImageOps.contain(img, (200, 200)).convert('RGBA')
 

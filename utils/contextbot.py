@@ -78,7 +78,7 @@ class JeyyContext(commands.Context):
 			buf.seek(0)
 			return buf
 		elif (ref := self.message.reference) and (content := ref.resolved.content):
-			return await ToImage().convert(content)
+			return await ToImage().convert(self, content)
 			url = re.findall(url_regex, self.message.reference.resolved.content)
 			if not url:
 				url = await emoji_to_url(_input)
@@ -166,7 +166,7 @@ class JeyyContext(commands.Context):
 	async def upload_url(self, *args, **kwargs):
 		return await self.bot.upload_url(*args, **kwargs)
 
-	async def pull(self):
+	async def pull(self):   
 		class MadeUp:
 			content = 'git pull'
 

@@ -242,7 +242,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def wave(self, ctx, imgb: ToImage = None, frequency: float=0.05, amplitude: typing.Literal[1, 2, 3, 4, 5]=3):
 		"""Me wavey wavey"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, waving, imgb or await ToImage.none(ctx), frequency, amplitude*10)
+			buf = await wave_func(imgb or await ToImage.none(ctx), frequency, amplitude*10)
 
 			await ctx.reply(file=discord.File(buf, "wave.gif"), mention_author=False)
 

@@ -8,7 +8,6 @@ from jishaku.functools import executor_function
 from os.path import basename, dirname
 from skimage.transform import swirl
 from textwrap import TextWrapper
-from soupsieve import select
 from wand.image import Image as wImage
 import albumentations as alb
 from pyvista import examples
@@ -328,6 +327,7 @@ if True:
 	font_arial = ImageFont.truetype("./image/arial.ttf", 24)
 	font_arial2 = ImageFont.truetype("./image/arial.ttf", 12)
 	font_arial3 = ImageFont.truetype("./image/arial.ttf", 20)
+	font_arial4 = ImageFont.truetype("./image/arial.ttf", 60)
 
 	red_carpet = Image.open('./image/redcarpet.png').convert('RGBA')
 	flashes = Image.open('./image/Paparazzi_flashes.gif')
@@ -3213,8 +3213,6 @@ def earthquake_func(img, power):
 @executor_function
 def infinity_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
-	# bg = Image.new('RGBA', img.size, 'white')
-	# bg.paste(img, (0, 0), img)
 	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
@@ -4389,6 +4387,33 @@ def letters_func(img):
 		frames.append(canv)
 	return wand_gif(frames, 100)
 
+@executor_function
+def bricks_func(img):
+	img = Image.open(img)
+	w, h = img.size
+
+	frames = []
+	durations = []
+	for frame in ImageSequence.Iterator(img):
+		if frame.tell() > 100:
+			break
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.contain(frame, (400, 400)).convert('RGBA')
+		canv = Image.new('RGBA', frame.size)
+		draw = ImageDraw.Draw(canv)
+		for i in range(h):
+			for j in range(w):
+				try:
+					if j % 2 == 0:
+						draw.rectangle((40*i, 20*j, 35+i*40, 15+j*20), frame.getpixel((40*i+10, 20*j+7)))
+					else:
+						draw.rectangle((40*i-20, 20*j, 35+i*40-20, 15+j*20), frame.getpixel((40*i-20+10, 20*j+7)))
+				except:
+					...
+		frames.append(canv)
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #
@@ -4654,6 +4679,20 @@ def scrap_func(text):
 	frames[0].save(igif, format='GIF', save_all=True, append_images=frames[1:], duration=500, loop=0, disposal=2)
 	igif.seek(0)
 	return igif
+
+@executor_function
+def scrolling_text_func(text):
+	texted = (text + ' ') * 20
+	tl = font_arial4.getlength(text + ' ')
+
+	frames = []
+	for i in np.linspace(0, tl, 100):
+		canv = Image.new('RGBA', (400, 100))
+		draw = ImageDraw.Draw(canv)
+		draw.text((20-i, 50), texted, 'white', font_arial4, 'lm')
+		frames.append(canv)
+
+	return wand_gif(frames, 50)
 
 @executor_function
 def img_to_emoji_func(image, best):

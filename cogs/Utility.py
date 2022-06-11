@@ -35,7 +35,8 @@ importlib.reload(sounder)
 from utils.imaging import (
 	wheel_func,
 	scrap_func,
-	circle_func
+	circle_func,
+	scrolling_text_func
 )
 
 from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
@@ -159,7 +160,18 @@ class Utility(commands.Cog):
 			
 			return translated, source, destination
 
-	@commands.command(cooldown_after_parsing=True, hidden=True)
+	@commands.command(cooldown_after_parsing=True, aliases=['st', 'scroll_text'])
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	async def scrolling_text(self, ctx, *, text: str):
+		if len(text) > 70:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Text must be under or equal 70 characters')
+		
+		async with ctx.typing():
+			buf = await scrolling_text_func(text)
+		await ctx.reply(file=discord.File(buf, 'scroll_text.gif'))
+
+	@commands.command(cooldown_after_parsing=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def demojify(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
 		_input = await ctx.to_image(_input)

@@ -39,10 +39,19 @@ class IMAGE(commands.Cog, name="Image"):
 
 		buf = await func(buf, *args)
 		self.bot.image_cache[cmd][img_data] = buf
-		if len(self.bot.image_cache[cmd]) > 25:
+		if len(self.bot.image_cache[cmd]) > 10:
 			self.bot.image_cache[cmd].popitem(last=True)
 
 		return buf
+
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['brick', 'bricks'])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def wall(self, ctx, imgb: ToImage = None):
+		"""A brick wall"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, bricks_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "bricks.gif"))
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)

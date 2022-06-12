@@ -4401,8 +4401,8 @@ def bricks_func(img):
 		frame = ImageOps.contain(frame, (400, 400)).convert('RGBA')
 		canv = Image.new('RGBA', frame.size)
 		draw = ImageDraw.Draw(canv)
-		for i in range(h):
-			for j in range(w):
+		for i in range(h//10):
+			for j in range(w//10):
 				try:
 					if j % 2 == 0:
 						draw.rectangle((40*i, 20*j, 35+i*40, 15+j*20), frame.getpixel((40*i+10, 20*j+7)))
@@ -4410,6 +4410,20 @@ def bricks_func(img):
 						draw.rectangle((40*i-20, 20*j, 35+i*40-20, 15+j*20), frame.getpixel((40*i-20+10, 20*j+7)))
 				except:
 					...
+		frames.append(canv)
+
+	return wand_gif(frames)
+
+@executor_function
+def tiles_func(img):
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	frames = []
+	for r in np.linspace(0, 90, 50):
+		canv = Image.new('RGBA', (300, 300))
+		draw = ImageDraw.Draw(canv)
+		for i in range(15):
+			for j in range(15):
+				draw.regular_polygon([i*20+10, j*20+10, 10], 4, r, img.getpixel((i*20+10, j*20+10)), 'black')
 		frames.append(canv)
 
 	return wand_gif(frames)

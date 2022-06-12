@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['tiles'])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def tile(self, ctx, imgb: ToImage = None):
+		"""Rotating tiles"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, tiles_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "tiles.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['brick', 'bricks'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def wall(self, ctx, imgb: ToImage = None):

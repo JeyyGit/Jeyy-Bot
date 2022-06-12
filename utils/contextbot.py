@@ -77,7 +77,8 @@ class JeyyContext(commands.Context):
 			buf = BytesIO(await self.message.reference.resolved.attachments[0].read())
 			buf.seek(0)
 			return buf
-		elif (ref := self.message.reference) and (content := ref.resolved.content):
+		elif (ref := self.message.reference) and (content := ref.resolved.content) and _input is None:
+			return await ToImage().convert(self, content)
 			url = re.findall(url_regex, self.message.reference.resolved.content)
 			if not url:
 				url = await emoji_to_url(_input)

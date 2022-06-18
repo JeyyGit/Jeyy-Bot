@@ -50,19 +50,22 @@ class Events(commands.Cog):
 			await ctx.reply(f"Another instance of this command is currently running.\nIt can only be used {error.number} time per {error.per.name} concurrently.", mention_author=False)
 		else:
 			try:
+				if isinstance(error, commands.ConversionError):
+					error = getattr(error, 'original', error)
 				embed = discord.Embed(title="Error", description=f"```diff\n- {error}```", color=0xf0ff1a, timestamp=dt.datetime.now())
 				# embed = discord.Embed(title="Error", description=f"```diff\n- some commands are having errors due to discord endpoint. ```", color=0xf0ff1a, timestamp=dt.datetime.now())
 				try:
 					await ctx.reply(embed=embed, mention_author=False)
 				except:
 					await ctx.send(embed=embed)
-				if ctx.author.id != 624026977191329803:
+				if ctx.author.id not in self.bot.owner_ids:
 					try:
 						embed.add_field(name=f"Server: {ctx.guild.name}", value=f"command: {ctx.invoked_with}\nby: {ctx.author}\nurl: {ctx.message.jump_url}")
 						await self.bot.get_channel(824859630881865748).send(embed=embed)
 					except:
 						pass
-			except:
+			except Exception as e:
+				print(e)
 				try:
 					await ctx.send("Missing permission to send.")
 				except:

@@ -1,6 +1,9 @@
+from PIL import Image
+import PIL
 import discord
 from discord.ext import commands
 from io import BytesIO
+import humanize
 from twemoji_parser import emoji_to_url
 from jishaku.functools import executor_function
 from discord_together import DiscordTogether
@@ -67,42 +70,29 @@ class JeyyContext(commands.Context):
 	def Loading(self, content=None, embed=None):
 		return Loading(self, content, embed)
 
+	def check_buffer(self, buffer):
+		if (size := buffer.getbuffer().nbytes) > 15000000:
+			raise ConversionError(f'Provided image size ({humanize.naturalsize(size)}) is larger than 15 MB size limit.')
+
+		try:
+			Image.open(buffer)
+		except PIL.UnidentifiedImageError:
+			raise ConversionError('Could not open provided image. Make sure it is a valid image types')
+
+		return buffer
+
 	async def to_image(self, _input=None):
 		"""Convert attachment, referenced attachment, emoji, partial emoji, member, user, url, tenor url to io.BytesIO object"""
 		if self.message.attachments:
 			buf = BytesIO(await self.message.attachments[0].read())
 			buf.seek(0)
-			return buf
+			return self.check_buffer(buf)
 		elif self.message.reference and self.message.reference.resolved.attachments:
 			buf = BytesIO(await self.message.reference.resolved.attachments[0].read())
 			buf.seek(0)
-			return buf
+			return self.check_buffer(buf)
 		elif (ref := self.message.reference) and (content := ref.resolved.content) and _input is None:
 			return await ToImage().convert(self, content)
-			url = re.findall(url_regex, self.message.reference.resolved.content)
-			if not url:
-				url = await emoji_to_url(_input)
-				url = re.findall(url_regex, url) # need to fix
-				if not url:
-					_input = BytesIO(await self.author.display_avatar.read())
-					_input.seek(0)
-					return _input
-					# raise ConversionError("Could not convert input to Emoji, Member, or Image URL")
-
-			url = url[0]
-
-			response = await self.bot.session.get(url)
-			if 'https://tenor.com' in url or 'https://tenor.com' in url or 'https://media.tenor' in url:
-				html = await response.read()
-				url_tenor = await self.scrape_tenor(html)
-				resp = await self.bot.session.get(url_tenor)
-				_input = BytesIO(await resp.read())
-				_input.seek(0)
-				return _input
-			else:
-				_input = BytesIO(await self.author.display_avatar.read())
-				_input.seek(0)
-				return _input
 	
 		if (stickers := self.message.stickers) and stickers[0].format != discord.StickerFormatType.lottie:
 			response = await self.bot.session.get(self.message.stickers[0].url)
@@ -143,7 +133,7 @@ class JeyyContext(commands.Context):
 				_input = BytesIO(await response.read())
 				_input.seek(0)
 
-		return _input
+		return self.check_buffer(_input)
 
 	def to_df(self, img, duration=50, **kwargs):
 		if isinstance(img, list):

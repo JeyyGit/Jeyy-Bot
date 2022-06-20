@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['wiggles', 'jiggle'])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def wiggle(self, ctx, imgb: ToImage = None):
+		"""Wiggle wiggle~"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, wiggle_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "wiggle.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL> [n_edges<3|4|5|6|7|8>=4]", aliases=['tiles'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def tile(self, ctx, imgb: ToImage = None, n_edges: typing.Literal[3, 4, 5, 6, 7, 8] = 4):

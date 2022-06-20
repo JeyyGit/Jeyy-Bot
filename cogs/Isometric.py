@@ -233,7 +233,7 @@ class Fun(commands.Cog):
 					igif, c = await isometric_gif_func(blocks, "")
 
 					if not igif:
-							return await ctx.reply("Render time exceeds 15s limit.", mention_author=False)
+							return await ctx.reply("Render time exceeds 20s limit.", mention_author=False)
 					if c > 1000:
 						await ctx.reply(f"gif block limit is 1000 blocks. Your blocks: `{c}`.", mention_author=False)
 						ctx.command.reset_cooldown(ctx)
@@ -260,7 +260,7 @@ class Fun(commands.Cog):
 
 						igif, c = await isometric_gif_func(blocks, loop)
 						if not igif:
-							return await ctx.reply("Render time exceeds 15s limit.", mention_author=False)
+							return await ctx.reply("Render time exceeds 20s limit.", mention_author=False)
 						if c > 1000:
 							await ctx.reply(f"gif block limit is 1000 blocks. Your blocks: `{c}`.", mention_author=False)
 							ctx.command.reset_cooldown(ctx)

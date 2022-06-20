@@ -1,4 +1,5 @@
 from bisect import bisect_left
+import itertools
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence, ImageOps, ImageEnhance, ImageChops
 from colorthief import ColorThief
 from glitch_this import ImageGlitcher
@@ -713,10 +714,8 @@ def isometric_gif_func(shape, loop):
 			fy = mid + j*t*4 + i*t*4 - lvl*t*7
 
 			# [canvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
-			for code in code_dict:
-				if code == val:
-					canvas.paste(code_dict[code], (fx, fy), code_dict[code])
-					break
+			if (img := code_dict.get(val)):
+				canvas.paste(img, (fx, fy), img)
 
 			j += 1
 			if val == "-":
@@ -755,17 +754,21 @@ def isometric_gif_func(shape, loop):
 		for row in shape:
 			for val in row:
 				end = time.time()
-				if end-start > 15:
+				if end-start > 20:
 					raise Exception()
 
 				fx = mid + j*t*7 - i*t*7
 				fy = mid + j*t*4 + i*t*4 - lvl*t*7
 
-				#[newcanvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
-				for code in code_dict:
-					if code == val:
-						newcanvas.paste(code_dict[code], (fx, fy), code_dict[code])
-						break
+				# [newcanvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
+				
+				# for code in code_dict:
+				# 	if code == val:
+				# 		newcanvas.paste(code_dict[code], (fx, fy), code_dict[code])
+				# 		break
+
+				if (img := code_dict.get(val)):
+					newcanvas.paste(img, (fx, fy), img)
 				
 				if val in codes:
 					canvCrop = newcanvas.crop(canvasBox)
@@ -4433,6 +4436,24 @@ def tiles_func(img, n_edges):
 
 	return wand_gif(frames)
 
+@executor_function
+def wiggle_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	npa = np.array(img)
+	rows, cols, _ = npa.shape
+
+	frames = []
+	for n in itertools.chain(range(-100, 100, 10), range(90, -90, -10)):
+		out = np.zeros(npa.shape, np.uint8)
+		for i in range(rows):
+			for j in range(cols):
+				x = int(np.sin(np.pi * i / rows) * n)
+				out[i, j] = npa[i, (j+x) % cols]
+		frames.append(Image.fromarray(out))
+	
+	return wand_gif(frames, 30)
+
+
 #
 # Utility
 # #
@@ -4650,7 +4671,7 @@ def circle_func(img, size):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100:
 			break
-		
+
 		durations.append(frame.info.get('duration', 50))
 		canv = Image.new('RGBA', size, (0, 0, 0, 0))
 		canv.paste(img, (0, 0), mask)

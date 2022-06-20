@@ -2186,7 +2186,7 @@ def pachinko_game():
 
 @executor_function
 def time_scan_func(img):
-	img = Image.open(match_fps(img, 50))
+	img = Image.open(img)
 	width, height = img.size
 	
 	FIXED_HEIGHT = 200
@@ -2198,7 +2198,7 @@ def time_scan_func(img):
 	crops = []
 	frames = []
 	for i in range(1, 201):
-		canvas = Image.new('RGB', (scaled_width, FIXED_HEIGHT), 'black')
+		canvas = Image.new('RGBA', (scaled_width, FIXED_HEIGHT))
 		#canvas = Image.new('RGBA', (scaled_width, FIXED_HEIGHT), 'black')
 		frame = img[i%len(img)]
 		frame = frame.resize((scaled_width, FIXED_HEIGHT))
@@ -2212,14 +2212,16 @@ def time_scan_func(img):
 		draw = ImageDraw.Draw(canvas)
 		draw.line((0, i, scaled_width, i), fill='blue', width=2)
 
-		fobj = BytesIO()
-		canvas.save(fobj, "GIF")
-		canvas = Image.open(fobj)
+		# fobj = BytesIO()
+		# canvas.save(fobj, "GIF")
+		# canvas = Image.open(fobj)
 		frames.append(canvas)
 		
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
+	# igif = BytesIO()
+	# frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
+	# igif.seek(0)
+
+	igif = wand_gif(frames)
 	
 	[crop.close() for crop in crops]
 	[frame.close() for frame in img]
@@ -2238,7 +2240,7 @@ def time_scan_side_func(img):
 	crops = []
 	frames = []
 	for i in range(1, 201):
-		canvas = Image.new('RGB', (FIXED_WIDTH, scaled_height), 'black')
+		canvas = Image.new('RGBA', (FIXED_WIDTH, scaled_height))
 		frame = img[i%len(img)]
 		frame = frame.resize((FIXED_WIDTH, scaled_height))
 		frame.convert('RGB')
@@ -2251,14 +2253,16 @@ def time_scan_side_func(img):
 		draw = ImageDraw.Draw(canvas)
 		draw.line((i, 0, i, scaled_height), fill='blue', width=2)
 
-		fobj = BytesIO()
-		canvas.save(fobj, "GIF")
-		canvas = Image.open(fobj)
+		# fobj = BytesIO()
+		# canvas.save(fobj, "GIF")
+		# canvas = Image.open(fobj)
 		frames.append(canvas)
 		
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=2, loop=0)
-	igif.seek(0)
+	# igif = BytesIO()
+	# frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=2, loop=0)
+	# igif.seek(0)
+
+	igif = wand_gif(frames)
 	
 	[crop.close() for crop in crops]
 	[frame.close() for frame in img]

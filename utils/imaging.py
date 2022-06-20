@@ -2393,6 +2393,7 @@ def explicit_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100:
 			break
+		durations.append(frame.info.get('duration', 100))
 		frame = frame.copy().resize((518, 518)).convert('RGBA')
 		blurred = frame.crop((100, 100, 418, 418)).resize((600, 600)).convert('RGBA').filter(ImageFilter.GaussianBlur(5))
 		blurred.paste(frame, (41, 28), frame)
@@ -2402,7 +2403,6 @@ def explicit_func(img):
 		blurred.save(fobj, "GIF")
 		blurred = Image.open(fobj)
 		frames.append(blurred)
-		durations.append(frame.info.get('duration', 100))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=2, loop=0)
@@ -2530,7 +2530,6 @@ def gallery_func(img):
 def layer_func(img):
 	img = Image.open(img)
 
-	duration = img.info.get('duration', 100)
 
 	shape1 = Image.new('RGBA', (400, 400), (0, 0, 0, 0)).convert('L')
 	shape2 = Image.new('RGBA', (300, 300), (0, 0, 0, 0)).convert('L')
@@ -2545,9 +2544,12 @@ def layer_func(img):
 	draw3.rounded_rectangle([0, 0, 200, 200], 50, fill='white')
 
 	frames = []
+	durations = []
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 150:
 			break
+
+		durations.append(frame.info.get('durations', 50))
 
 		img1 = frame.copy().resize((400, 400)).convert('RGBA')
 		img2 = frame.copy().resize((300, 300)).convert('RGBA').transpose(Image.FLIP_LEFT_RIGHT)
@@ -2564,10 +2566,9 @@ def layer_func(img):
 		canvas1.paste(canvas2, (50, 50), canvas2)
 		canvas1.paste(canvas3, (100, 100), canvas3)
 
-		fobj = BytesIO()
-		canvas1.save(fobj, "GIF")
-		canvas1 = Image.open(fobj)
 		frames.append(canvas1)
+
+	return wand_gif(frames, durations)
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=duration, disposal=2, loop=0)
@@ -3359,7 +3360,8 @@ def canny_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 200:
 			break
-		
+
+		durations.append(frame.info.get('duration', 50))
 		npimg = cv2.cvtColor(np.array(ImageOps.contain(frame.convert('RGB'), (300, 300))), cv2.COLOR_RGB2BGR)
 		result = iaa.Canny(1, sobel_kernel_size=4, colorizer=iaa.RandomColorsBinaryImageColorizer(color_true=255, color_false=0)).augment_image(npimg)
 
@@ -3371,7 +3373,6 @@ def canny_func(img):
 		new_frame.save(fobj, "GIF")
 		new_frame = Image.open(fobj)
 		frames.append(new_frame)
-		durations.append(frame.info.get('duration', 100))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -3389,6 +3390,7 @@ def cartoon_func(img):
 		if i > 50:
 			break
 		
+		durations.append(frame.info.get('duration', 50))
 		im = ImageOps.contain(frame.convert('RGBA'), (300, 300))
 		bg = Image.new('RGBA', im.size, 'white')
 		bg.paste(im, (0, 0), im)
@@ -3403,7 +3405,6 @@ def cartoon_func(img):
 		frame.save(fobj, "GIF")
 		frame = Image.open(fobj)
 		frames.append(frame)
-		durations.append(frame.info.get('duration', 100))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -3668,6 +3669,8 @@ def sensitive_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i == 100:
 			break
+
+		durations.append(frame.info.get('duration', 50))
 		canv = Image.new('RGBA', (400, 400), 'white')
 		frame = ImageOps.fit(frame, ((400, 400))).convert('RGBA')
 		frame = frame.filter(ImageFilter.GaussianBlur(3))
@@ -3678,7 +3681,6 @@ def sensitive_func(img):
 		canv.save(fobj, "GIF")
 		canvas = Image.open(fobj)
 		frames.append(canvas)
-		durations.append(frame.info.get('duration', 100))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -3733,12 +3735,13 @@ def advertize_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i == 100:
 			break
+		
+		durations.append(frame.info.get('duration', 100))
 		canvas = Image.new('RGBA', (400, 400), (0, 0, 0, 0))
 		frame = ImageOps.fit(frame.convert('RGBA'), (350, 350))
 		canvas.paste(frame, (25, 25), frame)
 		canvas.paste(ads, (0, 0), ads)
 		frames.append(canvas)
-		durations.append(frame.info.get('duration', 100))
 
 	return wand_gif(frames, durations)
 
@@ -4152,6 +4155,8 @@ def gameboy_camera_func(img):
 	for n, frame in enumerate(ImageSequence.Iterator(imgs)):
 		if n > 50:
 			break
+
+		durations.append(frame.info.get('duration', 50))
 		img = np.array(ImageOps.contain(frame, (100, 100)).convert('L'))
 
 		for i in range(img.shape[0]):
@@ -4187,7 +4192,6 @@ def gameboy_camera_func(img):
 		Image.fromarray(img).resize((300, 300)).save(fobj, "GIF")
 		frame = Image.open(fobj)
 		frames.append(frame)
-		durations.append(frame.info.get('duration', 100))
 	
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -4209,6 +4213,7 @@ def fire_func(img):
 		for i, frame in enumerate(ImageSequence.Iterator(img)):
 			if i > 50:
 				break
+			durations.append(frame.info.get('duration', 50))
 			frame = ImageOps.contain(frame, (300, 300)).convert('RGBA')
 			frame_np = cv2.cvtColor(np.array(frame), cv2.COLOR_RGBA2BGRA)
 			edges = cv2.Canny(frame_np, 300, 300)
@@ -4231,7 +4236,6 @@ def fire_func(img):
 			m = Image.open(buf)
 			frame.paste(m, (0, 0), m)
 			frames.append(frame)
-			durations.append(int(frame.info.get('duration', 50)))
 		return wand_gif(frames, durations)
 	else:
 		img = ImageOps.contain(img, (300, 300)).convert('RGBA')
@@ -4646,10 +4650,11 @@ def circle_func(img, size):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100:
 			break
+		
+		durations.append(frame.info.get('duration', 50))
 		canv = Image.new('RGBA', size, (0, 0, 0, 0))
 		canv.paste(img, (0, 0), mask)
 		frames.append(canv)
-		durations.append(frame.info.get('duration', 50))
 
 	return wand_gif(frames, durations)
 

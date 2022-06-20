@@ -78,6 +78,8 @@ class JeyyContext(commands.Context):
 			Image.open(buffer)
 		except PIL.UnidentifiedImageError:
 			raise ConversionError('Could not open provided image. Make sure it is a valid image types')
+		finally:
+			buffer.seek(0)
 
 		return buffer
 

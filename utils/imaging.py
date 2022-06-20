@@ -1,5 +1,4 @@
 from bisect import bisect_left
-import itertools
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence, ImageOps, ImageEnhance, ImageChops
 from colorthief import ColorThief
 from glitch_this import ImageGlitcher
@@ -1652,12 +1651,14 @@ def wand_gif(frames, durations=50):
 
 	if isinstance(durations, int):
 		durations = [durations] * len(frames)
+
+	is_npa = isinstance(frames[0], np.ndarray)
 	
 	durations = np.array(durations) // 10
 
-	with wImage.from_array(np.array(frames[0])) as bg:
+	with wImage.from_array(frames[0] if is_npa else np.array(frames[0])) as bg:
 		for i, pframe in enumerate(frames):
-			with wImage.from_array(np.array(pframe.convert('RGBA'))) as frame:
+			with wImage.from_array(pframe if is_npa else np.array(pframe.convert('RGBA'))) as frame:
 				frame.dispose = 'background'
 				bg.composite(frame, 0, 0)
 				frame.delay = durations[i]
@@ -1670,6 +1671,7 @@ def wand_gif(frames, durations=50):
 		buf.seek(0)
 
 	return buf
+
 
 def match_fps(gif_buffer, max_duration=50):
 	d = max_duration
@@ -4447,13 +4449,15 @@ def wiggle_func(img):
 	rows, cols, _ = npa.shape
 
 	frames = []
-	for n in itertools.chain(range(-100, 100, 10), range(90, -90, -10)):
+	for n in range(-100, 100, 10):
 		out = np.zeros(npa.shape, np.uint8)
 		for i in range(rows):
 			for j in range(cols):
 				x = int(np.sin(np.pi * i / rows) * n)
 				out[i, j] = npa[i, (j+x) % cols]
-		frames.append(Image.fromarray(out))
+		frames.append(out)
+
+	frames += frames[-2:0:-1]
 	
 	return wand_gif(frames, 30)
 

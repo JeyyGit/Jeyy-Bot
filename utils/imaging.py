@@ -4537,6 +4537,57 @@ def typerace_func(text):
 	return buf
 
 @executor_function
+def skyline_func(contributions, username, year):
+	mx = [[]]
+	for week in contributions:
+		if week['week'] == 0:
+			for _ in range(7-len(week['days'])):
+				mx[week['week']].append(0)
+
+		for day in week['days']:
+			mx[week['week']].append(day['count'])
+
+		if week['week'] == contributions[-1]['week']:
+			for _ in range(7-len(week['days'])):
+				mx[week['week']].append(0)
+		else:
+			mx.append([])
+
+	columns = []
+	for i, row in enumerate(mx, 1):
+		for j, e in enumerate(row, 1):
+			columns.append(pv.Box((i, i+1, j, j+1, 0 if not e else 1+e*0.5, 0)))
+
+	merged_column = columns[0].merge(columns[1:])
+
+	text_username = pv.Text3D(username).translate([5, -1, -1], inplace=True).rotate_x(60, inplace=True).scale([2, 2, 2], inplace=True)
+	text_year = pv.Text3D(year).translate([20, -1, -1], inplace=True).rotate_x(60, inplace=True).scale([2, 2, 2], inplace=True)
+
+	merged = merged_column.merge([text_username, text_year])
+
+	p = pv.Plotter(off_screen=True, window_size=(512, 412))
+
+	light_1 = pv.Light(position=(5, 3, 10), focal_point=(0, 0, 0), color='purple')
+	light_2 = pv.Light(position=(5, -3, 10), focal_point=(0, 0, 0), color='orange')
+	p.add_light(light_1)
+	p.add_light(light_2)
+
+	p.isometric_view()
+
+	frames = []
+	for i in np.linspace(0, 360, 50):
+		rot = merged.rotate_z(i, point=(0, 0, 0), inplace=False)
+		actor = p.add_mesh(rot, color='linen', pbr=True, metallic=0.3, roughness=0.4, diffuse=0.2, specular=1, specular_power=15, reset_camera=True)
+		buf = BytesIO()
+		p.screenshot(buf)
+		buf.seek(0)
+		frames.append(Image.open(buf))
+		p.remove_actor(actor)
+	p.close()
+
+	return wand_gif(frames[1:], 100)
+
+@executor_function
 def spotify_func(title, artists, cover_buf, duration_seconds, start_timestamp):
 	def shorten(text, font, max_length):
 		res = ''

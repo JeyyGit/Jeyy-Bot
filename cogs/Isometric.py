@@ -665,7 +665,7 @@ class Fun(commands.Cog):
 			if len(blocks) > 4000:
 				return await ctx.send('Block count reached more than 4000.')
 
-		await self.bot.db.execute("UPDATE builds SET build = $1 WHERE LOWER(build_name) = $2", code, build_name)\
+		await self.bot.db.execute("UPDATE builds SET build = $1 WHERE LOWER(build_name) = $2", code, build_name)
 		await ctx.reply(f'Successfully edited build \"{build_search["build_name"]}\".', mention_author=False)
 
 	@build.command(aliases=["delete"], usage="[build name]")

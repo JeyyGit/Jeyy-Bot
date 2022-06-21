@@ -22,7 +22,6 @@ import structlog
 import typing
 import urllib
 
-
 from utils import views, useful, converters, trocr, sounder
 
 importlib.reload(trocr)
@@ -35,7 +34,8 @@ from utils.imaging import (
 	wheel_func,
 	scrap_func,
 	circle_func,
-	scrolling_text_func
+	scrolling_text_func,
+	skyline_func
 )
 
 from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
@@ -1196,6 +1196,24 @@ class Utility(commands.Cog):
 		sounder_view = SounderView(ctx, sounder)
 
 		sounder_view.msg = await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
+
+	@commands.command(cooldown_after_parsing=True)
+	@commands.cooldown(1, 30, commands.BucketType.user)
+	async def skyline(self, ctx, github_username, year:int=2022):
+		"""3D GitHub contribution graph"""
+		if year < 2008 or year > 2022:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Invalid year')
+
+		r = await self.bot.session.get(f'https://skyline.github.com/{github_username}/{year}.json')
+		if r.status == 500:
+			ctx.command.reset_cooldown(ctx)
+			return await ctx.reply('Username not found.')
+
+		async with ctx.Loading("<a:loading:747680523459231834> | Rendering data..."), ctx.typing():
+			js = await r.json()
+			buf = await skyline_func(js['contributions'], js['username'], str(year))
+		await ctx.reply(file=discord.File(buf, 'github_skyline.gif'))		
 
 def setup(bot):
 	bot.add_cog(Utility(bot))

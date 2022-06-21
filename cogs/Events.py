@@ -37,15 +37,6 @@ class Events(commands.Cog):
 				await ctx.reply(embed=embed, mention_author=False, delete_after=error.retry_after)
 			except:
 				await ctx.send("Missing permission to send embed.")
-		# elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.BotMissingPermissions):
-		# 	missing_perms = ', '.join([f'`{perm}`' for perm in error.missing_permissions])
-		# 	try:
-		# 		await ctx.reply(f"Missing permissions: {missing_perms}", mention_author=False)
-		# 	except:
-		# 		try:
-		# 			await ctx.send(f"Missing permissions: {missing_perms}")
-		# 		except:
-		# 			await ctx.author.send(f"Missing permissions: {missing_perms}")
 		elif isinstance(error, commands.MaxConcurrencyReached):
 			await ctx.reply(f"Another instance of this command is currently running.\nIt can only be used {error.number} time per {error.per.name} concurrently.", mention_author=False)
 		else:
@@ -53,7 +44,6 @@ class Events(commands.Cog):
 				if isinstance(error, commands.ConversionError):
 					error = getattr(error, 'original', error)
 				embed = discord.Embed(title="Error", description=f"```diff\n- {error}```", color=0xf0ff1a, timestamp=dt.datetime.now())
-				# embed = discord.Embed(title="Error", description=f"```diff\n- some commands are having errors due to discord endpoint. ```", color=0xf0ff1a, timestamp=dt.datetime.now())
 				try:
 					await ctx.reply(embed=embed, mention_author=False)
 				except:
@@ -217,8 +207,6 @@ class Events(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild):
-		#await self.bot.get_channel(779893084791635969).send(f"Left {guild.name}")
-		
 		embed = discord.Embed(title=f"Left `{guild.name}`", description=f"""
 		Name : {guild.name}
 		ID : {guild.id}

@@ -475,8 +475,6 @@ class NonoView(discord.ui.View):
 
 			if self.board == self.ans_map:
 				embed.description = 'You\'ve won!'
-				# for child in self.children:
-				# 	child.disabled = True
 				self.clear_items()
 			await self.msg.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none(), view=self)
 		else:
@@ -1532,9 +1530,7 @@ class CariMenu(discord.ui.Select):
 		await chosen[2].click()
 		await asyncio.sleep(3)
 
-		# buf = await self.session.get_screenshot()
 		source = await self.session.get_page_source()
-
 		biodata, data = await self.parse_source(source)
 
 		embed = discord.Embed(title=f'Biodata {self.tipe.capitalize()}', description='\n'.join(biodata), color=self.ctx.bot.c)

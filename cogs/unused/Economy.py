@@ -493,7 +493,6 @@ class Economy(commands.Cog):
 		for i, item in enumerate(items.values()):
 			embed.add_field(name=f"{nums[i]} {item['name']} {item['icon']}", value=f"Price: `{item['price']}` <a:coin:839444870652231701>")
 
-		#embed.set_thumbnail(url="https://www11.lunapic.com/editor/working/162022476032934826?2522442893")
 		await ctx.reply(embed=embed, mention_author=False)
 
 

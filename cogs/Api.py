@@ -152,7 +152,6 @@ class Api(commands.Cog):
 				json=json
 			)
 
-			# print(await r.text())
 			buf = BytesIO(await r.read())
 
 			return await ctx.reply( file=discord.File(buf, f'zz.{["png", "gif"][ctx.author.display_avatar.is_animated()]}'), mention_author=False)

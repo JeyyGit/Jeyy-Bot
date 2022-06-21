@@ -147,7 +147,6 @@ class Bots(commands.Cog, name='Bot'):
 		do `j;toggle` to toggle on/off emoji auto response
 		"""
 
-		# lines = [f"`{i+1}.` {str(emoji)} `;;{emoji.name}`" for i, emoji in enumerate([emoji for emoji in self.bot.emojis if emoji.guild.id != 332406449051402250 and emoji.available])]
 		lines = [f"`{i+1}.` {str(emoji)} `;;{emoji.name}`" for i, emoji in enumerate(filter(lambda e: e.guild.id != 332406449051402250 and e.available, self.bot.emojis))]
 		chunks = ctx.chunk(lines, per=15, combine=True)
 

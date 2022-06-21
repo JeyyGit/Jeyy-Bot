@@ -48,8 +48,6 @@ class Sounder:
 
 	@executor_function
 	def export(self):
-		# self.remove_leading_silence()
-
 		buf = BytesIO()
 		self.sound.export(buf, 'mp3')
 		return buf

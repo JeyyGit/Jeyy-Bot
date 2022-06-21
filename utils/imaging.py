@@ -323,7 +323,7 @@ if True:
 	golf_grass = Image.open("./image/golf/grass.png").convert("RGBA")
 	golf_stone = Image.open("./image/golf/stone.png").convert("RGBA")
 	golf_degrees = Image.open("./image/golf/degrees.png").convert("RGBA").resize((100, 100))
-	golf_flag = Image.open("./image/golf/flag.png").convert("RGBA")#.resize((15, 15))
+	golf_flag = Image.open("./image/golf/flag.png").convert("RGBA")
 	font_arial = ImageFont.truetype("./image/arial.ttf", 24)
 	font_arial2 = ImageFont.truetype("./image/arial.ttf", 12)
 	font_arial3 = ImageFont.truetype("./image/arial.ttf", 20)
@@ -372,7 +372,7 @@ if True:
 	sfont = ImageFont.truetype('./image/GothamMedium.ttf', 50)
 	tfont = ImageFont.truetype('./image/GothamMedium.ttf', 80)
 	mfont = ImageFont.truetype('./image/nk57-monospace-no-eb.ttf', 10)
-	# gotham_complete = ImageFont.truetype('./fonts/gotham-bold-complete.ttf', 70)
+	
 	sfont_title = ImageFont.truetype('./fonts/SourceHanSans-Bold.ttc', 60)
 	sfont_auth = ImageFont.truetype('./fonts/SourceHanSans-Bold.ttc', 50)
 
@@ -405,16 +405,10 @@ class Ball:
 
 	def collided(self, arbiter, space, data):
 		self.shape.collision_type = 1000
-		# self.color = tuple(np.random.choice(range(256), size=3))
-		# self.color = 'red'
-		# self.body.velocity = 0, 0
-		# self.shape.density = 1000000
 		return True
 
 	def draw(self, draw):
 		xb, yb = self.body.position
-		# if self.shape.collision_type == 1000:
-		# 	self.color = tuple(np.random.choice(range(256), size=3))
 		draw.ellipse((xb-self.r, res-yb-self.r, xb+self.r, res-yb+self.r), fill=self.color, outline=self.color)
 
 class Wall:
@@ -467,7 +461,7 @@ class GolfBall(Ball):
 	def update(self, draw, offset):
 		self.draw(draw, offset)
 		direction, speed = self.body.velocity.normalized_and_length()
-		self.body.apply_impulse_at_world_point(speed * 20 * -direction, self.body.position) # 20
+		self.body.apply_impulse_at_world_point(speed * 20 * -direction, self.body.position)
 		self.body.angular_velocity *= 0.5
 
 	def draw(self, draw, offset):
@@ -567,10 +561,10 @@ class String:
 @executor_function
 def golf_func(posx, posy, degree, power, ranges, _map, strokes):
 	space = pymunk.Space()
-	# space.gravity = 0, -1500
 	FPS = 60
 	offset = 100
 	degree = degree % 360
+
 	velx = power * math.cos(math.radians(degree)) * 100
 	vely = power * math.sin(math.radians(degree)) * 100
 	finx, finy = _map.finish
@@ -712,7 +706,6 @@ def isometric_gif_func(shape, loop):
 			fx = mid + j*t*7 - i*t*7
 			fy = mid + j*t*4 + i*t*4 - lvl*t*7
 
-			# [canvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
 			if (img := code_dict.get(val)):
 				canvas.paste(img, (fx, fy), img)
 
@@ -727,7 +720,6 @@ def isometric_gif_func(shape, loop):
 
 		j = 0
 		i += 1
-
 
 	if count > 1000:
 		return True, count
@@ -758,13 +750,6 @@ def isometric_gif_func(shape, loop):
 
 				fx = mid + j*t*7 - i*t*7
 				fy = mid + j*t*4 + i*t*4 - lvl*t*7
-
-				# [newcanvas.paste(code_dict[code], (fx, fy), code_dict[code]) for code in code_dict if code == val]
-				
-				# for code in code_dict:
-				# 	if code == val:
-				# 		newcanvas.paste(code_dict[code], (fx, fy), code_dict[code])
-				# 		break
 
 				if (img := code_dict.get(val)):
 					newcanvas.paste(img, (fx, fy), img)
@@ -811,7 +796,6 @@ def land(x, y):
 	resx = x*t*14+9*t
 	resy = y*t*4+12*t
 	grass = Image.open("./image/game/grass64x.png")
-	# canvas = Image.new("RGB", [resx, resy], 'black')
 	canvas = Image.new('RGBA', (resx, resy), (25, 25, 25, 0))
 	for i in range(y):
 		for j in range(x):
@@ -851,13 +835,18 @@ def lever_gif(img1, img2):
 
 def img_to_iso(image, best):
 	with Image.open(image) as image4:
-		# best = 64
 		im = image4.resize((best, best)).convert("RGBA")
 		im = ImageOps.mirror(im)
 		h = []
 		x = 0
 
-		dat = [(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), (94, 174, 174), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), (174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), (219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)]
+		dat = [
+			(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), 
+			(94, 174, 174), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), 
+			(174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), 
+			(219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)
+		]
+
 		dat2 = "123456789gplocdvhr%"
 
 		data = list(im.getdata())
@@ -1400,7 +1389,6 @@ def liquid(blocks):
 def wordle_func(word, guesses):
 	canvas = Image.new('RGBA', (500, 600), 'white')
 	draw = ImageDraw.Draw(canvas)
-	# word = list(word)
 	
 	for i, prev_guess in enumerate(guesses):
 		if prev_guess is not None:
@@ -1410,13 +1398,11 @@ def wordle_func(word, guesses):
 						(20+j*95, 20+i*95),
 						(100+j*95, 100+i*95)
 					], '#6aaa64')
-					# word.remove(prev_guess_letter)
 				elif prev_guess_letter in word:
 					draw.rectangle([
 						(20+j*95, 20+i*95),
 						(100+j*95, 100+i*95)
 					], '#cab456')
-					# word.remove(prev_guess_letter)
 				else:
 					draw.rectangle([
 						(20+j*95, 20+i*95),
@@ -1452,7 +1438,6 @@ def create_stat(word, guesses):
 					result += '⬜'
 			result += '\n'
 
-	# print(result)
 	return result
 
 @executor_function
@@ -1672,57 +1657,13 @@ def wand_gif(frames, durations=50):
 
 	return buf
 
-
-def match_fps(gif_buffer, max_duration=50):
-	d = max_duration
-	frames = []
-	durations = []
-	# insert frame durations you want to use
-	# will find best fit out of durations you use
-	split_durs = [d+10, d, d-10]  
-
-	im = Image.open(gif_buffer)
-	for frame in ImageSequence.Iterator(im):
-		duration = im.info.get('duration', 40)
-		# if frame is less than set duration, do nothing
-		if duration <= d:
-			frames.append(frame)
-			durations.append(duration)
-			continue
-
-		# split into smaller durations
-		def get_min(num):
-			q, r = divmod(duration, num)
-			if r == 0:
-				return 0
-			low = q * num
-			high = low + num
-			return min((abs(low-duration), abs(duration-high)))
-
-		dur = min(split_durs, key=get_min)
-		times = int(duration//dur)
-		print(times)
-		for _ in range(times):
-			copy = frame.copy()
-			rdm = Image.new('RGBA', (50, 50), 'red')
-			copy.paste(rdm)
-			frames.append(copy)
-			durations.append(dur)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', save_all=True, optimize=True, append_images=frames[1:], duration=durations)
-	igif.seek(0)
-	return igif
-
 @executor_function
 def ball_func(img):
 	space = pymunk.Space()
 	space.gravity = 0, -3000
 	FPS = 60
-	count = 0
 
 	balls = []
-	handlers = []
 
 	img = ImageOps.fit(Image.open(img), (32, 32)).convert('RGBA')
 	colors = list(img.getdata())
@@ -1739,10 +1680,8 @@ def ball_func(img):
 		Wall(0, 0, 0, res+100),
 		Wall(0, 0, res, 0),
 		Wall(res, 0, res, res+100)
-		# Wall(0, res, res, res)
 	]
 	
-	# balls.append(Ball(200, 200, 40, "green", 1000))
 	for wall in walls:
 		space.add(wall.body, wall.shape)
 
@@ -1761,10 +1700,6 @@ def ball_func(img):
 			space.gravity = 0, 1500
 
 		space.step(1/FPS)
-		
-		# fobj = BytesIO()
-		# screen.save(fobj, "GIF", transparency=0)
-		# screen = Image.open(fobj)
 		frames.append(screen)
 
 	return wand_gif(frames, FPS)
@@ -1805,35 +1740,21 @@ def bonk_func(img):
 	frames = []
 	npp = news.convert('RGBA')
 	npp = npp.resize((350, 350))
-	#canvas = Image.new("RGB", (512, 350), "black")
-	#canvas = Image.new('RGBA', (512, 350), (25, 25, 25, 0))
 	bonk = Image.open(img).convert('RGBA')
 	bonk = bonk.resize((300, 300))
-	#canvas.paste(bonk, (512-300, 350-300), bonk)
 	for i in range(3, -3, -2):
 		rot = 20*i
 		cent = (50, 300)
 		nppr = npp.rotate(rot, center=cent, expand=True)
 		canvas = Image.new("RGBA", (512, 350), (0, 0, 0, 0))
-		# canvas = Image.new('RGB', (512, 350), "white")
 		z = i + 3
 		bonk = bonk.resize((300, round(300 * z / 6)))
 		canvas.paste(bonk, (212, 350 - round(300 * z / 6)), bonk)
 
 		canvas.paste(nppr, (0, -30), nppr)
-
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
 
 	return wand_gif(frames, 100)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=0, loop=0, disposal=2)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def types(args, auth):
@@ -1870,7 +1791,6 @@ def types_gif(args, auth):
 	margin = offset = 40
 	frames = []
 	txt = ["" for i in range(len(lines))]
-	txt2 = ""
 
 	l = len(text)
 	if l > 150:
@@ -1879,7 +1799,6 @@ def types_gif(args, auth):
 	for i, line in enumerate(lines):
 		for char in line:
 			canvas = Image.new("RGB", [650, 240], 'black')
-			#canvas = Image.new('RGBA', (650, 240), (25, 25, 25, 0))
 			draw = ImageDraw.Draw(canvas)
 			draw.text((400, 150), auth, font=font, fill="white")
 			txt[i] = "".join([txt[i], char])
@@ -1933,7 +1852,6 @@ def burn_func(img):
 	elmo = elmo_gif
 
 	frames = []
-	#newframes = [f.copy() for f in ImageSequence.Iterator(elmo)]
 	for frame in ImageSequence.Iterator(elmo):
 		newframe = frame.convert("RGBA")
 		newframe.paste(burn, (130, 100), burn)
@@ -1953,7 +1871,6 @@ def eugh_func(img):
 	eugh = eugh.resize((330, 330))
 
 	frames = []
-	#newframes = [f.copy() for f in ImageSequence.Iterator(man)]
 	for i, frame in enumerate(ImageSequence.Iterator(man)):
 		if 50 < i < 110:
 			newframe = frame.convert("RGBA")
@@ -1975,7 +1892,6 @@ def scream_func(img):
 	img = img.resize((330, 330))
 
 	frames = []
-	#newframes = [f.copy() for f in ImageSequence.Iterator(gif)]
 	for frame in ImageSequence.Iterator(gif):
 		newframe = frame.convert("RGBA")
 		newframe = newframe.resize((330, 330))
@@ -1996,7 +1912,6 @@ def why_func(img):
 	img = img.resize((330, 330))
 
 	frames = []
-	#newframes = [f.copy() for f in ImageSequence.Iterator(gif)]
 	for frame in ImageSequence.Iterator(gif):
 		newframe = frame.convert("RGBA")
 		newframe = newframe.resize((330, 330))
@@ -2019,7 +1934,6 @@ def bomb_func(img):
 
 	frames = []
 	canvas = Image.new("RGBA", (165, 165), (25, 25, 25, 0))
-	# canvas = Image.new("RGB", (165, 165), "white")
 	canvas.paste(img, (0, 0), img)
 
 	frames.append(canvas)
@@ -2029,7 +1943,6 @@ def bomb_func(img):
 		newframe = frame.convert("RGBA")
 		newframe = newframe.resize((165, 165))
 		canvas = Image.new("RGBA", (165, 165), (25, 25, 25, 0))
-		# canvas = Image.new("RGB", (165, 165), "white")
 		canvas.paste(newframe, (0, 0), newframe)
 		durations.append(100)
 
@@ -2041,11 +1954,6 @@ def bomb_func(img):
 	durations[-1] = 200
 
 	return wand_gif(frames, durations)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', save_all=True, append_images=frames[1:], duration=durations, loop=0)
-	igif.seek(0)
-	return igif
 
 @executor_function
 def patpat_func(img):
@@ -2085,9 +1993,7 @@ def equation_func(img):
 	img = img.resize((330, 330))
 
 	frames = []
-	#loc = random.choices([*range(0, 200)])[0]
 	loc = random.randint(0, 238-150)
-	#newframes = [f.copy() for f in ImageSequence.Iterator(gif)]
 	for i, frame in enumerate(ImageSequence.Iterator(gif)):
 		if loc < i < loc+150:
 			frame = frame.convert("RGBA")
@@ -2095,22 +2001,11 @@ def equation_func(img):
 
 			canvas = Image.new("RGBA", (330, 330), (25, 25, 25, 0))
 
-			#frame = Image.blend(frame, img, 0.5)
-
 			canvas.paste(img, (0, 0), img)
 			canvas.paste(frame, (0, 0), frame)
-
-			#fobj = BytesIO()
-			#canvas.save(fobj, "GIF", transparency=0)
-			#canvas = Image.open(fobj)
 			frames.append(canvas)
 
 	return wand_gif(frames, 100)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', save_all=True, append_images=frames[1:], loop=0, disposal=0)
-	igif.seek(0)
-	return igif
 
 @executor_function
 def buffering_func(img):
@@ -2120,7 +2015,6 @@ def buffering_func(img):
 	img = img.resize((330, 330))
 
 	frames = []
-	#newframes = [f.copy() for f in ImageSequence.Iterator(gif)]
 	for frame in ImageSequence.Iterator(gif):
 		newframe = frame.convert("RGBA")
 		newframe = newframe.resize((330, 330))
@@ -2161,8 +2055,6 @@ def pachinko_game():
 	for i in np.linspace(20, resy-20, 10):
 		for j in np.linspace(40, resy-40, 10):
 			peg = PachiPeg(j, i, 4, 400)
-			#pegs.append(peg)
-			#space.add(peg.body, peg.shape)
 
 	frames = []
 	for _ in range(300):
@@ -2201,7 +2093,6 @@ def time_scan_func(img):
 	frames = []
 	for i in range(1, 201):
 		canvas = Image.new('RGBA', (scaled_width, FIXED_HEIGHT))
-		#canvas = Image.new('RGBA', (scaled_width, FIXED_HEIGHT), 'black')
 		frame = img[i%len(img)]
 		frame = frame.resize((scaled_width, FIXED_HEIGHT))
 		frame = frame.convert('RGB')
@@ -2213,15 +2104,7 @@ def time_scan_func(img):
 
 		draw = ImageDraw.Draw(canvas)
 		draw.line((0, i, scaled_width, i), fill='blue', width=2)
-
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
-		
-	# igif = BytesIO()
-	# frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	# igif.seek(0)
 
 	igif = wand_gif(frames)
 	
@@ -2254,15 +2137,7 @@ def time_scan_side_func(img):
 
 		draw = ImageDraw.Draw(canvas)
 		draw.line((i, 0, i, scaled_height), fill='blue', width=2)
-
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
-		
-	# igif = BytesIO()
-	# frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=2, loop=0)
-	# igif.seek(0)
 
 	igif = wand_gif(frames)
 	
@@ -2285,18 +2160,9 @@ def zoom_func(img):
 		if npa.max() == 0:
 			break
 
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	return wand_gif(frames, 50)
-	
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def discotic_func(img):
@@ -2346,7 +2212,6 @@ def discotic_func(img):
 @executor_function
 def shift_func(img):
 	img = Image.open(img)
-	# img = img.resize((400, 400))
 	img = ImageOps.fit(img, (400, 400))
 	durations = []
 
@@ -2364,8 +2229,7 @@ def shift_func(img):
 	img_4.paste(img_4_pre.crop((0, 0, 200, 200)), (200, 0))
 
 	frames = []
-	for i in np.linspace(0, 200, 50): # reversed(np.geomspace(0.01, 200, 100)): # 
-		#i = 200 - i
+	for i in np.linspace(0, 200, 50): # reversed(np.geomspace(0.01, 200, 100)):
 		img_1_crop = img_1.crop((i, 0, 200+i, 200))
 		img_2_crop = img_2.crop((0, 200-i, 200, 400-i))
 		img_3_crop = img_3.crop((0, i, 200, 200+i))
@@ -2377,21 +2241,12 @@ def shift_func(img):
 		canvas.paste(img_3_crop, (0, 200))
 		canvas.paste(img_4_crop, (200, 200))
 
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
 		durations.append(50)
 	
 	durations[-1] = 1000
 
 	return wand_gif(frames, durations)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def explicit_func(img):
@@ -2498,11 +2353,6 @@ def gallery_func(img):
 	img = Image.open(img).resize((200, 200)).convert('RGBA')
 	gmi = img.copy().transpose(Image.FLIP_TOP_BOTTOM)
 
-	# canvas = Image.new('RGBA', (400, 400), 'white')
-	# canvas.paste(img, (100, 100), img)
-	# canvas.paste(gmi, (100, 310), gmi)
-	# canvas.paste(gmi, (100, -110), gmi)
-
 	frames = []
 	for i in range(105):
 		frame = Image.new('RGBA', (400, 400), 'white')
@@ -2579,12 +2429,6 @@ def layer_func(img):
 
 	return wand_gif(frames, durations)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=duration, disposal=2, loop=0)
-	igif.seek(0)
-
-	return igif
-
 @executor_function
 def clock_func(img):
 	img = Image.open(img).resize((400, 400)).convert('RGBA')
@@ -2601,10 +2445,6 @@ def clock_func(img):
 
 		canvas.paste(img, (0, 0), shape)
 		frame.paste(canvas, (0, 0), canvas)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
 
 	for i in range(0, 90, 2):
@@ -2618,19 +2458,9 @@ def clock_func(img):
 
 		canvas.paste(img, (0, 0), shape)
 		frame.paste(canvas, (0, 0), canvas)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
 
 	return wand_gif(frames, 40)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=20, disposal=2, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def radiate_func(img):
@@ -2678,20 +2508,11 @@ def radiate_func(img):
 		frame.paste(canvas2, (i*2, i*2), canvas2)
 		frame.paste(canvas3, (int(82+i*2.236), int(82+i*2.236)), canvas3)
 
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	frames = frames[::-1]
 
 	return wand_gif(frames, 20)
-	
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=20, disposal=2, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def scroll_func(img):
@@ -2705,21 +2526,11 @@ def scroll_func(img):
 		frame.paste(crop, (100, 0), crop)
 		frame.paste(crop, (200, 0), crop)
 		frame.paste(crop, (300, 0), crop)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(frame)
 
 	frames += frames[::-1]
 
 	return wand_gif(frames, 50)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=20, disposal=2, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def subtract_func(img1, img2):
@@ -2818,10 +2629,7 @@ def mcmap_func(img):
 @executor_function
 def history_func(imgs):
 	img1, img2, img3 = [Image.open(img).resize((200, 200)).convert('RGBA') for img in imgs]
-	frames = []
-	# img1 = Image.new('RGBA', (200, 200), 'red')
-	# img2 = Image.new('RGBA', (200, 200), 'green')
-	# img3 = Image.new('RGBA', (200, 200), 'blue')
+	
 	frames = []
 	for i in range(210):
 		frame = Image.new('RGBA', (400, 400), 'white')
@@ -2915,7 +2723,6 @@ def shoot_func(img):
 def halfinvert_func(img):
 	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGB')
 	img = ImageOps.invert(img)
-	# img = img.filter(ImageFilter.GaussianBlur(3))
 
 	frames = []
 	for i in range(16):
@@ -3011,8 +2818,6 @@ def halfinvert_func(img):
 @executor_function
 def optic_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
-	# bg = Image.new('RGBA', img.size, 'white')
-	# bg.paste(img, (0, 0), img)
 	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
@@ -3023,20 +2828,10 @@ def optic_func(img):
 		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	frames += frames[::-1]
 	return wand_gif(frames)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def rain_func(img):
@@ -3078,19 +2873,9 @@ def rain_func(img):
 			_, buf = cv2.imencode(".png", result)
 			buf = BytesIO(buf)
 			frame = Image.open(buf)
-
-			# fobj = BytesIO()
-			# frame.save(fobj, "GIF")
-			# frame = Image.open(fobj)
 			frames.append(frame)
 
 	return wand_gif(frames, duration)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=duration, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def lamp_func(img):
@@ -3122,8 +2907,6 @@ def lamp_func(img):
 @executor_function
 def roll_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
-	# bg = Image.new('RGBA', img.size, 'white')
-	# bg.paste(img, (0, 0), img)
 	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	frames = []
@@ -3134,19 +2917,9 @@ def roll_func(img):
 		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	return wand_gif(frames, 50)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def tv_func(img):
@@ -3173,25 +2946,13 @@ def tv_func(img):
 		
 		canvas.paste(noise, (5, 10), noise)
 		canvas.paste(tvt, (0, 0), tvt)
-
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(canvas)
 
 	return wand_gif(frames, 50)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
-
 @executor_function
 def earthquake_func(img, power):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
-	# bg = Image.new('RGBA', img.size, 'white')
-	# bg.paste(img, (0, 0), img)
 	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	if power < 1:
@@ -3207,18 +2968,9 @@ def earthquake_func(img, power):
 		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	return wand_gif(frames, 50)
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def infinity_func(img):
@@ -3233,21 +2985,11 @@ def infinity_func(img):
 		_, buf = cv2.imencode(".png", result)
 		buf = BytesIO(buf)
 		frame = Image.open(buf)
-
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	durations = [50]*90
 	durations[0] = 500
 	return wand_gif(frames, durations)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def shock_func(img):
@@ -3437,18 +3179,9 @@ def love_func(img, rainbow):
 			heart.velocity = [random.randint(-1, 1), random.randint(-3, 1)]
 			heart.update(frame)
 
-		# fobj = BytesIO()
-		# frame.save(fobj, "GIF")
-		# frame = Image.open(fobj)
 		frames.append(frame)
 
 	return wand_gif(frames, 60)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=60, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def magnify_func(img):
@@ -3475,12 +3208,6 @@ def magnify_func(img):
 		frames.append(frame)
 
 	return wand_gif(frames, 100)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, loop=0)
-	igif.seek(0)
-
-	return igif
 
 @executor_function
 def shear_func(img, axis):
@@ -3712,9 +3439,6 @@ def warp_func(img):
 			draw.rectangle((round(i*length-x*300+300), 0, round(i*length-x*300+300)+length, 300), 'white')
 			canvas.paste(img, (round(x*300-300), 0), mask)
 
-		# fobj = BytesIO()
-		# canvas.save(fobj, "GIF")
-		# canvas = Image.open(fobj)
 		frames.append(canvas)
 
 	return wand_gif(frames, 50)
@@ -4240,6 +3964,7 @@ def fire_func(img):
 							blank[abs(x-i)][y] = *random.choice(colors), 255
 					except:
 						...
+
 			_, buf = cv2.imencode(".png", blank)
 			buf = BytesIO(buf)
 			m = Image.open(buf)
@@ -4709,7 +4434,6 @@ def scrap_func(text):
 				let_img.thumbnail((200, 200), Image.ANTIALIAS)
 				canvas.paste(let_img, (x, y), let_img)
 
-				#x += 210
 				x += let_img.size[0] + 20
 			x = 0
 			y += 220
@@ -4746,18 +4470,18 @@ def scrolling_text_func(text):
 @executor_function
 def img_to_emoji_func(image, best):
 	with Image.open(image) as image4:
-		# best = 64
 		im = image4.resize((best, best)).convert("RGBA")
 		im = ImageOps.mirror(im)
 		h = []
 		x = 0
 
-		dat = [(56, 56, 56), (242, 242, 242), (247, 99, 12), (0, 120, 215), (232, 18, 36), (142, 86, 46), (136, 108, 228), (22, 198, 12), (255, 241, 0)]
+		dat = [
+			(56, 56, 56), (242, 242, 242), (247, 99, 12), (0, 120, 215), (232, 18, 36), 
+			(142, 86, 46), (136, 108, 228), (22, 198, 12), (255, 241, 0)
+		]
+
 		dat2 = "⬛⬜🟧🟦🟥🟫🟪🟩🟨"
-
 		data = list(im.getdata())
-
-		# data = reversed(data)
 
 		for p in data:
 			x += 1
@@ -4837,8 +4561,6 @@ def spotify_func(title, artists, cover_buf, duration_seconds, start_timestamp):
 	img.paste(cover, (56, 56), cover)
 	artists_text = ', '.join(artists)
 
-	# draw.text((368, 65), title if len(title) <= 23 else title[:23] + '...', fcolor, font=sfontbold)
-	# draw.text((368, 140), artists_text if len(artists_text) <= 35 else artists_text[:35] + '...', fcolor, font=sfont)
 	draw.text((368, 47), shorten(title, sfont_title, 945), fcolor, font=sfont_title)
 	draw.text((368, 125), shorten(artists_text, sfont_auth, 945), fcolor, font=sfont_auth)
 

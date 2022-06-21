@@ -8,7 +8,6 @@ import traceback
 from utils.contextbot import JeyyBot
 
 intents = discord.Intents.default()
-# intents.message_content = True
 
 PREFIXES = ['j;', "J;", "j:", "J:", "🌈 ", "jeyy ate my ", "||j||", "<@!779783517613588520> "]
 bot = JeyyBot(command_prefix=PREFIXES, case_insensitive=True, owner_ids={624026977191329803, 699839134709317642}, intents=intents, activity=discord.Activity(type=discord.ActivityType.listening, name="`j;`"))
@@ -71,7 +70,6 @@ async def reload(ctx, extension):
 @commands.is_owner()
 async def reloadall(ctx):
 	await ctx.trigger_typing()
-	# bot.ipc.update_endpoints()
 	try:
 		bot.no_idle.cancel()
 	except:

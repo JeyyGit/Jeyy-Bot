@@ -23,9 +23,8 @@ import typing
 import urllib
 
 
-from utils import imaging, views, useful, converters, trocr, sounder
+from utils import views, useful, converters, trocr, sounder
 
-# importlib.reload(imaging)
 importlib.reload(trocr)
 importlib.reload(views)
 importlib.reload(useful)
@@ -59,18 +58,18 @@ logger.setLevel(logging.CRITICAL)
 @executor_function
 def img_to_emoji(image, best):
 	with Image.open(image) as image4:
-		# best = 64
 		im = image4.resize((best, best)).convert("RGBA")
 		im = ImageOps.mirror(im)
 		h = []
 		x = 0
 
-		dat = [(56, 56, 56), (242, 242, 242), (247, 99, 12), (0, 120, 215), (232, 18, 36), (142, 86, 46), (136, 108, 228), (22, 198, 12), (255, 241, 0)]
+		dat = [
+			(56, 56, 56), (242, 242, 242), (247, 99, 12), (0, 120, 215), (232, 18, 36), 
+			(142, 86, 46), (136, 108, 228), (22, 198, 12), (255, 241, 0)
+		]
+
 		dat2 = "⬛⬜🟧🟦🟥🟫🟪🟩🟨"
-
 		data = list(im.getdata())
-
-		# data = reversed(data)
 
 		for p in data:
 			x += 1
@@ -242,8 +241,6 @@ class Utility(commands.Cog):
 
 		if len(what) > 2000:
 			return await ctx.reply("Character limit: 2000", mention_author=False)
-
-		# what = what.replace('@everyone', '@​\u200beveryone').replace('@here', '@\u200bhere')
 
 		patterns = {
 			'years': r"(\d+)(?= ?((years)|(year)|(y)))",
@@ -663,7 +660,6 @@ class Utility(commands.Cog):
 		embeds = []
 		for page in pages:
 			embed = discord.Embed(title=f'Search result for: {query}', color=self.bot.c, timestamp=dt.datetime.now())
-			# embed.set_thumbnail(url=page[0].image_url)
 			for result in page:
 				embed.add_field(name=result.title, value=f'[*{result.url}*]({result.url})\n{result.description}', inline=False)
 			embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
@@ -720,8 +716,6 @@ class Utility(commands.Cog):
 		if len(kas) > 51:
 			return await ctx.reply(f"Batas maksimum 50 data untuk kas {nama_kas} sudah tercapai.", mention_author=False)
 
-		# uangs = locale.currency(uang, grouping=True)
-		# uangs = f"{uangs[:2]} {uangs[2:]}"
 		uangs = f"Rp {uang}"
 		date = dt.datetime.now()
 		tanggal = date.strftime("%A, %d %b %Y %I:%M %p")
@@ -755,7 +749,6 @@ class Utility(commands.Cog):
 		a = [{'No': i+1, 'Nama': str(self.bot.get_user(b['user_id']) or await self.bot.fetch_user(b['user_id'])), 'Uang': f"Rp {b['uang']}", 'Tanggal': b['tanggal']} for i, b in enumerate(q)]
 		a.append({'No': "-", 'Nama': "Total", 'Uang': f"Rp {int(j)}", 'Tanggal': ""})
 		tabel = tabulate(a, headers="keys", tablefmt="pretty", stralign="center", numalign="center")
-		#tabel = f"{'`'*3}swift\n{t}{'`'*3}"
 
 		try:
 			await ctx.reply(f"```swift\nTABEL KAS \"{nama_kas}\"\n{tabel}```", mention_author=False)
@@ -764,7 +757,6 @@ class Utility(commands.Cog):
 			s.write(f"TABEL KAS \"{nama_kas}\"\n{tabel}")
 			s.seek(0)
 			try:
-				#await ctx.reply(f"Tabel terlalu panjang. Klik {paste} untuk melihat tabel secara penuh atau \U0001f447", file=discord.File(s, filename="Tabel.c"), mention_author=False)
 				await ctx.reply(file=discord.File(s, filename="Tabel.c"), mention_author=False)
 			except:
 				paste = await self.bot.mystbin_client.post(f"TABEL KAS \"{nama_kas}\"\n{tabel}", syntax='c')
@@ -784,7 +776,6 @@ class Utility(commands.Cog):
 			`"[nama kas]"` harus di dalam tanda petik dua `"`
 			""", color=self.bot.c)
 		embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
-		#embed.set_footer(text=f"Jeyy Bot v{self.bot.VERSION}", icon_url=self.bot.user.avatar.url)
 		await ctx.reply(embed=embed, mention_author=False)
 
 	@commands.command(aliases=['ms'], hidden=True)
@@ -1090,7 +1081,7 @@ class Utility(commands.Cog):
 			
 	@commands.command(hidden=True)
 	async def cari(self, ctx, *, cari):
-		async with ctx.Loading('Mencari data...'):#, get_session(service, browser) as session:
+		async with ctx.Loading('Mencari data...'):
 			session = await start_session(service, browser)
 			await session.set_window_size(700, 1200)
 			await session.get(f'https://pddikti.kemdikbud.go.id/search/{urllib.parse.quote(cari)}')

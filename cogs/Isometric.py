@@ -122,7 +122,6 @@ class Fun(commands.Cog):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def isometric(self, ctx, *, blocks=None):
 		"""Draw your own blocks"""
-		# return await ctx.reply('Command is on maintenance')
 		async with ctx.typing():
 			if not blocks:
 				await ctx.send_help("isometric")
@@ -139,17 +138,6 @@ class Fun(commands.Cog):
 					except Exception as e:
 						ctx.command.reset_cooldown(ctx)
 						raise e
-					# blocks = list(blocks)
-					# for i, code in enumerate(blocks):
-					# 	try:
-					# 		if code == 'x':
-					# 			inserted = blocks[i-1] * int(blocks[i+1])
-					# 			blocks[i-1] = inserted
-					# 			del blocks[i:i+2]
-					# 	except Exception as e:
-					# 		ctx.command.reset_cooldown(ctx)
-					# 		return await ctx.reply(f"Invalid multiply expression.", mention_author=False)
-					# blocks = ''.join(blocks)
 					if not blocks:
 						ctx.command.reset_cooldown(ctx)
 						return await ctx.reply(f"Invalid multiply expression.", mention_author=False)
@@ -179,8 +167,7 @@ class Fun(commands.Cog):
 
 					blocks1 = blocks1.split()
 					buf1, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks1)
-					# channel = self.bot.get_channel(851740000814628915) or self.bot.fetch_channel(851740000814628915)
-
+					
 					blocks2 = blocks.replace('e', '／')
 					blocks2 = blocks2.replace('#', 'e')
 					blocks2 = blocks2.replace('／', '#')
@@ -196,11 +183,6 @@ class Fun(commands.Cog):
 					buf2, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks2)
 
 					if not lgif:
-						# first = await channel.send(file=discord.File(buf1, "firststate.png"))
-						# second = await channel.send(file=discord.File(buf2, "secondstate.png"))
-						# await asyncio.sleep(0.1)
-						# link1 = self.bot._connection._get_message(first.id).attachments[0].url
-						# link2 = self.bot._connection._get_message(second.id).attachments[0].url
 						link1 = await ctx.upload_bytes(buf1.getvalue(), 'image/png', name='first state')
 						link2 = await ctx.upload_bytes(buf2.getvalue(), 'image/png', name='second state')
 
@@ -442,10 +424,8 @@ class Fun(commands.Cog):
 				pass
 
 		output = " 0 ".join(coded)
-		
 		output = output.replace('1', block[0])
 
-		# await ctx.reply(f"`code::`\n```j;iso {output + ['', ' gif'][gif]}```", mention_author=False)
 		cmd = self.bot.get_command("isometric")
 		await cmd(ctx, blocks='0 '+output + ['', ' gif'][gif])
 
@@ -655,7 +635,6 @@ class Fun(commands.Cog):
 
 		code = code.replace('j;isometric', '').replace('j;iso', '').strip()
 		code = re.sub(" +", ' ', code)
-		# build_name = build_name.lower()
 		build_search = await self.bot.db.fetchrow("SELECT * FROM builds WHERE LOWER(build_name) = $1", build_name.lower())
 
 		if not build_search or not build_search[0]:
@@ -686,8 +665,7 @@ class Fun(commands.Cog):
 			if len(blocks) > 4000:
 				return await ctx.send('Block count reached more than 4000.')
 
-		await self.bot.db.execute("UPDATE builds SET build = $1 WHERE LOWER(build_name) = $2", code, build_name)
-		# return await ctx.send(build_search)
+		await self.bot.db.execute("UPDATE builds SET build = $1 WHERE LOWER(build_name) = $2", code, build_name)\
 		await ctx.reply(f'Successfully edited build \"{build_search["build_name"]}\".', mention_author=False)
 
 	@build.command(aliases=["delete"], usage="[build name]")
@@ -906,9 +884,7 @@ class Fun(commands.Cog):
  			VALUES 
 			 	($1, 0, 0, 0, '{0, 0, 0, 0, 0, 0}') 
 			''', ctx.author.id)
-		# else:
-		# 	await self.bot.db.execute('UPDATE wordle_stat SET played = played + 1 WHERE user_id = $1', ctx.author.id)
-
+		
 		class WordleView(discord.ui.View):
 			def __init__(self):
 				super().__init__()

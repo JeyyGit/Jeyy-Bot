@@ -4572,12 +4572,13 @@ def skyline_func(contributions, username, year):
 	p.add_light(light_1)
 	p.add_light(light_2)
 
-	p.camera.position = 146, 20, 20
+	p.camera.position = (146, 20, 20)
+	body = merged.scale((1.3, 1.3, 1.3), inplace=True)
 
 	frames = []
-	for i in np.linspace(0, 360, 50):
-		rot = merged.rotate_z(i, point=merged.center, inplace=False).scale((1.3, 1.3, 1.3), inplace=True).translate((0, 0, -10), inplace=True)
-		actor = p.add_mesh(rot, color='linen', pbr=True, metallic=0.3, roughness=0.4, diffuse=0.2, specular=1, specular_power=15, reset_camera=True)
+	for i in np.linspace(0, 355, 50):
+		rot = body.rotate_z(i, point=body.center, inplace=False).translate((0, 0, -10), inplace=True)
+		actor = p.add_mesh(rot, color='linen', pbr=True, metallic=0.8, roughness=0.4, diffuse=0.2, specular=1, specular_power=15)
 		buf = BytesIO()
 		p.screenshot(buf)
 		buf.seek(0)

@@ -4565,18 +4565,18 @@ def skyline_func(contributions, username, year):
 
 	merged = merged_column.merge([text_username, text_year])
 
-	p = pv.Plotter(off_screen=True, window_size=(512, 412))
+	p = pv.Plotter(off_screen=True, window_size=(450, 350))
 
 	light_1 = pv.Light(position=(5, 3, 10), focal_point=(0, 0, 0), color='purple')
 	light_2 = pv.Light(position=(5, -3, 10), focal_point=(0, 0, 0), color='orange')
 	p.add_light(light_1)
 	p.add_light(light_2)
 
-	p.isometric_view()
+	p.camera.position = 146, 20, 20
 
 	frames = []
 	for i in np.linspace(0, 360, 50):
-		rot = merged.rotate_z(i, point=(0, 0, 0), inplace=False)
+		rot = merged.rotate_z(i, point=merged.center, inplace=False).scale((1.3, 1.3, 1.3), inplace=True).translate((0, 0, -10), inplace=True)
 		actor = p.add_mesh(rot, color='linen', pbr=True, metallic=0.3, roughness=0.4, diffuse=0.2, specular=1, specular_power=15, reset_camera=True)
 		buf = BytesIO()
 		p.screenshot(buf)

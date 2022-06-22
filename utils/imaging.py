@@ -2152,7 +2152,7 @@ def zoom_func(img):
 	bg.paste(img, (0, 0), img)
 
 	frames = []
-	for i in range(1, 150, 3):
+	for i in range(1, 240, 3):
 		frame = ImageOps.crop(bg, i).resize(img.size)
 
 		npa = np.array(frame)

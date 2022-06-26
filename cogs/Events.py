@@ -222,7 +222,7 @@ class Events(commands.Cog):
 		print(f"\nLeft `{guild.name}` with {guild.member_count} members.\n")
 	
 	@commands.Cog.listener()
-	async def on_emoji(self, message, search):
+	async def on_emoji(self, message: discord.Message, search):
 		last_emojis = [emoji for emoji in self.bot.emojis if emoji.guild.id != 332406449051402250 and emoji.available]
 		emoji_list = {emoji.name: emoji for emoji in last_emojis}
 		guesses = []
@@ -275,7 +275,10 @@ class Events(commands.Cog):
 						embed.set_image(url="https://cdn.discordapp.com/attachments/781487758308671520/820893933646249984/unknown.png")
 						await message.channel.send(embed=embed)
 				else:
-					await message.channel.send(coded, allowed_mentions=discord.AllowedMentions.none())
+					if message.reference:
+						await message.reference.resolved.reply(coded, allowed_mentions=discord.AllowedMentions.all() if message.mentions else discord.AllowedMentions.none())
+					else:
+						await message.channel.send(coded, allowed_mentions=discord.AllowedMentions.none())
 
 	@commands.Cog.listener()
 	async def on_reply(self, message):

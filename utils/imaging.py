@@ -34,6 +34,7 @@ if True:
 	res = 300
 	pv.global_theme.transparent_background = True
 	cow_mesh = examples.download_cow().smooth()
+	cube_mesh = pv.read("./models/cube.obj")
 	glitcher = ImageGlitcher()
 	grass = Image.open("./image/game/grass64x.png").convert('RGBA')
 	water = Image.open("./image/game/water64x.png").convert('RGBA')
@@ -4186,6 +4187,40 @@ def wiggle_func(img):
 	
 	return wand_gif(frames, 30)
 
+@executor_function
+def cube_func(img):
+	bg = Image.new('RGBA', (300, 300), 'black')
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	bg.paste(img, (0, 0), img)
+	bg = bg.convert('RGB')
+
+	buf = BytesIO()
+	bg.save(buf, 'PNG')
+	buf.seek(0)
+
+	tex = pv.Texture(imageio.imread(buf))
+
+	mesh = cube_mesh.copy(deep=False)
+
+	pl = pv.Plotter(off_screen=True, window_size=[350, 350])
+
+	camera = pv.Camera()
+	camera.position = 3.7, 3.7, 3.7
+	camera.focal_point = 0, 0, 0
+	pl.camera = camera
+
+	frames = []
+	for i in np.linspace(0, 355, 50):
+		rot = mesh.rotate_y(i, inplace=False)
+		actor = pl.add_mesh(rot, texture=tex, smooth_shading=True)
+		buf = BytesIO()
+		pl.screenshot(buf)
+		buf.seek(0)
+		frames.append(Image.open(buf))
+		pl.remove_actor(actor)
+	pl.close()
+
+	return wand_gif(frames, 50)
 
 #
 # Utility

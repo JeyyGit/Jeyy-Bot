@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['box'])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def cube(self, ctx, imgb: ToImage = None):
+		"""A box"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, cube_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "cube.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['wiggles', 'jiggle'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def wiggle(self, ctx, imgb: ToImage = None):

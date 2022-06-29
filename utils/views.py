@@ -20,6 +20,7 @@ importlib.reload(sounder)
 
 from utils.pour_puzzle import Liquid, Bottle, levels
 from utils.sounder import Sounder, audios
+from utils.imaging import roomy_func
 
 # Base
 class BaseView(discord.ui.View):
@@ -886,6 +887,80 @@ class InteractiveIsoView(discord.ui.View):
 			self.utara_btn.disabled = True
 		
 		await self.update()
+
+class RoomyView(discord.ui.View):
+	def __init__(self, ctx):
+		self.ctx = ctx
+		self.floor_tex = 'white'
+		self.wall_tex = 'brown'
+		self.avatar = None
+		self.message = None
+
+	async def interaction_check(self, interaction):
+		if interaction.user != self.ctx.author:
+			await interaction.response.send_message('This is not your interaction!', ephemeral=True)
+			return False
+
+		return True
+
+	async def update(self):
+		if not self.avatar:
+			self.avatar = await self.ctx.to_image()
+		buf = await roomy_func(self.avatar, self.floor_tex, self.wall_tex)
+		url = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'roomy')
+		await self.message.edit(content=url)
+
+	async def update_floor(self, tex):
+		self.floor_tex = tex
+
+		for child in self.children[:]:
+			if child.custom_id.startswith('floor'):
+				...
+
+	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success)
+	async def finish(self, button, interaction):
+		...
+
+	@discord.ui.button(label='Floor: white', disabled=True, custom_id='floor white', style=discord.ButtonStyle.primary, row=1)
+	async def floor_white(self, button, interaction):
+		self.floor_tex = 'white'
+
+
+	@discord.ui.button(label='Floor: red', custom_id='floor red', style=discord.ButtonStyle.secondary, row=1)
+	async def floor_red(self, button, interaction):
+		...
+
+	@discord.ui.button(label='Floor: brown', custom_id='floor brown', style=discord.ButtonStyle.secondary, row=1)
+	async def floor_brown(self, button, interaction):
+		...
+
+	@discord.ui.button(label='Floor: tan', custom_id='floor tan', style=discord.ButtonStyle.secondary, row=1)
+	async def floor_tan(self, button, interaction):
+		...
+
+	@discord.ui.button(label='Floor: Custom', custom_id='floor custom', style=discord.ButtonStyle.secondary, row=1)
+	async def floor_custom(self, button, interaction):
+		...
+
+	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
+	# async def (self, button, interaction):
+	# 	...
+
+	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
+	# async def (self, button, interaction):
+	# 	...
+
+	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
+	# async def (self, button, interaction):
+	# 	...
+
+	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
+	# async def (self, button, interaction):
+	# 	...
+
+	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
+	# async def (self, button, interaction):
+	# 	...
 
 
 # Utility cog

@@ -35,6 +35,8 @@ if True:
 	pv.global_theme.transparent_background = True
 	cow_mesh = examples.download_cow().smooth()
 	cube_mesh = pv.read("./models/cube.obj")
+	wall_mesh = pv.read("./models/wall.obj")
+	bed_mesh = pv.read("./models/bed.obj")
 	glitcher = ImageGlitcher()
 	grass = Image.open("./image/game/grass64x.png").convert('RGBA')
 	water = Image.open("./image/game/water64x.png").convert('RGBA')
@@ -1629,6 +1631,63 @@ def prosecutor_func(name, text):
 
 	return igif
 
+@executor_function
+def roomy_func(avatar, floor_texture, wall_texture):
+	def add_bg(img):
+		bg = Image.new('RGBA', (300, 300), 'black')
+		img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+		bg.paste(img, (0, 0), img)
+		bg = bg.convert('RGB')
+
+		buf = BytesIO()
+		bg.save(buf, 'PNG')
+		buf.seek(0)
+		return buf
+
+	# floor
+	floor = pv.Box((-5, 5, -5, 5, -1, 0))
+	floor.texture_map_to_plane(inplace=True)
+
+	# wall
+	wall_scale = 5
+	wall = wall_mesh.copy(deep=False).scale((wall_scale, wall_scale, wall_scale), inplace=False).translate([0, 5, 0], inplace=False)
+
+	# picture
+	pic = pv.Box((3, 0, 3, 0, 0.5, 0)).translate([-2, 5, -4.3], inplace=False)
+	pic.texture_map_to_plane(inplace=True)
+	pic_tex = pv.Texture(imageio.imread(avatar))
+
+	# bed
+	bed_scale = 0.0003
+	bed = bed_mesh.copy(deep=True).scale((bed_scale, bed_scale, bed_scale), inplace=True).translate((0, 0, 0.7), inplace=False)
+	bed_tex = pv.read_texture("./models/bed_tex.png")
+
+	# plot
+	pl = pv.Plotter(off_screen=True, window_size=(400, 400))
+
+	if isinstance(wall_texture, BytesIO):
+		buf = add_bg(wall_texture)
+		wall_tex = pv.Texture(imageio.imread(buf))
+		pl.add_mesh(wall.rotate_x(90, inplace=False), texture=wall_tex)
+	else:
+		pl.add_mesh(wall.rotate_x(90, inplace=False), color=wall_texture)
+
+	if isinstance(floor_texture, BytesIO):
+		buf = add_bg(floor_texture)
+		floor_tex = pv.Texture(imageio.imread(buf))
+		pl.add_mesh(floor, texture=floor_tex)
+	else:
+		pl.add_mesh(floor, color=floor_texture)
+
+	pl.add_mesh(pic.rotate_z(180, inplace=False).rotate_x(-90, inplace=False), texture=pic_tex)
+	pl.add_mesh(bed.rotate_y(-90, inplace=False).rotate_x(90, inplace=False), texture=bed_tex)
+
+	buf = BytesIO()
+	pl.screenshot(buf)
+	buf.seek(0)
+
+	pl.close()
+	return buf
 #
 # image
 # #

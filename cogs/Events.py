@@ -30,10 +30,8 @@ class Events(commands.Cog):
 				pass
 		elif isinstance(error, commands.CommandOnCooldown):
 			try:
-				time = round(error.retry_after)
-				left = humanize.precisedelta(dt.timedelta(seconds=time))
-
-				embed = discord.Embed(title="\U000026a0 Command on cooldown! \U000026a0", description=f"Please try again in {left}.", color=0xf0ff1a)
+				left = discord.utils.format_dt(dt.datetime.now() + dt.timedelta(seconds=error.retry_after+1), 'R')
+				embed = discord.Embed(title="\U000026a0 Command on cooldown! \U000026a0", description=f"Please try again {left}.", color=0xf0ff1a)
 				await ctx.reply(embed=embed, mention_author=False, delete_after=error.retry_after)
 			except:
 				await ctx.send("Missing permission to send embed.")

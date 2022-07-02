@@ -17,6 +17,13 @@ class Events(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.hidden = True
+		self.banned_emojis = {
+			'guild': [
+				892933428641665025,
+				332406449051402250
+			],
+			'emoji': [],
+		}
 
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, error):
@@ -221,7 +228,7 @@ class Events(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_emoji(self, message: discord.Message, search):
-		last_emojis = [emoji for emoji in self.bot.emojis if emoji.guild.id != 332406449051402250 and emoji.available]
+		last_emojis = [emoji for emoji in self.bot.emojis if emoji.guild.id not in self.banned_emojis['guild'] and emoji.available and emoji.id not in self.banned_emojis['emoji']]
 		emoji_list = {emoji.name: emoji for emoji in last_emojis}
 		guesses = []
 		keys = list(emoji_list)

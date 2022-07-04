@@ -154,6 +154,7 @@ if True:
 
 	fan_img = Image.open("./image/fan.png").resize((400, 400)).convert('RGBA')
 	warm_palette = Image.open("./image/warm_palette.png").convert('RGBA')
+	brush_mask = Image.open("./image/brush_mask.gif")
 
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
@@ -4280,6 +4281,22 @@ def cube_func(img):
 	pl.close()
 
 	return wand_gif(frames, 50)
+
+@executor_function
+def paint_func(img):
+	img = ImageOps.fit(Image.open(img), (400, 400)).convert('RGBA')
+	masks = brush_mask
+
+	frames = []
+	durations = []
+	for mask in ImageSequence.Iterator(masks):
+		canv = Image.new('RGBA', (400, 400))
+		canv.paste(img, (0, 0), mask.convert('L'))
+		frames.append(canv)
+		durations.append(50)
+
+	durations[-1] = 1000
+	return wand_gif(frames, durations)
 
 #
 # Utility

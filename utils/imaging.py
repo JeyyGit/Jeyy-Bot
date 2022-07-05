@@ -4284,14 +4284,14 @@ def cube_func(img):
 
 @executor_function
 def paint_func(img):
-	img = ImageOps.fit(Image.open(img), (400, 400)).convert('RGBA')
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
 	masks = brush_mask
 
 	frames = []
 	durations = []
 	for mask in ImageSequence.Iterator(masks):
-		canv = Image.new('RGBA', (400, 400))
-		canv.paste(img, (0, 0), mask.convert('L'))
+		canv = Image.new('RGBA', (300, 300))
+		canv.paste(img, (0, 0), mask.convert('L').resize((300, 300)))
 		frames.append(canv)
 		durations.append(50)
 

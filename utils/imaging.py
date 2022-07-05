@@ -4239,7 +4239,7 @@ def wiggle_func(img):
 		out = np.zeros(npa.shape, np.uint8)
 		for i in range(rows):
 			for j in range(cols):
-				x = int(np.sin(np.pi * i / rows) * n)
+				x = int(np.sin(np.pi * i / rows * 3) * n)
 				out[i, j] = npa[i, (j+x) % cols]
 		frames.append(out)
 

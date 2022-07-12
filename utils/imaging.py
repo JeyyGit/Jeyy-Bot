@@ -155,6 +155,7 @@ if True:
 	fan_img = Image.open("./image/fan.png").resize((400, 400)).convert('RGBA')
 	warm_palette = Image.open("./image/warm_palette.png").convert('RGBA')
 	brush_mask = Image.open("./image/brush_mask.gif")
+	flare_img = Image.open("./image/flare.png").resize((50, 50)).convert('RGBA')
 
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
@@ -4297,6 +4298,39 @@ def paint_func(img):
 
 	durations[-1] = 1000
 	return wand_gif(frames, durations)
+
+@executor_function
+def shine_func(img):
+	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
+	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+
+	edges = cv2.Canny(npa, 300, 300)
+	indices = np.where(edges != [0])
+	spots = random.choices(list(zip(*indices)), k=100)
+
+	s_min = 5
+	s_max = 35
+	sizes = random.choices(range(s_min, s_max), k=100)
+
+	N = s_max - s_min
+	frames = []
+	for i in range(N*2-2):
+		frame = img.copy()
+		for (x, y), s in zip(spots, sizes):
+			k = i + s
+			if k < N:
+				size = k
+			else:
+				if k < N * 2 - 1:
+					size = N - k % N - 2
+				else:
+					size = (k + 1) % N + 1
+			size += s_min
+			star = flare_img.copy().resize((size, size))
+			frame.paste(star, (y-size//2, x-size//2), star)
+		frames.append(frame)
+	
+	return wand_gif(frames)
 
 #
 # Utility

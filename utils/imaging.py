@@ -4306,7 +4306,7 @@ def shine_func(img):
 
 	edges = cv2.Canny(npa, 300, 300)
 	indices = np.where(edges != [0])
-	spots = random.choices(list(zip(*indices)), k=100)
+	spots = random.choices(tuple(zip(*indices)), k=100)
 
 	s_min = 5
 	s_max = 35

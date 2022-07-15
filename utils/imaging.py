@@ -4340,19 +4340,19 @@ def neon_func(img):
 	w, h = img.size
 	edges = cv2.Canny(npa, w, h)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+	
+	mask = cv2.dilate(edges, kernel, iterations=1)
+	_, buf = cv2.imencode(".png", mask)
+	buf = BytesIO(buf)
+	mask = Image.open(buf)
 
 	frames = []
 	for i, angle in zip(np.linspace(0, 1, 100), np.linspace(0, 8*np.pi, 100)):
 		frame = img.copy()
-		color = [int(c*255) for c in colorsys.hsv_to_rgb(i, 1.0, 1.0)]
-		mask = np.zeros((300, 300, 4))
-		mask[np.where(edges != [0])] = color + [255]
-		mask = cv2.dilate(mask, kernel, iterations=1)
-		_, buf = cv2.imencode(".png", mask)
-		buf = BytesIO(buf)
-		mask = Image.open(buf)
+		rgb = [int(c*255) for c in colorsys.hsv_to_rgb(i, 1.0, 1.0)] + [255]
+		colored = Image.new('RGBA', img.size, tuple(rgb))
 		x, y = int(5 * math.cos(angle)), int(5 * math.sin(angle))
-		frame.paste(mask, (x, y), mask)
+		frame.paste(colored, (x, y), mask)
 		frames.append(frame.crop((5, 5, w-5, h-5)))
 
 	return wand_gif(frames)

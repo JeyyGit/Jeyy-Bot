@@ -1697,6 +1697,13 @@ def roomy_func(avatar, floor_texture, wall_texture):
 # #
 
 def wand_gif(frames, durations=50):
+	if len(frames) == 1:
+		if isinstance(frames[0], np.ndarray):
+			frames[0] = Image.fromarray(frame[0])
+		buf = BytesIO()
+		frames[0].save(buf, 'PNG')
+		buf.seek(0)
+		return buf
 
 	if isinstance(durations, int):
 		durations = [durations] * len(frames)
@@ -1718,6 +1725,19 @@ def wand_gif(frames, durations=50):
 		buf = BytesIO()
 		bg.save(file=buf)
 		buf.seek(0)
+
+	return buf
+
+def pil_gif(frames, durations=50, **kwargs):
+	if len(frames) == 1:
+		buf = BytesIO()
+		frames[0].save(buf, 'PNG')
+		buf.seek(0)
+		return buf
+
+	buf = BytesIO()
+	frames[0].save(buf, format='GIF', save_all=True, append_images=frames[1:], durations=durations, **kwargs)
+	buf.seek(0)
 
 	return buf
 
@@ -2332,11 +2352,7 @@ def explicit_func(img):
 		blurred = Image.open(fobj)
 		frames.append(blurred)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=2, loop=0)
-	igif.seek(0)
-
-	return igif
+	return wand_gif(frames, durations)
 
 @executor_function
 def blur_func(img):
@@ -4312,7 +4328,7 @@ def shine_func(img):
 
 	s_min = 5
 	s_max = 35
-	
+
 	N = s_max - s_min
 	sizes = random.choices(range(0, N), k=100)
 	

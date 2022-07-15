@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def neon(self, ctx, imgb: ToImage = None):
+		"""Rainbow neon"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, neon_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "neon.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def shine(self, ctx, imgb: ToImage = None):
 		"""You're shining"""
 		async with ctx.typing():

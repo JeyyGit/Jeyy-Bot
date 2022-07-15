@@ -12,6 +12,7 @@ from wand.image import Image as wImage
 import albumentations as alb
 from pyvista import examples
 from pixelsort import pixelsort
+import colorsys
 import pyvista as pv
 import imageio
 import cv2
@@ -4330,6 +4331,30 @@ def shine_func(img):
 			frame.paste(star, (y-size//2, x-size//2), star)
 		frames.append(frame)
 	
+	return wand_gif(frames)
+
+@executor_function
+def neon_func(img):
+	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
+	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+	w, h = img.size
+	edges = cv2.Canny(npa, w, h)
+	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+
+	frames = []
+	for i, angle in zip(np.linspace(0, 1, 100), np.linspace(0, 8*np.pi, 100)):
+		frame = img.copy()
+		color = [int(c*255) for c in colorsys.hsv_to_rgb(i, 1.0, 1.0)]
+		mask = np.zeros((300, 300, 4))
+		mask[np.where(edges != [0])] = color + [255]
+		mask = cv2.dilate(mask, kernel, iterations=1)
+		_, buf = cv2.imencode(".png", mask)
+		buf = BytesIO(buf)
+		mask = Image.open(buf)
+		x, y = int(5 * math.cos(angle)), int(5 * math.sin(angle))
+		frame.paste(mask, (x, y), mask)
+		frames.append(frame.crop((5, 5, w-5, h-5)))
+
 	return wand_gif(frames)
 
 #

@@ -147,6 +147,7 @@ if True:
 	phone_gif = Image.open("./image/phone_girl.gif")
 	sensitive = Image.open("./image/sensitive.png").resize((400, 400)).convert('RGBA')
 	ads = Image.open('./image/ads.png').convert('RGBA').resize((400, 400))
+	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
 	shot_gun = ImageOps.fit(Image.open("./image/shot/gun.png"), (250, 250)).convert('RGBA')
@@ -158,6 +159,7 @@ if True:
 	warm_palette = Image.open("./image/warm_palette.png").convert('RGBA')
 	brush_mask = Image.open("./image/brush_mask.gif")
 	flare_img = Image.open("./image/flare.png").resize((50, 50)).convert('RGBA')
+	kanye_img = Image.open("./image/kanye.png").convert('RGBA')
 
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
@@ -4408,6 +4410,50 @@ def phone_func(img):
 	igif.seek(0)
 
 	return igif
+
+@executor_function
+def kanye_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 100:
+			break
+		durations.append(frame.info.get('duration', 50))
+
+		frame = ImageOps.fit(frame.convert('RGBA'), (263, 326))
+		canv = Image.new('RGBA', kanye_img.size)
+		canv.paste(frame, (193, 320), frame)
+		canv.paste(kanye_img, (0, 0), kanye_img)
+
+		frames.append(ImageOps.contain(canv, (400, 400)))
+
+	return wand_gif(frames, durations)
+
+@executor_function
+def flush_func(img):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+	w, h = toilet_img.size
+
+	frames = []
+	for i, j, k in zip(map(int, np.linspace(0, 360*3, 50)), map(int, np.linspace(0, 250, 50)), map(int, np.linspace(0, 200, 50))):
+		img = img.resize((300-j, 300-j))
+		npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+
+		result = iaa.ShearY((i, i), fit_output=True).augment_image(npa)
+		_, buf = cv2.imencode(".png", result)
+		buf = BytesIO(buf)
+		sheared = Image.open(buf)
+		sw, sh = sheared.size
+
+		canv = Image.new('RGBA', toilet_img.size)
+		canv.paste(toilet_img, (0, 0), toilet_img)
+		canv.paste(sheared, (w//2-sw//2, h-sh//2-400+k), sheared)
+
+		frames.append(canv)
+
+	return wand_gif(frames)
 
 #
 # Utility

@@ -144,6 +144,7 @@ if True:
 	balleye = Image.open("./image/balleye.png").convert('RGBA')
 	lup = Image.open("./image/lup.png").resize((200, 200))
 	prt = Image.open("./image/printer2.gif")
+	phone_gif = Image.open("./image/phone_girl.gif")
 	sensitive = Image.open("./image/sensitive.png").resize((400, 400)).convert('RGBA')
 	ads = Image.open('./image/ads.png').convert('RGBA').resize((400, 400))
 
@@ -4356,6 +4357,40 @@ def neon_func(img):
 		frames.append(frame.crop((5, 5, w-5, h-5)))
 
 	return wand_gif(frames)
+
+@executor_function
+def phone_func(img):
+	w, h = 150, 238
+	img = ImageOps.contain(Image.open(img).convert('RGBA'), (w, h))
+
+	iw, ih = img.size
+	canv = Image.new('RGBA', (w, h), 'white')
+	canv.paste(img, (w//2-iw//2, h//2-ih//2), img)
+
+	npa = cv2.cvtColor(np.array(canv), cv2.COLOR_RGBA2BGRA)
+	pts1 = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+	pts2 = np.float32([[8, 0], [w-4, 2], [0, h-2], [w-10, h+8]])
+	M = cv2.getPerspectiveTransform(pts1, pts2)
+
+	dst = cv2.warpPerspective(npa, M, (w, h))
+	_, buf = cv2.imencode(".png", dst)
+	buf = BytesIO(buf)
+	screen = Image.open(buf)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(phone_gif)):
+		durations.append(frame.info.get('duration', 50))
+		frame = frame.convert('RGBA')
+		if i == 34:
+			frame.paste(screen, (139, 27), screen)
+		frames.append(frame)
+
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
+	igif.seek(0)
+
+	return igif
 
 #
 # Utility

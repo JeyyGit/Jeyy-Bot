@@ -4312,9 +4312,10 @@ def shine_func(img):
 
 	s_min = 5
 	s_max = 35
-	sizes = random.choices(range(s_min, s_max), k=100)
-
+	
 	N = s_max - s_min
+	sizes = random.choices(range(0, N), k=100)
+	
 	frames = []
 	for i in range(N*2-2):
 		frame = img.copy()

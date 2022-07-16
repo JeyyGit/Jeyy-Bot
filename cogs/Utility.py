@@ -580,7 +580,7 @@ class Utility(commands.Cog):
 
 	@commands.group(invoke_without_command=True, cooldown_after_parsing=True, aliases=["trans", "tr"], usage="[destination] [text]")
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	async def translate(self, ctx, destination_lang, *, text:commands.clean_content=None):
+	async def translate(self, ctx, destination_lang = "en", *, text: commands.clean_content = None):
 		"""Translate to a given language
 		`j;translate langs` to see all language destinations\nTranslate a given text to another language\n\nExample : `j;translate english Aku makan`, `j;translate zh-cn I want to eat`
 		"""

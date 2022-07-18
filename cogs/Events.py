@@ -136,9 +136,10 @@ class Events(commands.Cog):
 			self.bot.dispatch('reply', message)
 
 	@commands.Cog.listener()
-	async def on_message_edit(self, before=discord.Message, after=discord.Message):
+	async def on_message_edit(self, before: discord.Message, after: discord.Message):
 		if after.embeds or before.embeds:
 			return
+
 		if after.author.id == before.author.id:
 			await self.bot.process_commands(after)
 

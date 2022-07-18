@@ -307,14 +307,6 @@ class Utility(commands.Cog):
 
 		await ctx.reply(embed=embed, mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True, hidden=True)
-	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def rtfm(self, ctx, search):
-		async with ctx.typing():
-			ss = await the_docs(self.bot.driver, search)
-
-		await ctx.reply(file=ss, mention_author=False)
-
 	@commands.group(invoke_without_command=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def todo(self, ctx):

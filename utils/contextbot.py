@@ -93,6 +93,8 @@ class JeyyContext(commands.Context):
 			buf = BytesIO(await self.message.reference.resolved.attachments[0].read())
 			buf.seek(0)
 			return self.check_buffer(buf)
+		elif (ref := self.message.reference) and (embeds := ref.resolved.embeds) and (image := embeds[0].image) and _input is None:
+			return await ToImage().convert(self, image.url)
 		elif (ref := self.message.reference) and (content := ref.resolved.content) and _input is None:
 			return await ToImage().convert(self, content)
 	

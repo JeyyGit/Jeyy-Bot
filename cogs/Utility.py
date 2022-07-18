@@ -875,7 +875,7 @@ class Utility(commands.Cog):
 		await ctx.send(f">>> {avamoji} **{member}**\n{content}", allowed_mentions=discord.AllowedMentions.none())
 		await avamoji.delete()
 
-	@commands.command(cooldown_after_parsing=True, usage="[member]")
+	@commands.command(cooldown_after_parsing=True, aliases=['gay'], usage="[member]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def gaymeter(self, ctx, member:discord.Member=None):
 		"""See how gay a person is"""

@@ -2343,16 +2343,19 @@ def explicit_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100:
 			break
+		
 		durations.append(frame.info.get('duration', 100))
 		frame = frame.copy().resize((518, 518)).convert('RGBA')
+
 		blurred = frame.crop((100, 100, 418, 418)).resize((600, 600)).convert('RGBA').filter(ImageFilter.GaussianBlur(5))
 		blurred.paste(frame, (41, 28), frame)
 		blurred.paste(explicit_png, (0, 0), explicit_png)
 
-		fobj = BytesIO()
-		blurred.save(fobj, "GIF")
-		blurred = Image.open(fobj)
 		frames.append(blurred)
+		# fobj = BytesIO()
+		# blurred.save(fobj, "GIF")
+		# blurred = Image.open(fobj)
+		# frames.append(blurred)
 
 	return wand_gif(frames, durations)
 

@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def ipcam(self, ctx, imgb: ToImage = None):
+		"""Iphone camera"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, ipcam_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "ipcam.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["toilet"])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def flush(self, ctx, imgb: ToImage = None):

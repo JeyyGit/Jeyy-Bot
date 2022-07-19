@@ -148,6 +148,7 @@ if True:
 	sensitive = Image.open("./image/sensitive.png").resize((400, 400)).convert('RGBA')
 	ads = Image.open('./image/ads.png').convert('RGBA').resize((400, 400))
 	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
+	ipcam = Image.open("./image/ipcam.png").convert('RGBA')
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
 	shot_gun = ImageOps.fit(Image.open("./image/shot/gun.png"), (250, 250)).convert('RGBA')
@@ -4457,6 +4458,24 @@ def flush_func(img):
 		frames.append(canv)
 
 	return wand_gif(frames)
+
+@executor_function
+def ipcam_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 100:
+			break
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.fit(frame.convert('RGBA'), (553, 740))
+		canv = Image.new('RGBA', ipcam.size)
+		canv.paste(frame, (0, 68))
+		canv.paste(ipcam, (0, 0), ipcam)
+		frames.append(ImageOps.contain(canv, (300, 300)))
+
+	return wand_gif(frames, durations)
 
 #
 # Utility

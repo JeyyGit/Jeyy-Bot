@@ -2343,7 +2343,7 @@ def explicit_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100:
 			break
-		
+
 		durations.append(frame.info.get('duration', 100))
 		frame = frame.copy().resize((518, 518)).convert('RGBA')
 
@@ -4361,7 +4361,7 @@ def neon_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 	w, h = img.size
-	edges = cv2.Canny(npa, w, h)
+	edges = cv2.Canny(npa, 80, 300)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
 	
 	mask = cv2.dilate(edges, kernel, iterations=1)

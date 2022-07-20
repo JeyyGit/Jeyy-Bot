@@ -149,6 +149,7 @@ if True:
 	ads = Image.open('./image/ads.png').convert('RGBA').resize((400, 400))
 	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
 	ipcam = Image.open("./image/ipcam.png").convert('RGBA')
+	reflect_mask = Image.open("./image/reflection_mask.gif")
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
 	shot_gun = ImageOps.fit(Image.open("./image/shot/gun.png"), (250, 250)).convert('RGBA')
@@ -4469,6 +4470,28 @@ def ipcam_func(img):
 		frames.append(ImageOps.contain(canv, (300, 300)))
 
 	return wand_gif(frames, durations)
+
+@executor_function
+def reflection_func(img):
+	img = ImageOps.contain(Image.open(img), (200, 200)).convert('RGBA')
+	w, h = img.size
+
+	enhancer = ImageEnhance.Brightness(img.transpose(Image.FLIP_TOP_BOTTOM).resize(reflect_mask.size))
+	frames = []
+	for mask in ImageSequence.Iterator(reflect_mask):
+		with wImage.from_array(np.array(enhancer.enhance(0.8))) as wimg:
+			with wImage.from_array(np.array(mask.resize((w, 100)).convert('RGBA'))) as wmask:
+				wimg.composite(wmask, operator='displace', arguments='8,8')
+			wimg.format = 'PNG'
+			buf = BytesIO()
+			wimg.save(file=buf)
+			buf.seek(0)
+		canv = Image.new('RGBA', (w, h+100))
+		canv.paste(img, (0, 0))
+		canv.paste(Image.open(buf), (0, h))
+		frames.append(canv)
+
+	return wand_gif(frames)
 
 #
 # Utility

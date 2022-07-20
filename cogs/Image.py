@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["reflect"])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def reflection(self, ctx, imgb: ToImage = None):
+		"""Reflection on water"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, reflection_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "reflection.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def ipcam(self, ctx, imgb: ToImage = None):

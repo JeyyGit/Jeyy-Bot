@@ -2363,7 +2363,7 @@ def explicit_func(img):
 
 @executor_function
 def blur_func(img):
-	img = Image.open(img).convert('RGBA').resize((400, 400))
+	img = Image.open(img).convert('RGBA').resize((300, 300))
 
 	frames = []
 	for i in range(0, 31):
@@ -2372,18 +2372,11 @@ def blur_func(img):
 		frame = frame.filter(ImageFilter.GaussianBlur(i))
 		frame = frame.filter(ImageFilter.UnsharpMask(i))
 
-		fobj = BytesIO()
-		frame.save(fobj, "GIF")
-		frame = Image.open(fobj)
 		frames.append(frame)
 
 	frames.extend(frames[::-1])
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
-	igif.seek(0)
-
-	return igif
+	return wand_gif(frames)
 
 @executor_function
 def fry_func(img):

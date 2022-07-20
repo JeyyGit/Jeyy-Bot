@@ -4460,7 +4460,7 @@ def ipcam_func(img):
 		canv = Image.new('RGBA', ipcam.size)
 		canv.paste(frame, (0, 68))
 		canv.paste(ipcam, (0, 0), ipcam)
-		frames.append(ImageOps.contain(canv, (300, 300)))
+		frames.append(ImageOps.contain(canv, (400, 400)))
 
 	return wand_gif(frames, durations)
 

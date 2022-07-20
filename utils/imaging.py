@@ -4328,7 +4328,7 @@ def shine_func(img):
 	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
 	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
-	edges = cv2.Canny(npa, 300, 300)
+	edges = cv2.Canny(npa, 80, 300)
 	indices = np.where(edges != [0])
 	spots = random.choices(tuple(zip(*indices)), k=100)
 
@@ -4336,21 +4336,14 @@ def shine_func(img):
 	s_max = 35
 
 	N = s_max - s_min
-	sizes = random.choices(range(0, N), k=100)
+	sizes = [*range(s_min, s_max), *range(s_max, s_min, -1), *range(s_min, s_max)]
+	r_sizes = random.choices(range(0, N), k=100)
 	
 	frames = []
-	for i in range(N*2-2):
+	for i in range(N*2):
 		frame = img.copy()
-		for (x, y), s in zip(spots, sizes):
-			k = i + s
-			if k < N:
-				size = k
-			else:
-				if k < N * 2 - 1:
-					size = N - k % N - 2
-				else:
-					size = (k + 1) % N + 1
-			size += s_min
+		for (x, y), s in zip(spots, r_sizes):
+			size = sizes[s+i]
 			star = flare_img.copy().resize((size, size))
 			frame.paste(star, (y-size//2, x-size//2), star)
 		frames.append(frame)

@@ -4469,7 +4469,7 @@ def reflection_func(img):
 	img = ImageOps.contain(Image.open(img), (200, 200)).convert('RGBA')
 	w, h = img.size
 
-	enhancer = ImageEnhance.Brightness(img.transpose(Image.FLIP_TOP_BOTTOM).resize(reflect_mask.size))
+	enhancer = ImageEnhance.Brightness(img.transpose(Image.FLIP_TOP_BOTTOM).resize((w, 100)))
 	frames = []
 	for mask in ImageSequence.Iterator(reflect_mask):
 		with wImage.from_array(np.array(enhancer.enhance(0.8))) as wimg:

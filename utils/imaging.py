@@ -4486,6 +4486,32 @@ def reflection_func(img):
 
 	return wand_gif(frames)
 
+@executor_function
+def stereo_func(img):
+	# color stacking code by z03h
+
+	img = Image.open(img)
+	offset = 10
+
+	frames = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 100: break
+
+		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
+		r, g, b, a = frame.split()
+
+		rarr = np.array(r, dtype=np.uint8)
+		rarr[:, :offset] = 0
+		rarr = np.roll(rarr, -offset, 1)
+		barr = np.array(b, dtype=np.uint8)
+		barr[:, -offset:] = 0
+		barr = np.roll(barr, offset, 1)
+		frame = np.dstack([rarr, np.array(g, dtype=np.uint8), barr, np.array(a, dtype=np.uint8)])
+
+		frames.append(Image.fromarray(frame))
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #
@@ -4970,3 +4996,4 @@ def player_func(title, seconds_played, total_seconds, thumbnail_buf, line_1, lin
 	buf.seek(0)
 
 	return buf
+

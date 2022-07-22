@@ -1,10 +1,6 @@
 from difflib import get_close_matches
-from click import style
 from discord.ext import commands
-from io import BytesIO, StringIO
-from itsdangerous import exc
-from matplotlib import interactive
-from matplotlib.image import thumbnail
+from io import StringIO
 from si_prefix import si_format
 from difflib import SequenceMatcher
 import asyncio

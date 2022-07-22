@@ -1,6 +1,6 @@
 import logging
-from PIL import Image, ImageDraw, ImageOps
-from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
+from PIL import Image, ImageOps
+from PyPDF2 import PdfFileReader, PdfFileMerger
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands
 from googletrans import Translator, LANGUAGES

@@ -5,7 +5,6 @@ import humanize
 import importlib
 import numpy as np
 from io import StringIO, BytesIO
-from requests import options
 from tabulate import tabulate
 from bs4 import BeautifulSoup
 from jishaku.functools import executor_function

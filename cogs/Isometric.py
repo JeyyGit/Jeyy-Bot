@@ -1,6 +1,10 @@
 from difflib import get_close_matches
+from click import style
 from discord.ext import commands
 from io import BytesIO, StringIO
+from itsdangerous import exc
+from matplotlib import interactive
+from matplotlib.image import thumbnail
 from si_prefix import si_format
 from difflib import SequenceMatcher
 import asyncio
@@ -59,6 +63,11 @@ from utils.useful import parse_multiplication, Modal
 from utils.nonogram_maps import ans_maps
 from utils.golf_maps import golf_maps
 
+
+class IsometricError(Exception):
+	...
+
+
 class Fun(commands.Cog):
 	"""Where All The Fun Begins!"""
 
@@ -84,6 +93,75 @@ class Fun(commands.Cog):
 		self.words = list(set([w for w in open('./image/5words.txt', 'r').read().lower().splitlines() if self.checker.check(w)]))
 		with open('./image/quotes.json') as f:
 			self.quotes = json.load(f)['quotes']
+
+	def parse_isometric(self, blocks):
+		blocks = blocks.lower()
+		blocks = blocks.replace("`", "")
+		blocks = blocks.replace("-", "- ")
+		blocks = blocks.strip()
+
+		lever_exist =  'e' in blocks or '#' in blocks
+
+		if blocks[-3:] == 'gif':
+			is_gif = True
+			blocks = blocks[:-3]
+		else:
+			is_gif = False
+
+		if 'x' in blocks:
+			try:
+				blocks = parse_multiplication(blocks)
+			except:
+				raise Exception("Invalid multiply expression.")
+			if not blocks:
+				raise Exception("Invalid multiply expression.")
+
+		if len(blocks) > 4000:
+			raise Exception("Block count reached more than 4000.")
+
+		if '2' in blocks or 'v' in blocks:
+			blocks = liquid(blocks)
+			
+		if 'f' in blocks:
+			blocks = fences(blocks)
+
+		blocks = blocks.split()
+
+		if lever_exist:
+			blocks = blocks_1 = ' '.join(blocks)
+
+			if 'w' in blocks_1:
+				blocks_1 = wires(blocks_1)
+			
+			if 'r' in blocks_1:
+				if '7' in blocks_1 or '#' in blocks_1:
+					blocks_1 = logic(blocks_1)
+
+			blocks_2 = blocks.replace('e', '／')
+			blocks_2 = blocks_2.replace('#', 'e')
+			blocks_2 = blocks_2.replace('／', '#')
+
+			if 'w' in blocks_2:
+				blocks_2 = wires(blocks_2)
+
+			if 'r' in blocks_2:
+				if '7' in blocks_2 or '#' in blocks_2:
+					blocks_2 = logic(blocks_2)
+
+			blocks = (blocks_1.split(), blocks_2.split())
+		else:
+			blocks = ' '.join(blocks)
+
+			if 'w' in blocks:
+				blocks = wires(blocks)
+			
+			if 'r' in blocks:
+				if '7' in blocks or '#' in blocks:
+						blocks = logic(blocks)
+			
+			blocks = blocks.split()
+
+		return lever_exist, is_gif, blocks
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -121,168 +199,48 @@ class Fun(commands.Cog):
 		async with ctx.typing():
 			if not blocks:
 				await ctx.send_help("isometric")
+				return ctx.command.reset_cooldown(ctx)
+			
+			start = time.perf_counter()
+			try:
+				lever_exist, is_gif, blocks = self.parse_isometric(blocks)
+			except Exception as e:
 				ctx.command.reset_cooldown(ctx)
-			else:
-				blocks = blocks.lower()
-				blocks = blocks.replace("`", "")
-				blocks = blocks.replace("-", "- ")
-				blocks = blocks.strip()
+				return await ctx.reply(str(e))
 
-				if 'x' in blocks:
-					try:
-						blocks = parse_multiplication(blocks)
-					except Exception as e:
-						ctx.command.reset_cooldown(ctx)
-						raise e
-					if not blocks:
-						ctx.command.reset_cooldown(ctx)
-						return await ctx.reply(f"Invalid multiply expression.", mention_author=False)
+			if lever_exist:
+				blocks_1, blocks_2 = blocks
+				buf_1, c = await isometric_func(blocks_1)
+				buf_2, c = await isometric_func(blocks_2)
 
-					if len(blocks) > 4000:
-						return await ctx.send('Block count reached more than 4000.')
+				if is_gif:
+					buf = await lever_gif(buf_1, buf_2)
 
-				if '2' in blocks or 'v' in blocks:
-					blocks = liquid(blocks)
-
-				if 'e' in blocks or '#' in blocks:
-					if blocks[-3:] == 'gif':
-						blocks = blocks[:-3]
-
-						lgif = True
-					else:
-						lgif = False
-					if 'f' in blocks:
-						blocks = fences(blocks)
-					blocks1 = blocks
-					if 'w' in blocks1:
-						blocks1 = wires(blocks1)
-
-					if 'r' in blocks1:
-						if '7' in blocks1 or '#' in blocks1:
-							blocks1 = logic(blocks1)
-
-					blocks1 = blocks1.split()
-					buf1, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks1)
-					
-					blocks2 = blocks.replace('e', '／')
-					blocks2 = blocks2.replace('#', 'e')
-					blocks2 = blocks2.replace('／', '#')
-
-					if 'w' in blocks2:
-						blocks2 = wires(blocks2)
-
-					if 'r' in blocks2:
-						if '7' in blocks2 or '#' in blocks2:
-							blocks2 = logic(blocks2)
-
-					blocks2 = blocks2.split()
-					buf2, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks2)
-
-					if not lgif:
-						link1 = await ctx.upload_bytes(buf1.getvalue(), 'image/png', name='first state')
-						link2 = await ctx.upload_bytes(buf2.getvalue(), 'image/png', name='second state')
-
-					if not lgif:
-						await Switch(ctx).switch(link1, link2)
-						return
-
-					else:
-						igif = await lever_gif(buf1, buf2)
-						return await ctx.reply(file=discord.File(igif, "auto_lever.gif"), mention_author=False)
-
-				if 'w' in blocks:
-					blocks = wires(blocks)
-				
-				if 'r' in blocks:
-					if '7' in blocks or '#' in blocks:
-							blocks = logic(blocks)
-
-				blocks = blocks.split()
-				start = time.perf_counter()
-				if blocks[-1] == "gif":
-					blocks = ' '.join(blocks)
-					if 'f' in blocks:
-						blocks = fences(blocks)
-
-					blocks = blocks.split()
-					if len(blocks) > 1:
-						blocks.pop()
-
-					igif, c = await isometric_gif_func(blocks, "")
-
-					if not igif:
-							return await ctx.reply("Render time exceeds 20s limit.", mention_author=False)
-					if c > 1000:
-						await ctx.reply(f"gif block limit is 1000 blocks. Your blocks: `{c}`.", mention_author=False)
-						ctx.command.reset_cooldown(ctx)
-					elif c == 0:
-						await ctx.reply("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks", mention_author=False)
-						ctx.command.reset_cooldown(ctx)
-					else:
-						end = time.perf_counter()
-						t = end - start
-						t = si_format(t, 4)+'s'
-						await ctx.reply(f"`finished in {t}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(igif, "isometric_gif.gif"), mention_author=False)
-
-				elif len(blocks) > 1:
-					if blocks[-2] == "gif":
-						blocks = ' '.join(blocks)
-						if 'f' in blocks:
-							blocks = fences(blocks)
-						
-						blocks = blocks.split()
-						blocks = list(blocks)
-						loop = blocks[-1]
-						blocks.pop()
-						blocks.pop()
-
-						igif, c = await isometric_gif_func(blocks, loop)
-						if not igif:
-							return await ctx.reply("Render time exceeds 20s limit.", mention_author=False)
-						if c > 1000:
-							await ctx.reply(f"gif block limit is 1000 blocks. Your blocks: `{c}`.", mention_author=False)
-							ctx.command.reset_cooldown(ctx)
-							
-						elif c == 0:
-							await ctx.reply("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks", mention_author=False)
-							ctx.command.reset_cooldown(ctx)
-							
-						else:
-							end = time.perf_counter()
-							t = end - start
-							t = si_format(t, 4)+'s'
-							await ctx.reply(f"`finished in {t}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(igif, "isometric_gif.gif"), mention_author=False)
-							
-					else:
-						blocks = ' '.join(blocks)
-						if 'f' in blocks:
-							blocks = fences(blocks)
-						
-						blocks = blocks.split()
-						buf, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks)
-						end = time.perf_counter()
-						t = end - start
-						t = si_format(t, 4)+'s'
-						if c == 0:
-							await ctx.reply("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks", mention_author=False)
-							ctx.command.reset_cooldown(ctx)
-						else:
-							await ctx.reply(f"`finished in {t}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric_draw.png"), mention_author=False)
-				
-				else:
-					blocks = ' '.join(blocks)
-					if 'f' in blocks:
-						blocks = fences(blocks)
-					blocks = blocks.split()
-					buf, c = await self.bot.loop.run_in_executor(None, isometric_func, blocks)
 					end = time.perf_counter()
-					t = end - start
-					t = si_format(t, 4)+'s'
-					if c == 0:
-						await ctx.reply("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks", mention_author=False)	
-						ctx.command.reset_cooldown(ctx)
-					else:
-						await ctx.reply(f"`finished in {t}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric_draw.png"), mention_author=False)
+					timed = end - start
+					timed_s = si_format(timed, 4) + 's'
+
+					return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "auto_lever.gif"))
+
+				link_1 = await ctx.upload_bytes(buf_1.getvalue(), 'image/png', name='isometric first state')
+				link_2 = await ctx.upload_bytes(buf_2.getvalue(), 'image/png', name='isometric second state')
+
+				return await Switch(ctx).switch(link_1, link_2)
+			
+			try:
+				if is_gif:
+					buf, c = await isometric_gif_func(blocks)
+				else:
+					buf, c = await isometric_func(blocks)
+			except Exception as e:
+				ctx.command.reset_cooldown(ctx)
+				return await ctx.reply(str(e))
+
+			end = time.perf_counter()
+			timed = end - start
+			timed_s = si_format(timed, 4) + 's'
+
+			return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric_gif.gif"))
 
 	@isometric.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -291,7 +249,7 @@ class Fun(commands.Cog):
 
 		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in interactive_view.box])
 
-		buf, _ = await self.bot.loop.run_in_executor(None, isometric_func, code.split(), interactive_view.selector_pos)
+		buf, _ = await isometric_func(code.split(), interactive_view.selector_pos)
 		link = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
 
 		interactive_view.message = await ctx.reply(link, view=interactive_view, mention_author=False)
@@ -317,7 +275,7 @@ class Fun(commands.Cog):
 		s_tutorial = "**See `j;iso tutorial` for more detailed explanation.**\n" + \
 			"Each group of codes (without space in between) corresponds to a row of blocks.\n" + \
 			"Everytime there's a space or new line, it becomes a new row. A '`-`' character would make the drawing restart from (0, 0) and up 1 block.\n" + \
-			"Adding '`gif`' at the end would make the drawing animated in form of a gif. After the '`gif`' argument, you can put a number of loops you want for the gif─with 0 is looping forever.\n" + \
+			"Adding '`gif`' at the end would make the drawing animated in form of a gif.\n" + \
 			"If your build has a lever, after it being rendered, you can add/remove reaction added to see both state of build when it turned off or on. While adding '`gif`' argument at the end would make it a gif that automaticly switches the lever on and off repeatedly.\n" + \
 			"***new*** - We've added expression to make drawing easier, with '`x`'.\n" + \
 			"Example: `1x5 gx8-fx31` equals to `11111 gggggggg-fff1`\n" + \
@@ -361,8 +319,7 @@ class Fun(commands.Cog):
 			"To up a layer, simply put `-` before you write codes for the next layer.\nOn this example you see `111 111 111 - 5` which means 3 rows of 3 grass, and any code after `-` which is `5` (code for wooden planks) restarted from first block and up a layer",
 			"After that you could build your layers same as how you build your first layer",
 			"Here's another example with multiple layers.\n`j;iso 111 111 111 - 525 202 52 - f0f 0 f- f0f 0 f- ppp pp p`\n\n`0` = blank block\n`1` = Grass Block\n`2` = Water\n`f` = Fence\n`p` = Purpur Block",
-			"To render it as a gif, simply put `gif` argument at the end of your build codes. (the gif will play once)\n**Note: **gifs might not render well.\n\n`j;iso 111 111 111 - 525 202 52 - f0f 0 f- f0f 0 f- ppp pp p gif`",
-			"After the `gif` argument, you can specify how many loops the gif you want to be played with `0` is looping forever.\n**Note: **gifs might not render well.\n\n`j;iso 111 111 111 - 525 202 52 - f0f 0 f- f0f 0 f- ppp pp p gif 2`",
+			"To render it as a gif, simply put `gif` argument at the end of your build codes.\n**Note: **gifs might not render well.\n\n`j;iso 111 111 111 - 525 202 52 - f0f 0 f- f0f 0 f- ppp pp p gif`",
 			f"All **24** block codes.```\n{s_code}"
 			]
 		images = [
@@ -378,7 +335,6 @@ class Fun(commands.Cog):
 			"https://cdn.discordapp.com/attachments/779892741696913438/844832642418606119/unknown.png",
 			"https://cdn.discordapp.com/attachments/779892741696913438/844834255887532062/unknown.png",
 			"https://cdn.discordapp.com/attachments/779892741696913438/844853924040802314/unknown.png",
-			"https://cdn.discordapp.com/attachments/785808264591704095/844761819657535568/isometric_gif.gif",
 			"https://cdn.discordapp.com/attachments/785808264591704095/844761990458900530/isometric_gif.gif",
 			discord.Embed.Empty
 			]
@@ -484,18 +440,6 @@ class Fun(commands.Cog):
 				s.write(f"j;isometric {text}")
 				s.seek(0)
 				await ctx.reply(file=discord.File(s, "imagetoiso.txt"), mention_author=False)
-
-	@commands.command(cooldown_after_parsing=True, hidden=True)
-	@commands.cooldown(1, 3, commands.BucketType.user)
-	@commands.is_owner()
-	async def gifiso(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		async with ctx.typing():
-			_input = await ctx.to_image(_input)
-			if _input == "invalid":
-				return
-
-			buf = await gif_to_iso(_input)
-			await ctx.reply(file=discord.File(buf, "gifiso.gif"), mention_author=False)
 
 	@commands.group(invoke_without_command=True, aliases=["builds"], usage="[build name]")
 	@commands.cooldown(1, 3, commands.BucketType.user)

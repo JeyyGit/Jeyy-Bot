@@ -646,6 +646,7 @@ def golf_func(posx, posy, degree, power, ranges, _map, strokes):
 
 	return igif, endx, endy
 
+@executor_function
 def isometric_func(shape, selector_pos=None):
 	"""Creates static isometric drawing"""
 	t = 4
@@ -686,30 +687,28 @@ def isometric_func(shape, selector_pos=None):
 		i += 1
 
 	if count == 0:
-		return 1, count
+		raise Exception("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks")
 
 	canvasBox = canvas.getbbox()
 	crop = canvas.crop(canvasBox)
 	buf = BytesIO()
 	crop.save(buf, "PNG")
 	buf.seek(0)
+
 	return buf, count
 
 @executor_function
-def isometric_gif_func(shape, loop):
+def isometric_gif_func(shape):
 	"""Creates gif isometric drawing"""
 	t = 4
 	frames = []
 	resx = resy = 1024*5
 	
 	canvas = Image.new("RGB", [resx, resy], 'black')
-	newcanvas = Image.new("RGB", [resx, resy], 'white')
+	new_canvas = Image.new("RGB", [resx, resy], 'white')
 
 	shape = list(shape)
 	mid = round(resx/2)
-	if shape[0].startswith("`"):
-		shape.remove(shape[0])
-		shape.pop()
 
 	i = j = lvl = count = 0
 	for row in shape:
@@ -733,71 +732,61 @@ def isometric_gif_func(shape, loop):
 		i += 1
 
 	if count > 1000:
-		return True, count
+		raise Exception(f"Gif block limit is 1000 blocks. Your blocks: `{count}`.")
 	if count == 0:
-		return 1, count
+		raise Exception("Did not detect any blocks. Do `j;iso blocks` or `j;help iso` to see available blocks")
 	
 	i = j = lvl = 0
 	durations = []
 
-	canvasBox = canvas.getbbox()
+	canvas_box = canvas.getbbox()
 
 	if len(shape) == 1:
-		canvCrop = newcanvas.crop(canvasBox)
+		canv_crop = new_canvas.crop(canvas_box)
 		fobj = BytesIO()
-		canvCrop.save(fobj, "GIF", transparency=0)
-		canvCrop = Image.open(fobj)
-		frames.append(canvCrop)
+		canv_crop.save(fobj, "GIF", transparency=0)
+		canv_crop = Image.open(fobj)
+		frames.append(canv_crop)
 
 		durations.append(150)
 
 	start = time.time()
-	try:
-		for row in shape:
-			for val in row:
-				end = time.time()
-				if end-start > 20:
-					raise Exception()
+	for row in shape:
+		for val in row:
+			end = time.time()
+			if end-start > 20:
+				raise Exception("Render time exceeds 20s limit.")
 
-				fx = mid + j*t*7 - i*t*7
-				fy = mid + j*t*4 + i*t*4 - lvl*t*7
+			fx = mid + j*t*7 - i*t*7
+			fy = mid + j*t*4 + i*t*4 - lvl*t*7
 
-				if (img := code_dict.get(val)):
-					newcanvas.paste(img, (fx, fy), img)
-				
-				if val in codes:
-					canvCrop = newcanvas.crop(canvasBox)
-					fobj = BytesIO()
-					canvCrop.save(fobj, "GIF", transparency=0)
-					canvCrop = Image.open(fobj)
-					frames.append(canvCrop)
+			if (img := code_dict.get(val)):
+				new_canvas.paste(img, (fx, fy), img)
+			
+			if val in codes:
+				canv_crop = new_canvas.crop(canvas_box)
+				fobj = BytesIO()
+				canv_crop.save(fobj, "GIF", transparency=0)
+				canv_crop = Image.open(fobj)
+				frames.append(canv_crop)
 
-					durations.append(150)
+				durations.append(150)
 
-				j += 1
-				if val == "-":
-					i = -1
-					j = 0
-					lvl += 1
+			j += 1
+			if val == "-":
+				i = -1
+				j = 0
+				lvl += 1
 
-			j = 0
-			i += 1
-	except Exception:
-		return None, None
+		j = 0
+		i += 1
 
-	durations[-1] = 400
+	durations[-1] = 500
 	
 	igif = BytesIO()
-	if loop.isnumeric():
-		loop = int(loop)
-		if 0 < loop <= 30:
-			frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, loop=loop)
-		else:
-			frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, loop=0)
-	else:
-		frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0)
-
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, loop=0)
 	igif.seek(0)
+
 	return igif, count
 
 @executor_function
@@ -825,24 +814,10 @@ def land(x, y):
 @executor_function
 def lever_gif(img1, img2):
 	"""Animates isometric drawings with levers"""
-	img1 = Image.open(img1).convert("RGBA")
-	img2 = Image.open(img2).convert("RGBA")
+	img_1 = Image.open(img1).convert("RGBA")
+	img_2 = Image.open(img2).convert("RGBA")
 
-	frames = []
-	fobj = BytesIO()
-	img1.save(fobj, "GIF", transparency=0)
-	img1 = Image.open(fobj)
-	frames.append(img1)
-	fobj = BytesIO()
-	img2.save(fobj, "GIF", transparency=0)
-	img2 = Image.open(fobj)
-	frames.append(img2)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=500, loop=0, disposal=2)
-	igif.seek(0)
-
-	return igif
+	return wand_gif([img_1, img_2], 500)
 
 def img_to_iso(image, best):
 	with Image.open(image) as image4:
@@ -893,38 +868,13 @@ def img_to_iso(image, best):
 
 		return text
 
-@executor_function
-def gif_to_iso(image):
-	img = Image.open(image)
-	duration = img.info['duration']
-
-	frames = []
-	for frame in ImageSequence.Iterator(img):
-		frame = frame.convert("RGBA")
-		buf = BytesIO()
-		frame.save(buf, 'PNG')
-		buf.seek(0)
-		code = img_to_iso(buf, 40)
-		new_frame, count = isometric_func(code)
-		with Image.open(new_frame) as new_frame:
-			fobj = BytesIO()
-			new_frame.save(fobj, "GIF", transparency=0)
-			new_frame = Image.open(fobj)
-			frames.append(new_frame)
-
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=duration, loop=0, disposal=2)
-	igif.seek(0)
-
-	return igif
-
 def logic(blocks):
 	blocks = blocks.replace("\n", " ")
 	blocks = blocks.strip()
-	blocks = re.sub(" +", ' ', blocks)
+	blocks = re.sub(" +", " ", blocks)
 
 	arr = [[[]]]
-	i, j= 0, 0
+	i, j = 0, 0
 	for c in blocks:
 		if c not in [' ', '-']:
 			arr[i][j].append(c)
@@ -985,10 +935,10 @@ def logic(blocks):
 def wires(blocks):
 	blocks = blocks.replace("\n", " ")
 	blocks = blocks.strip()
-	blocks = re.sub(" +", ' ', blocks)
+	blocks = re.sub(" +", " ", blocks)
 
 	arr = [[[]]]
-	i, j= 0, 0
+	i, j = 0, 0
 	for c in blocks:
 		if c not in [' ', '-']:
 			arr[i][j].append(c)
@@ -1256,10 +1206,10 @@ def fences(blocks):
 
 	blocks = blocks.replace("\n", " ")
 	blocks = blocks.strip()
-	blocks = re.sub(" +", ' ', blocks)
+	blocks = re.sub(" +", " ", blocks)
 
 	arr = [[[]]]
-	i, j= 0, 0
+	i, j = 0, 0
 	for c in blocks:
 		if c not in [' ', '-']:
 			arr[i][j].append(c)
@@ -1324,10 +1274,10 @@ def fences(blocks):
 def liquid(blocks):
 	blocks = blocks.replace("\n", " ")
 	blocks = blocks.strip()
-	blocks = re.sub(" +", ' ', blocks)
+	blocks = re.sub(" +", " ", blocks)
 
 	arr = [[[]]]
-	i, j= 0, 0
+	i, j = 0, 0
 	for c in blocks:
 		if c not in [' ', '-']:
 			arr[i][j].append(c)

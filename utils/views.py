@@ -793,7 +793,7 @@ class InteractiveIsoView(discord.ui.View):
 		if '2' in code or 'v' in code:
 			code = liquid(code)
 
-		buf, _ = await self.ctx.bot.loop.run_in_executor(None, isometric_func, code.split(), self.selector_pos)
+		buf, _ = await isometric_func(code.split(), self.selector_pos)
 		link = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
 		self.block_selector.placeholder = f'{self.block_names[self.block]} | {tuple(reversed(self.selector_pos))}'
 		await self.message.edit(link, view=self, allowed_mentions=discord.AllowedMentions.none())
@@ -850,7 +850,7 @@ class InteractiveIsoView(discord.ui.View):
 		if '2' in code or 'v' in code:
 			code = liquid(code)
 
-		buf, _ = await self.ctx.bot.loop.run_in_executor(None, isometric_func, code.split())
+		buf, _ = await isometric_func(code.split())
 		await self.ctx.reply(file=discord.File(buf, 'interactive_iso.png'), mention_author=False)
 
 		for child in self.children[:]:

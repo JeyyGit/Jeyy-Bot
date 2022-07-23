@@ -4462,6 +4462,39 @@ def stereo_func(img):
 
 	return wand_gif(frames)
 
+@executor_function
+def lines_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for idx, frame in enumerate(ImageSequence.Iterator(img)):
+		if idx == 50: break
+
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.fit(frame.convert('RGBA'), (300, 300)).convert('L')
+		npa = np.array(frame)
+
+		lines = [[] for _ in range(50)]
+		for i in range(50):
+			for j in range(100):
+				avg = np.mean(npa[i*6:i*6+5, j*3:j*3+5]) / 255
+				lines[i].append(avg)
+
+		canv = Image.new('RGB', (295, 300))
+		draw = ImageDraw.Draw(canv)
+
+		for i, line in enumerate(lines):
+			height = 0
+			for j, avg in enumerate(line):
+				prev = height
+				height = avg * 6
+				draw.line(((j-1)*3, i*6+prev+1, j*3, i*6+height+1), 'white')
+
+		frames.append(canv)
+	
+	return pil_gif(frames, durations, loop=0)
+
 #
 # Utility
 # #

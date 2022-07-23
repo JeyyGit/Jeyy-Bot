@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["line"])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def lines(self, ctx, imgb: ToImage = None):
+		"""Shaped lines"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, lines_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "lines.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def stereo(self, ctx, imgb: ToImage = None):
@@ -179,7 +188,7 @@ class IMAGE(commands.Cog, name="Image"):
 
 			await ctx.reply(file=discord.File(buf, "blocks.gif"))
 
-	@commands.command(aliases=['spike', 'line', 'lines'], usage="<User|Member|Emoji|URL>")
+	@commands.command(aliases=['spike'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def spikes(self, ctx, imgb: ToImage = None):
 		"""Sharp edges"""

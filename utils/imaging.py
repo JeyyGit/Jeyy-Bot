@@ -1682,19 +1682,6 @@ def wand_gif(frames, durations=50):
 
 	return buf
 
-def pil_gif(frames, durations=50, **kwargs):
-	if len(frames) == 1:
-		buf = BytesIO()
-		frames[0].save(buf, 'PNG')
-		buf.seek(0)
-		return buf
-
-	buf = BytesIO()
-	frames[0].save(buf, format='GIF', save_all=True, append_images=frames[1:], durations=durations, **kwargs)
-	buf.seek(0)
-
-	return buf
-
 @executor_function
 def ball_func(img):
 	space = pymunk.Space()
@@ -4495,7 +4482,7 @@ def lines_func(img):
 
 		frames.append(canv)
 	
-	return pil_gif(frames, durations, loop=0)
+	return wand_gif(frames, durations)
 
 #
 # Utility

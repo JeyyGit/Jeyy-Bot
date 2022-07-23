@@ -4444,9 +4444,11 @@ def stereo_func(img):
 	offset = 10
 
 	frames = []
+	durations = []
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 100: break
 
+		durations.append(frame.info.get('duration', 50))
 		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
 		r, g, b, a = frame.split()
 
@@ -4460,7 +4462,7 @@ def stereo_func(img):
 
 		frames.append(Image.fromarray(frame))
 
-	return wand_gif(frames)
+	return wand_gif(frames, durations)
 
 @executor_function
 def lines_func(img):

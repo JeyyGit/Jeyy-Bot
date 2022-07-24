@@ -4485,6 +4485,23 @@ def lines_func(img):
 	
 	return wand_gif(frames, durations)
 
+@executor_function
+def lsd_func(img):
+	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	w, h = img.size
+	np_rgba = np.array(img)
+	grayscale = np.array(img.convert('L'))
+
+	frames = []
+	for x in range(10):
+		canv = np.ndarray((h, w, 4), np.uint8)
+		for i in range(h):
+			for j in range(w):
+				canv[i, j] = [int(c*255) for c in colorsys.hsv_to_rgb(grayscale[i, j]/255+0.1*x, 1, 1)] + [np_rgba[i, j, 3]]
+		frames.append(Image.fromarray(canv))
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #

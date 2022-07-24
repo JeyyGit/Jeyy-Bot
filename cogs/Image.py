@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["drug", "drugs"])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def lsd(self, ctx, imgb: ToImage = None):
+		"""I'm hallucinating"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, lsd_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "lsd.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["line"])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def lines(self, ctx, imgb: ToImage = None):

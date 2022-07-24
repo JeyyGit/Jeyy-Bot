@@ -819,6 +819,7 @@ def lever_gif(img1, img2):
 
 	return wand_gif([img_1, img_2], 500)
 
+@executor_function
 def img_to_iso(image, best):
 	with Image.open(image) as image4:
 		im = image4.resize((best, best)).convert("RGBA")

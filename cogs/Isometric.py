@@ -111,9 +111,6 @@ class Fun(commands.Cog):
 			if not blocks:
 				raise Exception("Invalid multiply expression.")
 
-		if len(blocks) > 4000:
-			raise Exception("Block count reached more than 4000.")
-
 		if '2' in blocks or 'v' in blocks:
 			blocks = liquid(blocks)
 			
@@ -206,6 +203,10 @@ class Fun(commands.Cog):
 			if lever_exist:
 				blocks_1, blocks_2 = blocks
 				buf_1, c = await isometric_func(blocks_1)
+
+				if c > 4000:
+					return await ctx.reply("Block count reached more than 4000.")
+
 				buf_2, c = await isometric_func(blocks_2)
 
 				if is_gif:
@@ -227,6 +228,10 @@ class Fun(commands.Cog):
 					buf, c = await isometric_gif_func(blocks)
 				else:
 					buf, c = await isometric_func(blocks)
+					
+				if c > 4000:
+					return await ctx.reply("Block count reached more than 4000.")
+
 			except Exception as e:
 				ctx.command.reset_cooldown(ctx)
 				return await ctx.reply(str(e))
@@ -235,7 +240,7 @@ class Fun(commands.Cog):
 			timed = end - start
 			timed_s = si_format(timed, 4) + 's'
 
-			return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric_gif.gif"))
+			return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric.gif"))
 
 	@isometric.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -415,7 +420,7 @@ class Fun(commands.Cog):
 		async with ctx.typing():
 			image = await ctx.to_image(image)
 
-			code = await self.bot.loop.run_in_executor(None, img_to_iso, image, 64)
+			code = await img_to_iso(image, 64)
 
 			cmd = self.bot.get_command("isometric")
 			await cmd(ctx, blocks=code)
@@ -427,9 +432,9 @@ class Fun(commands.Cog):
 		async with ctx.typing():
 			image = await ctx.to_image(image)
 
-			text = await self.bot.loop.run_in_executor(None, img_to_iso, image, 40)
+			text = await img_to_iso(image, 40)
 			try:
-				msg = await ctx.reply(f"```j;isometric {text}```", mention_author=False)
+				await ctx.reply(f"```j;isometric {text}```", mention_author=False)
 			except:
 				s = StringIO()
 				s.write(f"j;isometric {text}")

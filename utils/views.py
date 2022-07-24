@@ -238,6 +238,10 @@ class ApiKeyView(discord.ui.View):
 		super().__init__()
 		self.ctx = ctx
 
+class SupportServerView(discord.ui.View):
+	def __init__(self):
+		super().__init__()
+		self.add_item(discord.ui.Button(label='Support Server', url='https://discord.gg/uwKsfMzGJA'))
 
 # Isometric cog
 class Switch(discord.ui.View):

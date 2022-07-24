@@ -22,7 +22,7 @@ importlib.reload(useful)
 importlib.reload(help_command)
 
 
-from utils.views import EndpointView
+from utils.views import EndpointView, SupportServerView
 from utils.useful import Modal
 from utils.contextbot import JeyyBot, JeyyContext
 from utils.help_command import JeyyHelp
@@ -210,7 +210,9 @@ class Bots(commands.Cog, name='Bot'):
 		embed.add_field(name="Total servers", value=f"```\n{len(self.bot.guilds)}```", inline=True)
 		embed.add_field(name="Total members", value=f"```\n{sum([g.member_count for g in self.bot.guilds])}```", inline=True)
 		embed.set_thumbnail(url=self.bot.user.avatar.url)
-		await ctx.reply(embed=embed, mention_author=False)
+
+		view = SupportServerView()
+		await ctx.reply(embed=embed, view=view, mention_author=False)
 
 	@commands.command(aliases=['src'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -426,7 +428,8 @@ class Bots(commands.Cog, name='Bot'):
 			if r.status == 200:
 				embed.add_field(name="Ping", value=f"{int((e-s)*1000)} ms :ping_pong:", inline=True)
 
-			return await ctx.reply(embed=embed, mention_author=False)
+			view = SupportServerView()
+			return await ctx.reply(embed=embed, view=view, mention_author=False)
 		
 		async with ctx.typing():
 			s = time.perf_counter()

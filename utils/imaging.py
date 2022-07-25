@@ -4488,18 +4488,20 @@ def lines_func(img):
 
 @executor_function
 def lsd_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
-	w, h = img.size
-	np_rgba = np.array(img)
-	grayscale = np.array(img.convert('L'))
+	# optimized code thanks to z03h
+	img = ImageOps.contain(Image.open(img), (400, 400)).convert('RGBA')
+	alpha = img.split()[-1]
+
+	hues = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2GRAY)
+	hues = hues * (165/255)
+	full = np.full(hues.shape, 255)
 
 	frames = []
-	for x in range(10):
-		canv = np.ndarray((h, w, 4), np.uint8)
-		for i in range(h):
-			for j in range(w):
-				canv[i, j] = [int(c*255) for c in colorsys.hsv_to_rgb(grayscale[i, j]/255+0.1*x, 1, 1)] + [np_rgba[i, j, 3]]
-		frames.append(Image.fromarray(canv))
+	for _ in range(50):
+		arr = cv2.cvtColor(np.dstack([hues, full, full]).astype(np.uint8), cv2.COLOR_HSV2RGB)
+		frames.append(np.dstack([arr, alpha]))
+		hues += 3.6
+		hues = hues % 180
 
 	return wand_gif(frames)
 

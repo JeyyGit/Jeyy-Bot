@@ -4505,7 +4505,7 @@ def lsd_func(img):
 
 @executor_function
 def laundry_func(img):
-	img = Image.open(img).convert('RGBA').resize((100, 100))
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (100, 100))
 	canv = Image.new('RGBA', (170, 170))
 
 	for angle in np.linspace(0, 2*np.pi, 50):
@@ -4518,7 +4518,7 @@ def laundry_func(img):
 	for angle in np.linspace(0, 2*np.pi, 50):
 		wash = washing_machine.copy()
 		frame = canv.copy()
-		
+
 		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
 		rotated = img.copy().rotate(math.degrees(angle), expand=True)
 		w, h = rotated.size

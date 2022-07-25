@@ -150,6 +150,7 @@ if True:
 	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
 	ipcam = Image.open("./image/ipcam.png").convert('RGBA')
 	reflect_mask = Image.open("./image/reflection_mask.gif")
+	washing_machine = Image.open("./image/washing_machine.png").convert('RGBA')
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
 	shot_gun = ImageOps.fit(Image.open("./image/shot/gun.png"), (250, 250)).convert('RGBA')
@@ -4499,6 +4500,40 @@ def lsd_func(img):
 			for j in range(w):
 				canv[i, j] = [int(c*255) for c in colorsys.hsv_to_rgb(grayscale[i, j]/255+0.1*x, 1, 1)] + [np_rgba[i, j, 3]]
 		frames.append(Image.fromarray(canv))
+
+	return wand_gif(frames)
+
+@executor_function
+def laundry_func(img):
+	img = Image.open(img).convert('RGBA').resize((100, 100))
+	canv = Image.new('RGBA', (170, 170))
+
+	for angle in np.linspace(0, 2*np.pi, 50):
+		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
+		rotated = img.copy().rotate(math.degrees(angle), expand=True)
+		w, h = rotated.size
+		canv.paste(rotated, (x-w//2, y-h//2), rotated)
+
+	frames = []
+	for angle in np.linspace(0, 2*np.pi, 50):
+		wash = washing_machine.copy()
+		frame = canv.copy()
+		
+		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
+		rotated = img.copy().rotate(math.degrees(angle), expand=True)
+		w, h = rotated.size
+		frame.paste(rotated, (x-w//2, y-h//2), rotated)
+
+		alpha = frame.split()[-1]
+		mask = Image.new('L', frame.size)
+		draw = ImageDraw.Draw(mask)
+		draw.ellipse((0, 0, mask.width - 1, mask.height - 1), 'white')
+		mask = ImageChops.darker(mask, alpha)
+		frame.putalpha(mask)
+
+		canv = frame.copy()
+		wash.paste(frame, (85, 160), frame)
+		frames.append(wash)
 
 	return wand_gif(frames)
 

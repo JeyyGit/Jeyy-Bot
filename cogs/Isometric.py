@@ -276,7 +276,7 @@ class Fun(commands.Cog):
 			"Each group of codes (without space in between) corresponds to a row of blocks.\n" + \
 			"Everytime there's a space or new line, it becomes a new row. A '`-`' character would make the drawing restart from (0, 0) and up 1 block.\n" + \
 			"Adding '`gif`' at the end would make the drawing animated in form of a gif.\n" + \
-			"If your build has a lever, after it being rendered, you can add/remove reaction added to see both state of build when it turned off or on. While adding '`gif`' argument at the end would make it a gif that automaticly switches the lever on and off repeatedly.\n" + \
+			"If your build has a lever, after it being rendered, you can click the lever button to switch between state of build when it turned off or on. While adding '`gif`' argument at the end would make it a gif that automaticly switches the lever on and off repeatedly.\n" + \
 			"***new*** - We've added expression to make drawing easier, with '`x`'.\n" + \
 			"Example: `1x5 gx8-fx31` equals to `11111 gggggggg-fff1`\n" + \
 			"**Note**: gifs might not render well.\n"
@@ -284,7 +284,7 @@ class Fun(commands.Cog):
 		embed = discord.Embed(title="j;isometric [codes] [gif [loops]]", description="**Alias: **`iso`", color=self.bot.c)
 		embed.add_field(inline=False, name="Draw your own blocks!", value=s_code)
 		embed.add_field(inline=False, name="How to", value=s_tutorial)
-		embed.add_field(name="Example", value="`j;iso 401 133 332 - 1 0 5 - 6` or `j;iso 401 133 332 - 1 0 5 - 6 gif 0`", inline=False)
+		embed.add_field(name="Example", value="`j;iso 401 133 332 - 1 0 5 - 6` or `j;iso 401 133 332 - 1 0 5 - 6 gif`", inline=False)
 
 		await ctx.reply(embed=embed, mention_author=False)
 

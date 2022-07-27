@@ -830,7 +830,7 @@ def img_to_iso(image, best):
 
 		dat = [
 			(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), 
-			(94, 174, 174), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), 
+			(188, 152, 98), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), 
 			(174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), 
 			(219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)
 		]
@@ -4508,18 +4508,11 @@ def lsd_func(img):
 @executor_function
 def laundry_func(img):
 	img = ImageOps.fit(Image.open(img).convert('RGBA'), (100, 100))
-	canv = Image.new('RGBA', (170, 170))
-
-	for angle in np.linspace(0, 2*np.pi, 50):
-		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
-		rotated = img.copy().rotate(math.degrees(angle), expand=True)
-		w, h = rotated.size
-		canv.paste(rotated, (x-w//2, y-h//2), rotated)
 
 	frames = []
 	for angle in np.linspace(0, 2*np.pi, 50):
 		wash = washing_machine.copy()
-		frame = canv.copy()
+		frame = Image.new('RGBA', (170, 170))
 
 		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
 		rotated = img.copy().rotate(math.degrees(angle), expand=True)
@@ -4533,7 +4526,6 @@ def laundry_func(img):
 		mask = ImageChops.darker(mask, alpha)
 		frame.putalpha(mask)
 
-		canv = frame.copy()
 		wash.paste(frame, (85, 160), frame)
 		frames.append(wash)
 

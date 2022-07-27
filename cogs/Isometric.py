@@ -414,16 +414,20 @@ class Fun(commands.Cog):
 	@commands.group(aliases=['iti', 'imgtoiso'], cooldown_after_parsing=True, invoke_without_command=True)
 	@commands.cooldown(1, 10, commands.BucketType.user)
 	async def imagetoiso(self, ctx, image: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, discord.User, str]=None):
-		"""Turn avatar, emoji, image url to isometric build
-		- converter code credit: <@486148342108127253>
-		"""
+		"""Turn avatar, emoji, image url to isometric build"""
 		async with ctx.typing():
 			image = await ctx.to_image(image)
 
+			start = time.perf_counter()
 			code = await img_to_iso(image, 64)
+			lever_exist, is_gif, blocks = self.parse_isometric(code)
 
-			cmd = self.bot.get_command("isometric")
-			await cmd(ctx, blocks=code)
+			buf, c = await isometric_func(blocks)
+			end = time.perf_counter()
+			timed = end - start
+			timed_s = si_format(timed, 4) + 's'
+
+			return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "isometric.png"))
 
 	@imagetoiso.command(name="code", cooldown_after_parsing=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)

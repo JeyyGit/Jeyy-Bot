@@ -2905,19 +2905,22 @@ def lamp_func(img):
 	return igif
 
 @executor_function
-def roll_func(img):
-	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
-	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+def spin_func(img):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (350, 350))
+	alpha = img.split()[-1]
+
+	mask = Image.new('L', img.size)
+	draw = ImageDraw.Draw(mask)
+	draw.ellipse((0, 0, mask.width - 1, mask.height - 1), fill=255)
+	mask = ImageChops.darker(mask, alpha)
+	img.putalpha(mask)
 
 	frames = []
-	for i in range(0, 90, 2):
-		transform = alb.ShiftScaleRotate((0, 0), (0, 0), (i*4, i*4), p=1, border_mode=cv2.BORDER_TRANSPARENT)
-		result = transform(image=img)['image']
-
-		_, buf = cv2.imencode(".png", result)
-		buf = BytesIO(buf)
-		frame = Image.open(buf)
-		frames.append(frame)
+	for i in range(0, 360, 7):
+		canv = Image.new('RGBA', img.size)
+		rotated = img.rotate(i, expand=True)
+		canv.paste(rotated, (175-rotated.width//2, 175-rotated.height//2))
+		frames.append(canv)
 
 	return wand_gif(frames, 50)
 

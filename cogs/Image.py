@@ -555,14 +555,14 @@ class IMAGE(commands.Cog, name="Image"):
 
 			await ctx.reply(file=discord.File(buf, "tv.gif"), mention_author=False)
 
-	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["roll", "rotate"])
 	@commands.cooldown(1, 3, commands.BucketType.user)
-	async def roll(self, ctx, imgb: ToImage = None):
+	async def spin(self, ctx, imgb: ToImage = None):
 		"""Wheel simulator"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, roll_func, imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, spin_func, imgb or await ToImage.none(ctx))
 
-			await ctx.reply(file=discord.File(buf, "roll.gif"), mention_author=False)
+			await ctx.reply(file=discord.File(buf, "spin.gif"), mention_author=False)
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)

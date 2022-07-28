@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["plate"])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def plates(self, ctx, imgb: ToImage = None):
+		"""Shaped plates"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, plates_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "plates.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def laundry(self, ctx, imgb: ToImage = None):

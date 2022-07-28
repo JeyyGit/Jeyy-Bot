@@ -821,54 +821,35 @@ def lever_gif(img1, img2):
 	return wand_gif([img_1, img_2], 500)
 
 @executor_function
-def img_to_iso(image, best):
-	with Image.open(image) as image4:
-		im = image4.resize((best, best)).convert("RGBA")
-		im = ImageOps.mirror(im)
-		h = []
-		x = 0
+def img_to_iso(img, best):
+	img = Image.open(img).resize((best, best)).convert('RGBA').transpose(Image.FLIP_TOP_BOTTOM)
 
-		dat = [
-			(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), 
-			(188, 152, 98), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), 
-			(174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), 
-			(219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)
-		]
+	colors = np.array([
+		(67, 54, 35), (33, 149, 243), (240, 233, 179), (69, 90, 100), (188, 152, 98), 
+		(0, 232, 249), (227, 37, 12), (230, 230, 230), (150, 83, 68), (255, 237, 76), 
+		(174, 125, 174), (61, 132, 41), (109, 76, 65), (8, 8, 8), (175, 253, 236), 
+		(219, 130, 46), (196, 172, 15), (170, 117, 83), (246, 219, 180)
+	])
 
-		dat2 = "123456789gplocdvhr%"
+	blocks = "123456789gplocdvhrb%"
 
-		data = list(im.getdata())
+	def get_closest(r, g, b):
+		color = np.array([r, g, b])
+		distances = np.sqrt(np.sum((colors-color)**2, axis=1))
+		index_of_smallest = np.where(distances==np.amin(distances))
+		return blocks[index_of_smallest[0][0]]
 
-		data = reversed(data)
+	data = list(img.getdata())
+	iso = ''
+	for i, (r, g, b, a) in enumerate(data):
+		if a == 0: 
+			iso += '0'
+		else:
+			iso += get_closest(r, g, b)
+		if (i+1) % img.width == 0:
+			iso += '-'
 
-		for p in data:
-			x += 1
-			p = list(p)
-
-			def myFunc(e):
-				r = p[0]
-				g = p[1]
-				b = p[2]
-
-				er = e[0]
-				eg = e[1]
-				eb = e[2]
-
-				return abs(r - er) + abs(g - eg) + abs(b - eb)
-
-			if p[3] < 5:
-				h.append("0")
-			else:
-				newlis = dat.copy()
-				newlis.sort(key=myFunc)
-				h.append(dat2[dat.index(newlis[0])])
-
-			if x % im.width == 0:
-				h.append("-")
-
-		text = ''.join(h)
-
-		return text
+	return iso
 
 def logic(blocks):
 	blocks = blocks.replace("\n", " ")
@@ -4152,7 +4133,7 @@ def bricks_func(img):
 	frames = []
 	durations = []
 	for frame in ImageSequence.Iterator(img):
-		if frame.tell() > 100:
+		if frame.tell() == 50:
 			break
 		durations.append(frame.info.get('duration', 50))
 		frame = ImageOps.contain(frame, (400, 400)).convert('RGBA')
@@ -4528,6 +4509,35 @@ def laundry_func(img):
 
 		wash.paste(frame, (85, 160), frame)
 		frames.append(wash)
+
+	return wand_gif(frames)
+
+@executor_function
+def plates_func(img):
+	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	alpha = img.split()[-1] 
+
+	plates = []
+	for i in range(29):
+		plate = img.copy()
+		mask = Image.new('L', img.size)
+		draw = ImageDraw.Draw(mask)
+		draw.ellipse((i*10, i*10, mask.width - 1 - i*10, mask.height - 1 - i*10), fill=255)
+		draw.ellipse((i*10+10, i*10+10, mask.width - 11 - i*10, mask.height - 11 - i*10), fill='black')
+		mask = ImageChops.darker(mask, alpha)
+		plate.putalpha(mask)
+		plates.append(plate)
+
+	frames = []
+	for i in range(-180, 360, 7):
+		canv = Image.new('RGBA', img.size)
+		draw = ImageDraw.Draw(canv)
+		for j, plate in enumerate(plates):
+			if 0 < i + j*15 < 360:
+				plate = plate.rotate(i+j*15)
+			canv.paste(plate, (0, 0), plate)
+			draw.ellipse((j*10, j*10, plate.width-1-j*10, plate.height-1-j*10), outline=0, width=2)
+		frames.append(canv)
 
 	return wand_gif(frames)
 

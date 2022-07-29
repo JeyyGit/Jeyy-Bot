@@ -4532,6 +4532,7 @@ def plates_func(img):
 		plates.append(plate)
 
 	frames = []
+	durations = []
 	for i in range(-180, 360, 7):
 		canv = Image.new('RGBA', img.size)
 		draw = ImageDraw.Draw(canv)
@@ -4541,8 +4542,10 @@ def plates_func(img):
 			canv.paste(plate, (0, 0), plate)
 			draw.ellipse((j*10, j*10, plate.width-1-j*10, plate.height-1-j*10), outline=0, width=2)
 		frames.append(canv)
+		durations.append(50)
 
-	return wand_gif(frames)
+	durations[-1] = 500
+	return wand_gif(frames, durations)
 
 #
 # Utility

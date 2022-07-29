@@ -4533,7 +4533,7 @@ def plates_func(img):
 
 	frames = []
 	durations = []
-	for i in range(-180, 360, 7):
+	for i in range(-200, 360, 7):
 		canv = Image.new('RGBA', img.size)
 		draw = ImageDraw.Draw(canv)
 		for j, plate in enumerate(plates):
@@ -4544,7 +4544,34 @@ def plates_func(img):
 		frames.append(canv)
 		durations.append(50)
 
-	durations[-1] = 500
+	durations[0] = 500
+	return wand_gif(frames, durations)
+  
+@executor_function
+def poly_func(img):
+	img = Image.open(img)
+	s = 20
+	h = 0.5*np.sqrt(3)*s
+
+	frames = []
+	durations = []
+	for idx, frame in enumerate(ImageSequence.Iterator(img)):
+		if idx > 100: break
+		durations.append(frame.info.get('duration', 50))
+
+		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
+		canv = Image.new('RGBA', (frame.width, frame.height), 'black')
+		draw = ImageDraw.Draw(canv)
+
+		for i in range(frame.height//15):
+			for j in range(frame.width//15):
+				offset = i % 2 * s / 2
+				col_1 = min(j*s+s/2-offset, frame.width-1), min(i*h+h/2, frame.height-1)
+				col_2 = min(j*s-offset, frame.width-1), min(i*h+h/2, frame.height-1)
+				draw.polygon((j*s-offset, i*h, j*s+s-offset, i*h, j*s+s/2-offset, i*h+h), frame.getpixel(col_1))
+				draw.polygon((j*s-s/2-offset, i*h+h, j*s+s/2-offset, i*h+h, j*s-offset, i*h), frame.getpixel(col_2))
+		frames.append(canv)
+	
 	return wand_gif(frames, durations)
 
 #

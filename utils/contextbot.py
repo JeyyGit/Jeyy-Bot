@@ -151,7 +151,7 @@ class JeyyContext(commands.Context):
 			buf.seek(0)
 			return discord.File(buf, 'output.png')
 
-	def to_wand(self, frames, durations):
+	def to_wand(self, frames, durations=50):
 		return discord.File(wand_gif(frames, durations), 'output.gif')
 
 	async def upload_bytes(self, *args, **kwargs):

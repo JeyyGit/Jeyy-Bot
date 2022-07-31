@@ -125,12 +125,15 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def invite(self, ctx):
 		"""Jeyy Bot invite link"""
-		url = 'https://jeyy.xyz/🤖'
-		view = discord.ui.View()
-		button = discord.ui.Button(style=discord.ButtonStyle.blurple, label="Invite Jeyy Bot", url=url)
-		view.add_item(button)
 
-		await ctx.reply(url, view=view, mention_author=False)
+		bot_button = discord.ui.Button(label="Invite Jeyy Bot", url='https://discord.com/oauth2/authorize?client_id=779783517613588520&permissions=1644959366391&scope=applications.commands%20bot')
+		support_button = discord.ui.Button(label="Support Server", url='https://discord.gg/uwKsfMzGJA')
+
+		view = discord.ui.View()
+		view.add_item(bot_button)
+		view.add_item(support_button)
+
+		await ctx.reply(f'Bot Invite : <https://jeyy.xyz/🤖>\nSupport Server : <https://jeyy.xyz/📜>', view=view, mention_author=False)
 
 	@commands.command(aliases=['up'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -211,7 +214,13 @@ class Bots(commands.Cog, name='Bot'):
 		embed.add_field(name="Total members", value=f"```\n{sum([g.member_count for g in self.bot.guilds])}```", inline=True)
 		embed.set_thumbnail(url=self.bot.user.avatar.url)
 
-		view = SupportServerView()
+		bot_button = discord.ui.Button(label="Invite Jeyy Bot", url='https://discord.com/oauth2/authorize?client_id=779783517613588520&permissions=1644959366391&scope=applications.commands%20bot')
+		support_button = discord.ui.Button(label="Support Server", url='https://discord.gg/uwKsfMzGJA')
+
+		view = discord.ui.View()
+		view.add_item(bot_button)
+		view.add_item(support_button)
+		
 		await ctx.reply(embed=embed, view=view, mention_author=False)
 
 	@commands.command(aliases=['src'])

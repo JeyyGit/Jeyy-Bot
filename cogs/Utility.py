@@ -1073,7 +1073,7 @@ class Utility(commands.Cog):
 			
 	@commands.command(hidden=True)
 	async def cari(self, ctx, *, cari):
-		async with ctx.Loading('Mencari data...'):
+		async with ctx.Loading('Mencari data dosen dan mahasiswa...'):
 			session = await start_session(service, browser)
 			await session.set_window_size(700, 1200)
 			await session.get(f'https://pddikti.kemdikbud.go.id/search/{urllib.parse.quote(cari)}')
@@ -1102,7 +1102,7 @@ class Utility(commands.Cog):
 
 			if not dosen_mapping and not mahasiswa_mapping:
 				await stop_session(session)
-				return await ctx.reply('Data tidak ditemukan.', mention_author=False)
+				return await ctx.reply('Data dosen/mahasiswa tidak ditemukan.', mention_author=False)
 
 			menu_dosen = CariMenu(ctx, session, dosen_mapping, 'dosen')
 			menu_mahasiswa = CariMenu(ctx, session, mahasiswa_mapping, 'mahasiswa')
@@ -1123,7 +1123,7 @@ class Utility(commands.Cog):
 					except:
 						...
 					
-			view = View(timeout=60)
+			view = View(timeout=None)
 			view.add_item(menu_dosen)
 			view.add_item(menu_mahasiswa)
 

@@ -1501,7 +1501,7 @@ class PollView(discord.ui.View):
 		
 class CariResults(discord.ui.View):
 	def __init__(self, ctx, msg, data):
-		super().__init__()
+		super().__init__(timeout=None)
 		self.ctx = ctx
 		self.msg = msg
 		self.table_1_title = data[0][0]

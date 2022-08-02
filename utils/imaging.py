@@ -150,6 +150,7 @@ if True:
 	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
 	ipcam = Image.open("./image/ipcam.png").convert('RGBA')
 	reflect_mask = Image.open("./image/reflection_mask.gif")
+	liquefy_mask = Image.open("./image/liquefy_mask.gif")
 	washing_machine = Image.open("./image/washing_machine.png").convert('RGBA')
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
@@ -4573,6 +4574,24 @@ def poly_func(img):
 		frames.append(canv)
 	
 	return wand_gif(frames, durations)
+
+@executor_function
+def liquefy_func(img):
+	img = ImageOps.contain(Image.open(img), (200, 200)).convert('RGBA')
+
+	frames = []
+	for mask in ImageSequence.Iterator(liquefy_mask):
+		mask = mask.resize(img.size)
+		with wImage.from_array(np.array(img)) as wimg:
+			with wImage.from_array(np.array(mask.convert('RGBA'))) as wmask:
+				wimg.composite(wmask, operator='displace', arguments='0,10')
+			wimg.format = 'PNG'
+			buf = BytesIO()
+			wimg.save(file=buf)
+			buf.seek(0)
+		frames.append(Image.open(buf))
+
+	return wand_gif(frames)
 
 #
 # Utility

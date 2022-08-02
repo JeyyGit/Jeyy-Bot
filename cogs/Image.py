@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def liquefy(self, ctx, imgb: ToImage = None):
+		"""Liquefying!"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, liquefy_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "liquefy.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def poly(self, ctx, imgb: ToImage = None):
 		"""Triangle polygons"""
 		async with ctx.typing():

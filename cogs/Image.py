@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def shred(self, ctx, imgb: ToImage = None):
+		"""Into pieces"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, shred_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "shred.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def liquefy(self, ctx, imgb: ToImage = None):
 		"""Liquefying!"""
 		async with ctx.typing():

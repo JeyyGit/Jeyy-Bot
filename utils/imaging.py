@@ -567,6 +567,18 @@ class String:
 		pos_2 = (self.body_2.position[0], 300-self.body_2.position[1])
 		drawing.line([pos_1, pos_2], 'black')
 
+class Poly:
+	def __init__(self, points):
+		self.points = list(map(int, points))
+		self.midx = sum(self.points[::2]) / 3
+		self.midy = sum(self.points[1::2]) / 3
+		self.tlx = min(self.points[::2])
+		self.tly = min(self.points[1::2])
+		self.brx = max(self.points[::2])
+		self.bry = max(self.points[1::2])
+		self.rotation = 0
+		self.image = None
+
 
 #
 # Fun
@@ -4590,6 +4602,48 @@ def liquefy_func(img):
 			wimg.save(file=buf)
 			buf.seek(0)
 		frames.append(Image.open(buf))
+
+	return wand_gif(frames)
+
+@executor_function
+def shred_func(img):
+	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
+	alpha = img.split()[-1]
+
+	points = sum([[(i+random.randint(-1, 1), j+random.randint(-1, 1)) for j in np.linspace(1, 200-1, 30)] for i in np.linspace(1, 200-1, 30)], [])
+
+	subdiv = cv2.Subdiv2D((0, 0, 201, 201))
+
+	for point in points:
+		subdiv.insert(point)
+
+	polys = []
+	for edges in subdiv.getTriangleList():
+		poly = Poly(edges)
+		poly.image = img.copy()
+
+		mask = Image.new('L', img.size)
+		draw = ImageDraw.Draw(mask)
+		draw.polygon(edges, 'white')
+		mask = ImageChops.darker(mask, alpha)
+
+		poly.image.putalpha(mask)
+		poly.image = poly.image.crop((poly.tlx, poly.tly, poly.brx, poly.bry))
+
+		polys.append(poly)
+
+	frames = []
+	for i in range(-100, 200, 3):
+		canv = Image.new('RGBA', (300, 300))
+		for poly in polys:
+			if i + 200 - img.width + poly.tlx > 130:
+				if random.random() > 0.5:
+					poly.tlx += random.randint(2, 4)
+					poly.tly += random.randint(-5, 5)
+				canv.paste(poly.image, (200-img.width+poly.tlx, 150-img.height//2+poly.tly), poly.image)
+			else:
+				canv.paste(poly.image, (200-img.width+poly.tlx, 150-img.height//2+poly.tly), poly.image)
+		frames.append(canv)
 
 	return wand_gif(frames)
 

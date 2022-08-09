@@ -46,6 +46,33 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def knit(self, ctx, imgb: ToImage = None):
+		"""Grandma made"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, knit_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "knit.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def plank(self, ctx, imgb: ToImage = None):
+		"""Wooden plank"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, plank_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "plank.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def pizza(self, ctx, imgb: ToImage = None):
+		"""You looks delicious"""
+		async with ctx.typing():
+			buf = await pizza_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "pizza.png"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def shred(self, ctx, imgb: ToImage = None):
 		"""Into pieces"""
 		async with ctx.typing():

@@ -152,6 +152,9 @@ if True:
 	reflect_mask = Image.open("./image/reflection_mask.gif")
 	liquefy_mask = Image.open("./image/liquefy_mask.gif")
 	washing_machine = Image.open("./image/washing_machine.png").convert('RGBA')
+	pizza_img = ImageOps.contain(Image.open("./image/pizza.png").convert('RGBA'), (512, 512))
+	plank_img = ImageOps.contain(Image.open("./image/plank.png"), (250, 250))
+	knit_img = ImageOps.contain(Image.open("./image/knit.png"), (250, 250))
 
 	shot_street = Image.open("./image/shot/street.jpg").resize((400, 400)).convert('RGBA')
 	shot_gun = ImageOps.fit(Image.open("./image/shot/gun.png"), (250, 250)).convert('RGBA')
@@ -2421,7 +2424,7 @@ def layer_func(img):
 		if i > 150:
 			break
 
-		durations.append(frame.info.get('durations', 50))
+		durations.append(frame.info.get('duration', 50))
 
 		img1 = frame.copy().resize((400, 400)).convert('RGBA')
 		img2 = frame.copy().resize((300, 300)).convert('RGBA').transpose(Image.FLIP_LEFT_RIGHT)
@@ -3041,19 +3044,20 @@ def boil_func(img, level):
 		level = 5
 	
 	img = Image.open(img)
-	anim = getattr(img, "is_animated", False)
 
-	if anim:
+	if getattr(img, "is_animated", False):
 		frames = []
-		duration = []
+		durations = []
 		for i, frame in enumerate(ImageSequence.Iterator(img)):
 			if i > 100:
 				break
+			durations.append(frame.info.get('duration', 50))
+			
 			im = ImageOps.contain(frame.convert('RGBA'), (300, 300))
 			bg = Image.new('RGBA', im.size, 'white')
 			bg.paste(im, (0, 0), im)
 
-			npimg = cv2.cvtColor(np.array(bg), cv2.COLOR_RGB2BGR)
+			npimg = cv2.cvtColor(np.array(bg), cv2.COLOR_RGBA2BGR)
 			result = iaa.imgcorruptlike.ElasticTransform(severity=level).augment_image(npimg)
 
 			_, buf = cv2.imencode(".png", result)
@@ -3064,13 +3068,12 @@ def boil_func(img, level):
 			frame.save(fobj, "GIF")
 			frame = Image.open(fobj)
 			frames.append(frame)
-			duration.append(frame.info.get('duration', 100))
 	else:
-		duration = 50
+		durations = 50
 		im = ImageOps.contain(img.convert('RGBA'), (300, 300))
 		bg = Image.new('RGBA', im.size, 'white')
 		bg.paste(im, (0, 0), im)
-		img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGB2BGR)
+		img = cv2.cvtColor(np.array(bg), cv2.COLOR_RGBA2BGR)
 
 		frames = []
 		for i in range(15):
@@ -3086,7 +3089,7 @@ def boil_func(img, level):
 			frames.append(frame)
 
 	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=duration, disposal=0, loop=0)
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
 
 	return igif
@@ -4646,6 +4649,67 @@ def shred_func(img):
 		frames.append(canv)
 
 	return wand_gif(frames)
+
+@executor_function
+def pizza_func(img):
+	img = ImageOps.pad(Image.open(img).convert('RGBA'), pizza_img.size)
+
+	with wImage.from_array(np.array(img)) as wimg:
+		with wImage.from_array(np.array(pizza_img)) as wpiz:
+			wimg.composite(wpiz, operator='displace', arguments='10,10')
+			wpiz.composite(wimg, operator='color_burn')
+			wpiz.format = 'PNG'
+			buf = BytesIO()
+			wpiz.save(file=buf)
+			buf.seek(0)
+
+	return buf
+
+@executor_function
+def plank_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 50: break
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.contain(frame.convert('RGBA'), plank_img.size)
+		with wImage.from_array(np.array(frame)) as wimg:
+			with wImage.from_array(np.array(ImageOps.fit(plank_img, frame.size))) as wplank:
+				wimg.composite(wplank, operator='displace', arguments='5,5')
+				wplank.composite(wimg, operator='color_burn')
+				wplank.format = 'PNG'
+				buf = BytesIO()
+				wplank.save(file=buf)
+				buf.seek(0)
+		frames.append(Image.open(buf))
+
+	return wand_gif(frames, durations)
+
+@executor_function
+def knit_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 50: break
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.contain(frame.convert('RGBA'), knit_img.size)
+		with wImage.from_array(np.array(frame)) as wimg:
+			with wImage.from_array(np.array(ImageOps.fit(knit_img, frame.size))) as wknit:
+				wimg.composite(wknit, operator='displace', arguments='5,5')
+				wknit.composite(wimg, operator='color_burn')
+				wknit.format = 'PNG'
+				buf = BytesIO()
+				wknit.save(file=buf)
+				buf.seek(0)
+		frames.append(Image.open(buf))
+
+	return wand_gif(frames, durations)
+
+
 
 #
 # Utility

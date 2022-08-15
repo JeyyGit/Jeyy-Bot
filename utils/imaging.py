@@ -4739,6 +4739,32 @@ def dots_func(img):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def zonk_func(img):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+
+	frames = []
+	for i in range(0, 200, 2):
+		canv = Image.new('RGBA', (300, 300))
+		zoom = img.resize((300+i, 300+i))
+		if i >= 50:
+			if i == 50:
+				distx, disty = (zoom.width - 300)//2, (zoom.height - 300)//2
+				crop = zoom.crop((50+distx, 50+disty, 300-distx, 300-disty))
+
+			alpha = zoom.split()[-1]
+			zoom = ImageOps.grayscale(zoom)
+			zoom.putalpha(alpha)
+
+			canv.paste(zoom, (150-zoom.width//2, 150-zoom.height//2))
+			canv.paste(crop, (50, 50), crop)
+		else:
+			canv.paste(zoom, (150-zoom.width//2, 150-zoom.height//2))
+
+		frames.append(canv)
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #

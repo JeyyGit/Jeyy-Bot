@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def zonk(self, ctx, imgb: ToImage = None):
+		"""zONk"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, zonk_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "zonk.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=['dot'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def dots(self, ctx, imgb: ToImage = None):

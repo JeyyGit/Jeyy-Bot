@@ -4709,7 +4709,35 @@ def knit_func(img):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def dots_func(img):
+	img = Image.open(img)
 
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i > 100: break
+
+		durations.append(frame.info.get('duration', 50))
+		frame = frame.convert('L').resize((300, 300))
+		canv = Image.new('RGBA', frame.size, 'white')
+		draw = ImageDraw.Draw(canv)
+
+		w, h = frame.size
+		npa = np.array(frame)
+		x, y = 30, 30
+		dx, dy = w//x, h//y
+
+		for i in map(int, np.linspace(0, h, y)):
+			for j in map(int, np.linspace(0, w, x)):
+				avg = 255 - np.mean(npa[i:i+dx, j:j+dy])
+				midx, midy = (2*i+dx)//2, (2*j+dy)//2
+				r = avg * dx // 490
+				draw.ellipse((midx-r, midy-r, midx+r, midy+r), 'black')
+
+		frames.append(canv.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT))
+
+	return wand_gif(frames, durations)
 
 #
 # Utility

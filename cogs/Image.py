@@ -44,6 +44,19 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL> <horizontal|vertical|circle>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def tunnel(self, ctx, imgb: ToImage = None, direction=None):
+		"""To where?"""
+		async with ctx.typing():
+			if direction and direction.lower() not in ['h', 'horizontal', 'v', 'vertical', 'c', 'circle']:
+				ctx.command.reset_cooldown(ctx)
+				return await ctx.reply('Direction must be either `h`, `horizontal`, `v`, `vertical`, `c`, or `circle`')
+
+			buf = await tunnel_func(imgb or await ToImage.none(ctx), direction)
+
+			await ctx.reply(file=discord.File(buf, "tunnel.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def zonk(self, ctx, imgb: ToImage = None):

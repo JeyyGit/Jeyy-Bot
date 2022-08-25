@@ -4765,6 +4765,37 @@ def zonk_func(img):
 
 	return wand_gif(frames)
 
+@executor_function
+def tunnel_func(img, direction):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (250, 250))
+	canv = Image.new('RGBA', (200, 200))
+
+	frames = []
+	for i, j in zip(np.power(np.linspace(0, 50**2, 70), 1/2).astype(np.uint8), np.linspace(0, np.pi*6, 70)):
+		canv = canv.copy()
+		resized = canv.resize((200-i, 200-i))
+
+		if not direction:
+			addx = 0
+			addy = 0
+		elif direction.lower() in ['v', 'vertical']:
+			addx = 0
+			addy = int(np.sin(j)*12*(50-i)/50)
+		elif direction.lower() in ['h', 'horizontal']:
+			addx = int(np.sin(j)*12*(50-i)/50)
+			addy = 0
+		else:
+			addx = int(np.sin(j)*12*(50-i)/50)
+			addy = int(np.cos(j)*12*(50-i)/50)
+
+		canv.paste(img, (100-img.width//2+addx, 100-img.height//2+addy), img)
+		canv.paste(resized, (100-resized.width//2+addx, 100-resized.height//2+addy), resized)
+
+		frames.append(canv)
+
+	frames += frames[-1::-1]
+	return wand_gif(frames)
+
 #
 # Utility
 # #

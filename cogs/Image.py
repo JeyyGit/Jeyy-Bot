@@ -44,6 +44,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def stretch(self, ctx, imgb: ToImage = None):
+		"""Elastic"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, stretch_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "stretch.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL> <horizontal|vertical|circle>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def tunnel(self, ctx, imgb: ToImage = None, direction=None):

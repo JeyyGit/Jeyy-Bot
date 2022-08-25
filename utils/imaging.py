@@ -4796,6 +4796,26 @@ def tunnel_func(img, direction):
 	frames += frames[-1::-1]
 	return wand_gif(frames)
 
+@executor_function
+def stretch_func(img):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+
+	frames = []
+	for angle in np.linspace(0, np.pi*2, 30):
+		canv = Image.new('RGBA', (300, 300))
+		for j, sec in zip(range(0, 300, 2), np.linspace(0, np.pi*4, 150)):
+			temp = Image.new('RGBA', (300, 300))
+			mask = temp.copy()
+
+			draw = ImageDraw.Draw(mask)
+			draw.rectangle([(j, 0), (j+2, 300)], 'white')
+
+			temp.paste(img, (int(np.sin(angle+sec)*10), 0), img)
+			canv.paste(temp, (0, 0), mask)
+		frames.append(canv.crop((10, 0, 290, 300)))
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #

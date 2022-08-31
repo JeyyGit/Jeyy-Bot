@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def ripped(self, ctx, imgb: ToImage = None):
+		"""Ripped paper"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, ripped_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "ripped.png"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def stretch(self, ctx, imgb: ToImage = None):
 		"""Elastic"""
 		async with ctx.typing():

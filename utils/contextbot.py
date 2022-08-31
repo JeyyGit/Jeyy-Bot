@@ -5,6 +5,7 @@ from discord.ext import commands
 from io import BytesIO
 import humanize
 from twemoji_parser import emoji_to_url
+from zneitiz import NeitizClient, NeitizException, NeitizRatelimitException
 from jishaku.functools import executor_function
 from discord_together import DiscordTogether
 from bs4 import BeautifulSoup
@@ -223,6 +224,7 @@ class JeyyBot(commands.Bot):
 	async def start(self, *args, **kwargs):
 		self.session = aiohttp.ClientSession()
 		self.togetherclient = await DiscordTogether(self.keys('BOTTOKEN'))
+		self.znclient = NeitizClient()
 		self.google_client = async_cse.Search([	
 			self.keys('GOOGLEKEY1'),
 			self.keys('GOOGLEKEY2'),
@@ -236,6 +238,7 @@ class JeyyBot(commands.Bot):
 	async def close(self):
 		await self.session.close()
 		await self.google_client.close()
+		await self.znclient.close()
 
 		await super().close()
 

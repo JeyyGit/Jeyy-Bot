@@ -4816,6 +4816,44 @@ def stretch_func(img):
 
 	return wand_gif(frames)
 
+@executor_function
+def ripped_func(img):
+	top_img = ImageOps.fit(Image.open(img).convert('RGBA'), (400, 400))
+	bot_img = top_img.copy()
+
+	alpha = top_img.split()[-1]
+	top_mask = Image.new('L', (400, 400))
+	bot_mask = top_mask.copy()
+	top_draw = ImageDraw.Draw(top_mask)
+	bot_draw = ImageDraw.Draw(bot_mask)
+
+	rp = [(x, random.randint(180 if i % 2 == 0 else 200, 200 if i % 2 == 0 else 230)) for i, x in enumerate([400, 330, 250, 190, 125, 60, 0])]
+	top_draw.polygon([(0, 0), (400, 0), *rp], 'white')
+	bot_draw.polygon([(0, 400), (400, 400), *rp], 'white')
+
+	top_mask = ImageChops.darker(top_mask, alpha)
+	bot_mask = ImageChops.darker(bot_mask, alpha)
+	top_img.putalpha(top_mask)
+	bot_img.putalpha(bot_mask)
+
+	comb = Image.new('RGBA', (440, 490))
+	canv = Image.new('RGBA', (440, 490))
+
+	comb.paste(top_img, (20, 20), top_mask)
+	comb.paste(bot_img, (20, 70), bot_mask)
+
+	shad = np.dstack([np.zeros((490, 440, 3), np.uint8), comb.split()[-1]])
+	shad = Image.fromarray(shad).filter(ImageFilter.GaussianBlur(10))
+
+	canv.paste(shad, (0, 0), shad)
+	canv.paste(comb, (-20, -20), comb)
+
+	buf = BytesIO()
+	canv.save(buf, 'PNG')
+	buf.seek(0)
+
+	return buf
+
 #
 # Utility
 # #

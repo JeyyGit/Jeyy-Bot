@@ -7,8 +7,6 @@ import importlib
 import json
 import math
 import random
-import re
-import typing
 import xkcd
 
 from utils import views, converters
@@ -16,13 +14,13 @@ importlib.reload(views)
 importlib.reload(converters)
 
 from utils.views import (
-	ConfirmView,
 	ConfirmationView,
 	DeleteView,
 	AkiView
 )
 
 from utils.converters import ToImage
+from utils.contextbot import JeyyBot
 
 url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
@@ -38,56 +36,12 @@ class Api(commands.Cog):
 	"""External API commands"""
 
 	def __init__(self, bot):
-		self.bot = bot
+		self.bot: JeyyBot = bot
 		self.thumbnail = "https://cdn.jeyy.xyz/image/http_2a872d.png"
 
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print(f"Api Cog Loaded")
-
-	async def get_url(self, ctx, _input):
-		
-		if ctx.message.attachments:
-			return ctx.message.attachments[0].url
-		elif ctx.message.reference and ctx.message.reference.resolved.attachments:
-			return ctx.message.reference.resolved.attachments[0].url
-		
-		if not _input:
-			return ctx.author.avatar.url
-		elif isinstance(_input, discord.Emoji) or isinstance(_input, discord.PartialEmoji):
-			return _input.url
-		elif isinstance(_input, discord.Member):
-			return _input.url
-		else:
-			url = re.findall(url_regex, _input)
-			if url:
-				return url[0]
-			else:
-				return False
-
-	async def get_zz(self, ctx, _input, endpoint, percent=80):
-		url = await self.get_url(ctx, _input)
-		if not url:
-			return False
-
-		headers = {'Authorization': f'Bearer {ctx.keys("ZZKEY")}'}
-		if endpoint == 'sand':
-			json = {'image_url': url}
-		elif endpoint == 'explode':
-			json = {'image_url': url, 'percent':percent}
-
-		response = await self.bot.session.get(
-			f'https://zneitiz.herokuapp.com/image/{endpoint}',
-			headers=headers,
-			json=json
-			)
-
-		if response.status == 200:
-			buf = BytesIO(await response.read())
-			buf.seek(0)
-			return buf
-		else:
-			return False
 
 	async def get_waifu_sfw(self, endpoint):
 
@@ -156,27 +110,32 @@ class Api(commands.Cog):
 
 			return await ctx.reply( file=discord.File(buf, f'zz.{["png", "gif"][ctx.author.display_avatar.is_animated()]}'), mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True)
+	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	async def sand(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, str]=None):
+	async def sand(self, ctx, imgb: ToImage = None):
 		"""Powered by zneitiz api"""
 		async with ctx.typing():
-			buf = await self.get_zz(ctx, _input, 'sand')
-			if not buf:
-				return await ctx.reply("An error occured.", mention_author=False)
+			buf = await self.bot.znclient.sand(imgb or await ToImage.none(ctx))
 
-			return await ctx.reply(file=discord.File(buf, 'zzsand.gif'), mention_author=False)
+			return await ctx.reply(file=discord.File(buf, f'zzsand.{buf.extension}'), mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True)
+	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL> <percent=80>")
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	async def explode(self, ctx, _input: typing.Union[discord.PartialEmoji, discord.Emoji, discord.Member, str]=None, level: int=80):
+	async def explode(self, ctx, imgb: ToImage = None, percent: int = 80):
 		"""Powered by zneitiz api"""
 		async with ctx.typing():
-			buf = await self.get_zz(ctx, _input, 'explode', level)
-			if not buf:
-				return await ctx.reply("An error occured.", mention_author=False)
+			buf = await self.bot.znclient.explode(imgb or await ToImage.none(ctx), percent=percent)
 
-			return await ctx.reply(file=discord.File(buf, 'zzexplode.gif'), mention_author=False)
+			return await ctx.reply(file=discord.File(buf, f'zzexplode.{buf.extension}'), mention_author=False)
+
+	@commands.command(cooldown_after_parsing=True, usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	async def dust(self, ctx, imgb: ToImage = None):
+		"""Powered by zneitiz api"""
+		async with ctx.typing():
+			buf = await self.bot.znclient.dust(imgb or await ToImage.none(ctx))
+
+			return await ctx.reply(file=discord.File(buf, f'zzdust.{buf.extension}'), mention_author=False)
 
 	@commands.command(aliases=["comic"])
 	@commands.cooldown(1, 3, commands.BucketType.user)

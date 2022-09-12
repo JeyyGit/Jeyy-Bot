@@ -67,9 +67,9 @@ class IMAGE(commands.Cog, name="Image"):
 	async def tunnel(self, ctx, imgb: ToImage = None, direction=None):
 		"""To where?"""
 		async with ctx.typing():
-			if direction and direction.lower() not in ['h', 'horizontal', 'v', 'vertical', 'c', 'circle']:
+			if direction and direction.lower() not in ['h', 'horizontal', 'v', 'vertical', 'c', 'circle', 'r', 'rotate']:
 				ctx.command.reset_cooldown(ctx)
-				return await ctx.reply('Direction must be either `h`, `horizontal`, `v`, `vertical`, `c`, or `circle`')
+				return await ctx.reply('Direction must be either `h`, `horizontal`, `v`, `vertical`, `c`, `circle`, `r`, or `rotate`')
 
 			buf = await tunnel_func(imgb or await ToImage.none(ctx), direction)
 

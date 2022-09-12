@@ -146,7 +146,7 @@ if True:
 	prt = Image.open("./image/printer2.gif")
 	phone_gif = Image.open("./image/phone_girl.gif")
 	sensitive = Image.open("./image/sensitive.png").resize((400, 400)).convert('RGBA')
-	ads = Image.open('./image/ads.png').convert('RGBA').resize((400, 400))
+	ads = Image.open('./image/ads.png').convert('RGBA').resize((300, 300))
 	toilet_img = Image.open("./image/toilet.png").convert('RGBA')
 	ipcam = Image.open("./image/ipcam.png").convert('RGBA')
 	reflect_mask = Image.open("./image/reflection_mask.gif")
@@ -1678,6 +1678,13 @@ def wand_gif(frames, durations=50):
 		buf = BytesIO()
 		bg.save(file=buf)
 		buf.seek(0)
+
+	if not is_npa:
+		for frame in frames:
+			try:
+				frame.close()
+			except:
+				...
 
 	return buf
 
@@ -3427,29 +3434,42 @@ def sensitive_func(img):
 
 		durations.append(frame.info.get('duration', 50))
 		canv = Image.new('RGBA', (400, 400), 'white')
-		frame = ImageOps.fit(frame, ((400, 400))).convert('RGBA')
-		frame = frame.filter(ImageFilter.GaussianBlur(3))
+		frame_cnv = frame.convert('RGBA')
+		frame_fit = ImageOps.fit(frame_cnv, ((400, 400)))
+		frame = frame_fit.filter(ImageFilter.GaussianBlur(3))
+
 		canv.paste(frame, (0, 0), frame)
 		canv.paste(sensitive, (0, 0), sensitive)
 
 		fobj = BytesIO()
 		canv.save(fobj, "GIF")
 		canvas = Image.open(fobj)
+
+		canv.close()
+		frame_cnv.close()
+		frame_fit.close()
+		frame.close()
+
 		frames.append(canvas)
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
 
+	img.close()
+	for frame in frames:
+		frame.close()
+
 	return igif
 
 @executor_function
 def warp_func(img):
-	trace = np.linspace(0, 2*np.pi, 100)
-	img = Image.open(img).resize((900, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = cnv.resize((900, 300))
 
 	frames = []
-	for trcs in zip(*[np.sin(trace+i*0.033) for i in range(30)]):
+	for trcs in zip(*[np.sin(np.linspace(0, 2*np.pi, 100)+i*0.033) for i in range(30)]):
 		canvas = Image.new('RGBA', (300, 300), (0, 0, 0, 0))
 		length = round(300//len(trcs))
 		for i, x in enumerate(trcs):
@@ -3457,15 +3477,21 @@ def warp_func(img):
 			draw = ImageDraw.Draw(mask)
 			draw.rectangle((round(i*length-x*300+300), 0, round(i*length-x*300+300)+length, 300), 'white')
 			canvas.paste(img, (round(x*300-300), 0), mask)
+			mask.close()
 
 		frames.append(canvas)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames, 50)
 
 @executor_function
 def wave_func(img, freq, amp):
-	img = Image.open(img)
-	img = ImageOps.contain(img, (200, 200)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (200, 200))
 
 	frames = []
 	for i in np.linspace(0, 2*np.pi, 50):
@@ -3474,7 +3500,12 @@ def wave_func(img, freq, amp):
 			x = round(np.sin(i+j*freq)*amp)
 			slit = img.crop((0, j, img.size[0], j+1))
 			canvas.paste(slit, (50+x, j))
+			slit.close()
 		frames.append(canvas)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames, durations=50)
 
@@ -3489,17 +3520,27 @@ def advertize_func(img):
 			break
 		
 		durations.append(frame.info.get('duration', 100))
-		canvas = Image.new('RGBA', (400, 400), (0, 0, 0, 0))
-		frame = ImageOps.fit(frame.convert('RGBA'), (350, 350))
-		canvas.paste(frame, (25, 25), frame)
+		canvas = Image.new('RGBA', (300, 300), (0, 0, 0, 0))
+		frame_cnv = frame.convert('RGBA')
+		frame = ImageOps.fit(frame_cnv, (270, 270))
+		canvas.paste(frame, (18, 20), frame)
 		canvas.paste(ads, (0, 0), ads)
+
+		frame_cnv.close()
+		frame.close()
+
 		frames.append(canvas)
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
 @executor_function
 def pattern_func(img):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (400, 400))
+	imgs = Image.open()
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (400, 400))
+
 	frames = []
 	for _ in range(10):
 		frame = Image.new('RGBA', (400, 400), 'black')
@@ -3516,6 +3557,7 @@ def pattern_func(img):
 			else:
 				for i in range(len(row)):
 					row[i] = (i+1) % 2
+
 		for row, seed in list(zip(boardy, vert)):
 			if seed:
 				for i in range(len(row)):
@@ -3537,13 +3579,20 @@ def pattern_func(img):
 					draw.line([(10+i*10, 10+j*10), (10+i*10+10, 10+j*10)], 'white', 5)
 
 		frame.paste(img, (0, 0), canvas)
+		canvas.close()
 		frames.append(frame)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames, 250)
 
 @executor_function
 def bubble_func(img):
-	img = Image.open(img).convert('RGBA').resize((300, 300))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = cnv.resize((300, 300))
 	colors = list(img.getdata())
 
 	x = random.randint(10, 290)
@@ -3585,12 +3634,19 @@ def bubble_func(img):
 			circle.draw(draw)
 
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 	
 	return wand_gif(frames, [50]*(len(frames)-1)+[500])
 		
 @executor_function
 def cloth_func(img):
-	img = ImageOps.fit(Image.open(img), (20, 20)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (20, 20))
+
 	colors = list(img.getdata())
 	colors = np.array([colors[i:i+20] for i in range(0, len(colors), 20)])
 	colors = np.rot90(colors, k=-1)
@@ -3637,11 +3693,17 @@ def cloth_func(img):
 		space.step(1/FPS)
 		frames.append(canv)
 
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return wand_gif(frames, FPS)
 
 @executor_function
 def logoff_func(img):
-	img = Image.open(img).convert('RGBA').resize((400, 400))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = cnv.resize((400, 400))
 	creep = random.choice(creeps)
 
 	frames = []
@@ -3652,19 +3714,31 @@ def logoff_func(img):
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0)
 	igif.seek(0)
 
+	imgs.close()
+	cnv.close()
+	img.close()
+	for frame in frames:
+		frame.close()
+
 	return igif
 
 @executor_function
 def dilate_func(img):
-	img = Image.open(img).convert('RGBA')
-	if img.size[0] > 400 or img.size[1] > 400:
-		img = ImageOps.contain(img, (400, 400))
-	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+
+	if cnv.size[0] > 400 or cnv.size[1] > 400:
+		img = ImageOps.contain(cnv, (400, 400))
+		cnv.close()
+	else:
+		img = cnv
+
+	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
 	frames = []
 	for i in range(1, 100):
-		dst = cv2.dilate(img, kernel, iterations=i)
+		dst = cv2.dilate(npa, kernel, iterations=i)
 		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
@@ -3673,20 +3747,31 @@ def dilate_func(img):
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
 	igif.seek(0)
 
+	imgs.close()
+	img.close()
+	for frame in frames:
+		frame.close()
+
 	return igif
 
 @executor_function
 def undilate_func(img):
-	img = Image.open(img).convert('RGBA')
-	if img.size[0] > 400 or img.size[1] > 400:
-		img = ImageOps.contain(img, (400, 400))
-	img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+
+	if cnv.size[0] > 400 or cnv.size[1] > 400:
+		img = ImageOps.contain(cnv, (400, 400))
+		cnv.close()
+	else:
+		img = cnv
+
+	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
 	frames = []
 	durations = []
 	for i in range(100, 0, -1):
-		dst = cv2.dilate(img, kernel, iterations=i)
+		dst = cv2.dilate(npa, kernel, iterations=i)
 		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
@@ -3698,30 +3783,40 @@ def undilate_func(img):
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
 
+	imgs.close()
+	img.close()
+	for frame in frames:
+		frame.close()
+
 	return igif
 
 @executor_function
 def fan_func(circled):
-	circled = Image.open(circled).convert('RGBA')
+	circled = Image.open(circled)
+	circled_cnv = circled.convert('RGBA')
 
 	fan = fan_img.copy()
-	fan.paste(circled, (150, 150), circled)
+	fan.paste(circled_cnv, (150, 150), circled_cnv)
 
 	frames = []
 	for i in range(100):
 		frames.append(fan.rotate(i**1.9))
 
+	fan.close()
+
 	return wand_gif(frames, durations=40)
 
 @executor_function
 def ripple_func(img):
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 	bg = Image.new('RGBA', (300, 300), 'black')
-	img = ImageOps.flip(ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA'))
 	bg.paste(img, (0, 0), img)
-	bg = bg.convert('RGB')
+	bg_cnv = bg.convert('RGB')
 
 	buf = BytesIO()
-	bg.save(buf, 'PNG')
+	bg_cnv.save(buf, 'PNG')
 	buf.seek(0)
 
 	tex = pv.Texture(imageio.imread(buf))
@@ -3756,17 +3851,25 @@ def ripple_func(img):
 		plotter.clear()
 
 	plotter.close()
+	imgs.close()
+	cnv.close()
+	img.close()
+	bg.close()
+	bg_cnv.close()
+
 	return wand_gif(frames, 60)
 
 @executor_function
 def cow_func(img):
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 	bg = Image.new('RGBA', (300, 300), 'black')
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
 	bg.paste(img, (0, 0), img)
-	bg = bg.convert('RGB')
+	bg_cnv = bg.convert('RGB')
 
 	buf = BytesIO()
-	bg.save(buf, 'PNG')
+	bg_cnv.save(buf, 'PNG')
 	buf.seek(0)
 
 	tex = pv.Texture(imageio.imread(buf))
@@ -3790,19 +3893,27 @@ def cow_func(img):
 		buf.seek(0)
 		frames.append(Image.open(buf))
 		pl.remove_actor(actor)
+
 	pl.close()
+	imgs.close()
+	cnv.close()
+	img.close()
+	bg.close()
+	bg_cnv.close()
 
 	return wand_gif(frames, 50)
 
 @executor_function
 def globe_func(img):
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 	bg = Image.new('RGBA', (300, 300), 'black')
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
 	bg.paste(img, (0, 0), img)
-	bg = bg.convert('RGB')
+	bg_cnv = bg.convert('RGB')
 
 	buf = BytesIO()
-	bg.save(buf, 'PNG')
+	bg_cnv.save(buf, 'PNG')
 	buf.seek(0)
 
 	tex = pv.Texture(imageio.imread(buf))
@@ -3826,7 +3937,13 @@ def globe_func(img):
 		buf.seek(0)
 		frames.append(Image.open(buf))
 		pl.remove_actor(actor)
+
 	pl.close()
+	imgs.close()
+	cnv.close()
+	img.close()
+	bg.close()
+	bg_cnv.close()
 
 	return wand_gif(frames, 50)
 
@@ -3852,7 +3969,9 @@ def cracks_func(img):
 		r, g, b = pixel[:3]
 		return 0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2)
 	
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
 	width, height = img.size
 	im = img.load()
 
@@ -3885,16 +4004,26 @@ def cracks_func(img):
 	img.save(buf, 'PNG')
 	buf.seek(0)
 
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return buf
 
 @executor_function
 def melt_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
 
 	frames = []
 	for _ in range(5):
 		spike = pixelsort(img, interval_function='random', angle=90)
 		frames.append(spike)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames, 100)
 
@@ -3909,7 +4038,9 @@ def gameboy_camera_func(img):
 			break
 
 		durations.append(frame.info.get('duration', 50))
-		img = np.array(ImageOps.contain(frame, (100, 100)).convert('L'))
+		frame_cnv = frame.convert('L')
+		frame_contained = ImageOps.contain(frame_cnv, (100, 100))
+		img = np.array(frame_contained)
 
 		for i in range(img.shape[0]):
 			for j in range(img.shape[1]):
@@ -3941,13 +4072,22 @@ def gameboy_camera_func(img):
 					img[i][j] = 0
 		
 		fobj = BytesIO()
-		Image.fromarray(img).resize((300, 300)).save(fobj, "GIF")
-		frame = Image.open(fobj)
-		frames.append(frame)
+		frame = Image.fromarray(img)
+		resized = frame.resize((300, 300))
+		resized.save(fobj, "GIF")
+		frames.append(Image.open(fobj))
+
+		frame_cnv.close()
+		frame_contained.close()
+		frame.close()
+		resized.close()
 	
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
+
+	for frame in frames:
+		frame.close()
 
 	return igif
 	
@@ -3966,11 +4106,15 @@ def fire_func(img):
 			if i > 50:
 				break
 			durations.append(frame.info.get('duration', 50))
-			frame = ImageOps.contain(frame, (300, 300)).convert('RGBA')
+
+			frame_cnv = frame.convert('RGBA')
+			frame = ImageOps.contain(frame_cnv, (300, 300))
 			frame_np = cv2.cvtColor(np.array(frame), cv2.COLOR_RGBA2BGRA)
+
 			edges = cv2.Canny(frame_np, 300, 300)
 			indices = np.where(edges != [0])
 			blank = np.zeros((300, 300, 4), np.uint8)
+
 			for x, y in zip(indices[0], indices[1]):
 				for i in range(random.randint(5, 35)):
 					if i < 3: pct = 0.5
@@ -3988,13 +4132,19 @@ def fire_func(img):
 			buf = BytesIO(buf)
 			m = Image.open(buf)
 			frame.paste(m, (0, 0), m)
+
+			frame_cnv.close()
+			m.close()
+
 			frames.append(frame)
 		return wand_gif(frames, durations)
 	else:
-		img = ImageOps.contain(img, (300, 300)).convert('RGBA')
+		cnv = img.convert('RGBA')
+		img = ImageOps.contain(cnv, (300, 300))
 		img_np = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 		edges = cv2.Canny(img_np, 300, 300)
 		indices = np.where(edges != [0])
+
 		for _ in range(5):
 			frame = img.copy()
 			blank = np.zeros((300, 300, 4), np.uint8)
@@ -4014,6 +4164,7 @@ def fire_func(img):
 			buf = BytesIO(buf)
 			m = Image.open(buf)
 			frame.paste(m, (0, 0), m)
+			m.close()
 			frames.append(frame)
 
 		return wand_gif(frames, 50)
@@ -4037,36 +4188,55 @@ def endless_func(img):
 		buf = BytesIO(buf)
 		frames.append(Image.open(buf))
 
+	img.close()
+
 	return wand_gif(frames, durations)
 
 @executor_function
 def bayer_func(img):
 	img = Image.open(img)
+
 	frames = []
 	durations = []
 	for frame in ImageSequence.Iterator(img):
 		if frame.tell() > 100:
 			break
 		durations.append(frame.info.get('duration', 50))
-		npa = np.array(ImageOps.contain(frame.convert('RGB'), (100, 100), Image.BICUBIC), dtype=np.uint8)
+
+		frame_cnv = frame.convert('RGBA')
+		frame_contained = ImageOps.contain(frame_cnv, (100, 100), Image.BICUBIC)
+		npa = np.array(frame_contained, dtype=np.uint8)
 		w, h, _ = npa.shape
 		ra = np.zeros((2*w, 2*h, 3), dtype=np.uint8)
 		ra[::2, ::2, 2] = npa[:, :, 2]
 		ra[1::2, ::2, 1] = npa[:, :, 1]
 		ra[::2, 1::2, 1] = npa[:, :, 1]
 		ra[1::2, 1::2, 0] = npa[:, :, 0]
-		frames.append(ImageOps.contain(Image.fromarray(ra, "RGB"), (300, 300)))
+
+		res = Image.fromarray(ra, "RGB")
+		frames.append(ImageOps.contain(res, (300, 300)))
+
+		frame_cnv.close()
+		frame_contained.close()
+		res.close()
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
 
+	img.close()
+	for frame in frames:
+		frame.close()
+
 	return igif
 
 @executor_function
 def slice_func(img):
-	img = ImageOps.fit(Image.open(img), (512, 512)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (512, 512))
 	npa = np.array(img)
+
 	frames = []
 	frames.append(img)
 	for i in range(1, 8):
@@ -4078,7 +4248,8 @@ def slice_func(img):
 				else:
 					npa[x] = np.roll(npa[x], -w)
 			npa = np.rot90(npa)
-			frames.append(Image.fromarray(npa).rotate(0))
+			frame = Image.fromarray(npa)
+			frames.append(frame.rotate(0))
 		else:
 			for x in range(512):
 				w = int(512 / 2 ** i)
@@ -4087,13 +4258,20 @@ def slice_func(img):
 				else:
 					npa[x] = np.roll(npa[x], -w)
 			npa = np.rot90(npa, -1)
-			frames.append(Image.fromarray(np.rot90(npa)).rotate(0))
+			frame = Image.fromarray(np.rot90(npa))
+			frames.append(frame.rotate(0))
+
+	imgs.close()
+	cnv.close()
 
 	return wand_gif(frames, 1000)
 
 @executor_function
 def spikes_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
+
 	w, h = img.size
 	line_length = 20
 	frames = []
@@ -4108,11 +4286,19 @@ def spikes_func(img):
 			if (pix := img.getpixel((mx, my)))[-1] != 0:
 				draw.line([x1, y1, x2, y2], pix)
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return wand_gif(frames, 100)
 
 @executor_function
 def blocks_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
+
 	w, h = img.size
 	line_length = 20
 	frames = []
@@ -4127,11 +4313,19 @@ def blocks_func(img):
 			if (pix := img.getpixel((mx, my)))[-1] != 0:
 				draw.rectangle([x1, y1, x2, y2], pix)
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return wand_gif(frames, 100)
 
 @executor_function
 def letters_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
+
 	w, h = img.size
 	frames = []
 	for _ in range(10):
@@ -4142,6 +4336,11 @@ def letters_func(img):
 			if (pix := img.getpixel((x, y)))[-1] != 0:
 				draw.text([x, y], random.choice(string.ascii_letters), pix, font_arial3, 'mm')
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+	
 	return wand_gif(frames, 100)
 
 @executor_function
@@ -4155,7 +4354,8 @@ def bricks_func(img):
 		if frame.tell() == 50:
 			break
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.contain(frame, (400, 400)).convert('RGBA')
+		frame_cnv = frame.convert('RGBA')
+		frame = ImageOps.contain(frame_cnv, (400, 400))
 		canv = Image.new('RGBA', frame.size)
 		draw = ImageDraw.Draw(canv)
 
@@ -4168,13 +4368,22 @@ def bricks_func(img):
 						draw.rectangle((40*i-20, 20*j, 35+i*40-20, 15+j*20), frame.getpixel((40*i-20+10, 20*j+7)))
 				except:
 					...
+
+		frame_cnv.close()
+		frame.close()
+
 		frames.append(canv)
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
 @executor_function
 def tiles_func(img, n_edges):
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
+
 	frames = []
 	for r in np.linspace(0, 360//n_edges, 50):
 		canv = Image.new('RGBA', (300, 300))
@@ -4184,11 +4393,18 @@ def tiles_func(img, n_edges):
 				draw.regular_polygon([i*20+10, j*20+10, 10], n_edges, r, img.getpixel((i*20+10, j*20+10)), 'black')
 		frames.append(canv)
 
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return wand_gif(frames)
 
 @executor_function
 def wiggle_func(img):
-	img = ImageOps.contain(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
+
 	npa = np.array(img)
 	rows, cols, _ = npa.shape
 
@@ -4201,19 +4417,25 @@ def wiggle_func(img):
 				out[i, j] = npa[i, (j+x) % cols]
 		frames.append(out)
 
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	frames += frames[-2:0:-1]
-	
 	return wand_gif(frames, 30)
 
 @executor_function
 def cube_func(img):
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
+
 	bg = Image.new('RGBA', (300, 300), 'black')
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
 	bg.paste(img, (0, 0), img)
-	bg = bg.convert('RGB')
+	bg_cnv = bg.convert('RGB')
 
 	buf = BytesIO()
-	bg.save(buf, 'PNG')
+	bg_cnv.save(buf, 'PNG')
 	buf.seek(0)
 
 	tex = pv.Texture(imageio.imread(buf))
@@ -4236,29 +4458,50 @@ def cube_func(img):
 		buf.seek(0)
 		frames.append(Image.open(buf))
 		pl.remove_actor(actor)
+
 	pl.close()
+	imgs.close()
+	cnv.close()
+	img.close()
+	bg.close()
+	bg_cnv.close()
 
 	return wand_gif(frames, 50)
 
 @executor_function
 def paint_func(img):
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
+
 	masks = brush_mask
 
 	frames = []
 	durations = []
 	for mask in ImageSequence.Iterator(masks):
 		canv = Image.new('RGBA', (300, 300))
-		canv.paste(img, (0, 0), mask.convert('L').resize((300, 300)))
+		mask_cnv = mask.convert('L')
+		mask_r = mask_cnv.resize((300, 300))
+		canv.paste(img, (0, 0), mask_r)
+
+		mask_cnv.close()
+		mask_r.close()
+
 		frames.append(canv)
 		durations.append(50)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	durations[-1] = 1000
 	return wand_gif(frames, durations)
 
 @executor_function
 def shine_func(img):
-	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
 	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
 
 	edges = cv2.Canny(npa, 80, 300)
@@ -4277,16 +4520,20 @@ def shine_func(img):
 		frame = img.copy()
 		for (x, y), s in zip(spots, r_sizes):
 			size = sizes[s+i]
-			star = flare_img.copy().resize((size, size))
+			star = flare_img.resize((size, size))
 			frame.paste(star, (y-size//2, x-size//2), star)
+			star.close()
 		frames.append(frame)
 	
 	return wand_gif(frames)
 
 @executor_function
 def neon_func(img):
-	img = ImageOps.contain(Image.open(img).convert('RGBA'), (300, 300))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (300, 300))
 	npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+
 	w, h = img.size
 	edges = cv2.Canny(npa, 80, 300)
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
@@ -4303,14 +4550,26 @@ def neon_func(img):
 		colored = Image.new('RGBA', img.size, tuple(rgb))
 		x, y = int(5 * math.cos(angle)), int(5 * math.sin(angle))
 		frame.paste(colored, (x, y), mask)
-		frames.append(frame.crop((5, 5, w-5, h-5)))
+		cropped = frame.crop((5, 5, w-5, h-5))
+
+		frame.close()
+		colored.close()
+
+		frames.append(cropped)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+	mask.close()
 
 	return wand_gif(frames)
 
 @executor_function
 def phone_func(img):
 	w, h = 150, 238
-	img = ImageOps.contain(Image.open(img).convert('RGBA'), (w, h))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (w, h))
 
 	iw, ih = img.size
 	canv = Image.new('RGBA', (w, h), 'white')
@@ -4330,14 +4589,23 @@ def phone_func(img):
 	durations = []
 	for i, frame in enumerate(ImageSequence.Iterator(phone_gif)):
 		durations.append(frame.info.get('duration', 50))
-		frame = frame.convert('RGBA')
+		frame_cnv = frame.convert('RGBA')
 		if i == 34:
-			frame.paste(screen, (139, 27), screen)
-		frames.append(frame)
+			frame_cnv.paste(screen, (139, 27), screen)
+		frames.append(frame_cnv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+	canv.close()
+	screen.close()
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
 	igif.seek(0)
+
+	for frame in frames:
+		frame.close()
 
 	return igif
 
@@ -4352,24 +4620,32 @@ def kanye_func(img):
 			break
 		durations.append(frame.info.get('duration', 50))
 
-		frame = ImageOps.fit(frame.convert('RGBA'), (263, 326))
+		frame_cnv = frame.convert('RGBA')
+		frame_fit = ImageOps.fit(frame_cnv, (263, 326))
 		canv = Image.new('RGBA', kanye_img.size)
-		canv.paste(frame, (193, 320), frame)
+		canv.paste(frame_fit, (193, 320), frame_fit)
 		canv.paste(kanye_img, (0, 0), kanye_img)
 
+		frame_cnv.close()
+		frame_fit.close()
+
 		frames.append(ImageOps.contain(canv, (400, 400)))
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
 @executor_function
 def flush_func(img):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 	w, h = toilet_img.size
 
 	frames = []
 	for i, j, k in zip(map(int, np.linspace(0, 360*3, 50)), map(int, np.linspace(0, 250, 50)), map(int, np.linspace(0, 200, 50))):
-		img = img.resize((300-j, 300-j))
-		npa = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
+		img_r = img.resize((300-j, 300-j))
+		npa = cv2.cvtColor(np.array(img_r), cv2.COLOR_RGBA2BGRA)
 
 		result = iaa.ShearY((i, i), fit_output=True).augment_image(npa)
 		_, buf = cv2.imencode(".png", result)
@@ -4381,7 +4657,14 @@ def flush_func(img):
 		canv.paste(toilet_img, (0, 0), toilet_img)
 		canv.paste(sheared, (w//2-sw//2, h-sh//2-400+k), sheared)
 
+		img_r.close()
+		sheared.close()
+
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames)
 
@@ -4395,33 +4678,67 @@ def ipcam_func(img):
 		if i > 100:
 			break
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.fit(frame.convert('RGBA'), (553, 740))
+
+		frame_cnv = frame.convert('RGBA')
+		frame_fit = ImageOps.fit(frame_cnv, (553, 740))
+
 		canv = Image.new('RGBA', ipcam.size)
-		canv.paste(frame, (0, 68))
+		canv.paste(frame_fit, (0, 68))
 		canv.paste(ipcam, (0, 0), ipcam)
-		frames.append(ImageOps.contain(canv, (400, 400)))
+
+		contained = ImageOps.contain(canv, (400, 400))
+
+		frame_cnv.close()
+		frame_fit.close()
+		canv.close()
+
+		frames.append(contained)
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
 @executor_function
 def reflection_func(img):
-	img = ImageOps.contain(Image.open(img), (200, 200)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (200, 200))
 	w, h = img.size
 
-	enhancer = ImageEnhance.Brightness(img.transpose(Image.FLIP_TOP_BOTTOM).resize((w, 100)))
+	flipped = img.transpose(Image.FLIP_TOP_BOTTOM)
+	resized = flipped.resize((w, 100))
+	enhancer = ImageEnhance.Brightness(resized)
+
 	frames = []
 	for mask in ImageSequence.Iterator(reflect_mask):
-		with wImage.from_array(np.array(enhancer.enhance(0.8))) as wimg:
-			with wImage.from_array(np.array(mask.resize((w, 100)).convert('RGBA'))) as wmask:
+		enhanced = enhancer.enhance(0.8)
+		with wImage.from_array(np.array(enhanced)) as wimg:
+			mask_r = mask.resize((w, 100))
+			mask_cnv = mask_r.convert('RGBA')
+			with wImage.from_array(np.array(mask_cnv)) as wmask:
 				wimg.composite(wmask, operator='displace', arguments='8,8')
 			wimg.format = 'PNG'
 			buf = BytesIO()
 			wimg.save(file=buf)
 			buf.seek(0)
+
+		ref = Image.open(buf)
 		canv = Image.new('RGBA', (w, h+100))
 		canv.paste(img, (0, 0))
-		canv.paste(Image.open(buf), (0, h))
+		canv.paste(ref, (0, h))
+
+		enhanced.close()
+		mask_r.close()
+		mask_cnv.close()
+		ref.close()
+
 		frames.append(canv)
+
+	imgs.close()
+	cnv.close()
+	img.close()
+	flipped.close()
+	resized.close()
 
 	return wand_gif(frames)
 
@@ -4438,8 +4755,9 @@ def stereo_func(img):
 		if i > 100: break
 
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
-		r, g, b, a = frame.split()
+		frame_cnv = frame.convert('RGBA')
+		frame_fit = ImageOps.contain(frame_cnv, (300, 300))
+		r, g, b, a = frame_fit.split()
 
 		rarr = np.array(r, dtype=np.uint8)
 		rarr[:, :offset] = 0
@@ -4447,9 +4765,14 @@ def stereo_func(img):
 		barr = np.array(b, dtype=np.uint8)
 		barr[:, -offset:] = 0
 		barr = np.roll(barr, offset, 1)
-		frame = np.dstack([rarr, np.array(g, dtype=np.uint8), barr, np.array(a, dtype=np.uint8)])
+		frame_npa = np.dstack([rarr, np.array(g, dtype=np.uint8), barr, np.array(a, dtype=np.uint8)])
 
-		frames.append(Image.fromarray(frame))
+		frame_cnv.close()
+		frame_fit.close()
+
+		frames.append(Image.fromarray(frame_npa))
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
@@ -4463,8 +4786,9 @@ def lines_func(img):
 		if idx == 50: break
 
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.fit(frame.convert('RGBA'), (300, 300)).convert('L')
-		npa = np.array(frame)
+		frame_cnv = frame.convert('L')
+		frame_fit = ImageOps.fit(frame_cnv, (300, 300))
+		npa = np.array(frame_fit)
 
 		lines = [[] for _ in range(50)]
 		for i in range(50):
@@ -4482,14 +4806,21 @@ def lines_func(img):
 				height = avg * 6
 				draw.line(((j-1)*3, i*6+prev+1, j*3, i*6+height+1), 'white')
 
+		frame_cnv.close()
+		frame_fit.close()
+
 		frames.append(canv)
+
+	img.close()
 	
 	return wand_gif(frames, durations)
 
 @executor_function
 def lsd_func(img):
 	# optimized code thanks to z03h
-	img = ImageOps.contain(Image.open(img), (400, 400)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (400, 400))
 	alpha = img.split()[-1]
 
 	hues = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2GRAY)
@@ -4503,11 +4834,17 @@ def lsd_func(img):
 		hues += 3.6
 		hues = hues % 180
 
+	imgs.close()
+	cnv.close()
+	img.close()
+
 	return wand_gif(frames)
 
 @executor_function
 def laundry_func(img):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (100, 100))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (100, 100))
 
 	frames = []
 	for angle in np.linspace(0, 2*np.pi, 50):
@@ -4515,7 +4852,7 @@ def laundry_func(img):
 		frame = Image.new('RGBA', (170, 170))
 
 		x, y = 85 + int(50 * math.cos(angle)), 85 + int(50 * math.sin(angle))
-		rotated = img.copy().rotate(math.degrees(angle), expand=True)
+		rotated = img.rotate(math.degrees(angle), expand=True)
 		w, h = rotated.size
 		frame.paste(rotated, (x-w//2, y-h//2), rotated)
 
@@ -4523,17 +4860,28 @@ def laundry_func(img):
 		mask = Image.new('L', frame.size)
 		draw = ImageDraw.Draw(mask)
 		draw.ellipse((0, 0, mask.width - 1, mask.height - 1), 'white')
-		mask = ImageChops.darker(mask, alpha)
-		frame.putalpha(mask)
+		mask_d = ImageChops.darker(mask, alpha)
+		frame.putalpha(mask_d)
 
 		wash.paste(frame, (85, 160), frame)
+
+		frame.close()
+		rotated.close()
+		mask.close()
+		mask_d.close()
+
 		frames.append(wash)
+
+	imgs.close()
+	cnv.close()
 
 	return wand_gif(frames)
 
 @executor_function
 def plates_func(img):
-	img = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 	alpha = img.split()[-1] 
 
 	plates = []
@@ -4543,9 +4891,12 @@ def plates_func(img):
 		draw = ImageDraw.Draw(mask)
 		draw.ellipse((i*10, i*10, mask.width - 1 - i*10, mask.height - 1 - i*10), fill=255)
 		draw.ellipse((i*10+10, i*10+10, mask.width - 11 - i*10, mask.height - 11 - i*10), fill='black')
-		mask = ImageChops.darker(mask, alpha)
-		plate.putalpha(mask)
+		mask_d = ImageChops.darker(mask, alpha)
+		plate.putalpha(mask_d)
 		plates.append(plate)
+
+		mask.close()
+		mask_d.close()
 
 	frames = []
 	durations = []
@@ -4554,11 +4905,17 @@ def plates_func(img):
 		draw = ImageDraw.Draw(canv)
 		for j, plate in enumerate(plates):
 			if 0 < i + j*15 < 360:
-				plate = plate.rotate(i+j*15)
-			canv.paste(plate, (0, 0), plate)
+				plate_r = plate.rotate(i+j*15)
+				canv.paste(plate_r, (0, 0), plate_r)
+				plate_r.close()
+			else:
+				canv.paste(plate, (0, 0), plate)
 			draw.ellipse((j*10, j*10, plate.width-1-j*10, plate.height-1-j*10), outline=0, width=2)
 		frames.append(canv)
 		durations.append(50)
+
+	for plate in plates:
+		plate.close()
 
 	durations[0] = 500
 	return wand_gif(frames, durations)
@@ -4575,7 +4932,8 @@ def poly_func(img):
 		if idx > 100: break
 		durations.append(frame.info.get('duration', 50))
 
-		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
+		frame_cnv = frame.convert('RGBA')
+		frame = ImageOps.contain(frame_cnv, (300, 300))
 		canv = Image.new('RGBA', (frame.width, frame.height), 'black')
 		draw = ImageDraw.Draw(canv)
 
@@ -4586,31 +4944,44 @@ def poly_func(img):
 				col_2 = min(j*s-offset, frame.width-1), min(i*h+h/2, frame.height-1)
 				draw.polygon((j*s-offset, i*h, j*s+s-offset, i*h, j*s+s/2-offset, i*h+h), frame.getpixel(col_1))
 				draw.polygon((j*s-s/2-offset, i*h+h, j*s+s/2-offset, i*h+h, j*s-offset, i*h), frame.getpixel(col_2))
+
+		frame.close()
+		frame_cnv.close()
+
 		frames.append(canv)
+
+	img.close()
 	
 	return wand_gif(frames, durations)
 
 @executor_function
 def liquefy_func(img):
-	img = ImageOps.contain(Image.open(img), (200, 200)).convert('RGBA')
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (200, 200))
 
 	frames = []
 	for mask in ImageSequence.Iterator(liquefy_mask):
-		mask = mask.resize(img.size)
+		mask_r = mask.resize(img.size)
+		mask_r_cnv = mask_r.convert('RGBA')
+
 		with wImage.from_array(np.array(img)) as wimg:
-			with wImage.from_array(np.array(mask.convert('RGBA'))) as wmask:
+			with wImage.from_array(np.array(mask_r_cnv)) as wmask:
 				wimg.composite(wmask, operator='displace', arguments='0,10')
 			wimg.format = 'PNG'
 			buf = BytesIO()
 			wimg.save(file=buf)
 			buf.seek(0)
+
 		frames.append(Image.open(buf))
 
 	return wand_gif(frames)
 
 @executor_function
 def shred_func(img):
-	img = ImageOps.contain(Image.open(img).convert('RGBA'), (200, 200))
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.contain(cnv, (200, 200))
 	alpha = img.split()[-1]
 
 	points = sum([[(i+random.randint(-1, 1), j+random.randint(-1, 1)) for j in np.linspace(1, 200-1, 30)] for i in np.linspace(1, 200-1, 30)], [])
@@ -4623,17 +4994,21 @@ def shred_func(img):
 	polys = []
 	for edges in subdiv.getTriangleList():
 		poly = Poly(edges)
-		poly.image = img.copy()
+		image_c = img.copy()
 
 		mask = Image.new('L', img.size)
 		draw = ImageDraw.Draw(mask)
 		draw.polygon(edges, 'white')
-		mask = ImageChops.darker(mask, alpha)
+		mask_d = ImageChops.darker(mask, alpha)
 
-		poly.image.putalpha(mask)
-		poly.image = poly.image.crop((poly.tlx, poly.tly, poly.brx, poly.bry))
+		image_c.putalpha(mask_d)
+		poly.image = image_c.crop((poly.tlx, poly.tly, poly.brx, poly.bry))
 
 		polys.append(poly)
+
+		mask.close()
+		mask_d.close()
+		image_c.close()
 
 	frames = []
 	for i in range(-100, 200, 3):
@@ -4648,11 +5023,16 @@ def shred_func(img):
 				canv.paste(poly.image, (200-img.width+poly.tlx, 150-img.height//2+poly.tly), poly.image)
 		frames.append(canv)
 
+	for poly in polys:
+		poly.image.close()
+
 	return wand_gif(frames)
 
 @executor_function
 def pizza_func(img):
-	img = ImageOps.pad(Image.open(img).convert('RGBA'), pizza_img.size)
+	simg = Image.open(img)
+	cnv = simg.convert('RGBA')
+	img = ImageOps.pad(cnv, pizza_img.size)
 
 	with wImage.from_array(np.array(img)) as wimg:
 		with wImage.from_array(np.array(pizza_img)) as wpiz:
@@ -4662,6 +5042,10 @@ def pizza_func(img):
 			buf = BytesIO()
 			wpiz.save(file=buf)
 			buf.seek(0)
+
+	simg.close()
+	cnv.close()
+	img.close()
 
 	return buf
 
@@ -4674,15 +5058,24 @@ def plank_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 50: break
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.contain(frame.convert('RGBA'), plank_img.size)
+
+		cnv_frame = frame.convert('RGBA')
+		frame = ImageOps.contain(cnv_frame, plank_img.size)
+		plank_fit = ImageOps.fit(plank_img, frame.size)
+
 		with wImage.from_array(np.array(frame)) as wimg:
-			with wImage.from_array(np.array(ImageOps.fit(plank_img, frame.size))) as wplank:
+			with wImage.from_array(np.array(plank_fit)) as wplank:
 				wimg.composite(wplank, operator='displace', arguments='5,5')
 				wplank.composite(wimg, operator='color_burn')
 				wplank.format = 'PNG'
 				buf = BytesIO()
 				wplank.save(file=buf)
 				buf.seek(0)
+
+		cnv_frame.close()
+		frame.close()
+		plank_fit.close()
+
 		frames.append(Image.open(buf))
 
 	return wand_gif(frames, durations)
@@ -4696,16 +5089,26 @@ def knit_func(img):
 	for i, frame in enumerate(ImageSequence.Iterator(img)):
 		if i > 50: break
 		durations.append(frame.info.get('duration', 50))
-		frame = ImageOps.contain(frame.convert('RGBA'), knit_img.size)
+
+		cnv_frame = frame.convert('RGBA')
+		frame = ImageOps.contain(cnv_frame, knit_img.size)
+		knit_fit = ImageOps.fit(knit_img, frame.size)
+
 		with wImage.from_array(np.array(frame)) as wimg:
-			with wImage.from_array(np.array(ImageOps.fit(knit_img, frame.size))) as wknit:
+			with wImage.from_array(np.array(knit_fit)) as wknit:
 				wimg.composite(wknit, operator='displace', arguments='5,5')
 				wknit.composite(wimg, operator='color_burn')
 				wknit.format = 'PNG'
 				buf = BytesIO()
 				wknit.save(file=buf)
 				buf.seek(0)
+
+		cnv_frame.close()
+		frame.close()
+		knit_fit.close()
 		frames.append(Image.open(buf))
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
@@ -4719,12 +5122,12 @@ def dots_func(img):
 		if i > 100: break
 
 		durations.append(frame.info.get('duration', 50))
-		frame = frame.convert('L').resize((300, 300))
+		l_frame = frame.convert('L').resize((300, 300))
 		canv = Image.new('RGBA', frame.size, 'white')
 		draw = ImageDraw.Draw(canv)
 
-		w, h = frame.size
-		npa = np.array(frame)
+		w, h = l_frame.size
+		npa = np.array(l_frame)
 		x, y = 30, 30
 		dx, dy = w//x, h//y
 
@@ -4735,13 +5138,19 @@ def dots_func(img):
 				r = avg * dx // 490
 				draw.ellipse((midx-r, midy-r, midx+r, midy+r), 'black')
 
+		l_frame.close()
+
 		frames.append(canv.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT))
+
+	img.close()
 
 	return wand_gif(frames, durations)
 
 @executor_function
 def zonk_func(img):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+	simg = Image.open(img)
+	cnv = simg.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 
 	frames = []
 	for i in range(0, 200, 2):
@@ -4753,25 +5162,36 @@ def zonk_func(img):
 				crop = zoom.crop((50+distx, 50+disty, 300-distx, 300-disty))
 
 			alpha = zoom.split()[-1]
-			zoom = ImageOps.grayscale(zoom)
-			zoom.putalpha(alpha)
+			g_zoom = ImageOps.grayscale(zoom)
+			g_zoom.putalpha(alpha)
 
-			canv.paste(zoom, (150-zoom.width//2, 150-zoom.height//2))
+			canv.paste(g_zoom, (150-g_zoom.width//2, 150-g_zoom.height//2))
 			canv.paste(crop, (50, 50), crop)
+
+			g_zoom.close()
 		else:
 			canv.paste(zoom, (150-zoom.width//2, 150-zoom.height//2))
 
+		zoom.close()
+
 		frames.append(canv)
+
+	simg.close()
+	cnv.close()
+	crop.close()
+	img.close()
 
 	return wand_gif(frames)
 
 @executor_function
 def tunnel_func(img, direction):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (250, 250))
+	simg = Image.open(img)
+	cnv = simg.convert('RGBA')
+	img = ImageOps.fit(cnv, (250, 250))
 	canv = Image.new('RGBA', (200, 200))
 
 	frames = []
-	for i, j in zip(np.power(np.linspace(0, 50**2, 70), 1/2).astype(np.uint8), np.linspace(0, np.pi*6, 70)):
+	for i, j, k in zip(np.power(np.linspace(0, 50**2, 70), 1/2).astype(np.uint8), np.linspace(0, np.pi*6, 70), np.linspace(0, 90, 100)):
 		canv = canv.copy()
 		resized = canv.resize((200-i, 200-i))
 
@@ -4784,6 +5204,12 @@ def tunnel_func(img, direction):
 		elif direction.lower() in ['h', 'horizontal']:
 			addx = int(np.sin(j)*12*(50-i)/50)
 			addy = 0
+		elif direction.lower() in ['r', 'rotate']:
+			addx = 0
+			addy = 0
+			resized_old = resized
+			resized = resized.rotate(k, expand=True)
+			resized_old.close()
 		else:
 			addx = int(np.sin(j)*12*(50-i)/50)
 			addy = int(np.cos(j)*12*(50-i)/50)
@@ -4791,14 +5217,22 @@ def tunnel_func(img, direction):
 		canv.paste(img, (100-img.width//2+addx, 100-img.height//2+addy), img)
 		canv.paste(resized, (100-resized.width//2+addx, 100-resized.height//2+addy), resized)
 
+		resized.close()
+
 		frames.append(canv)
+
+	simg.close()
+	cnv.close()
+	img.close()
 
 	frames += frames[-1::-1]
 	return wand_gif(frames)
 
 @executor_function
 def stretch_func(img):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
+	simg = Image.open(img)
+	cnv = simg.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
 
 	frames = []
 	for angle in np.linspace(0, np.pi*2, 30):
@@ -4812,13 +5246,25 @@ def stretch_func(img):
 
 			temp.paste(img, (int(np.sin(angle+sec)*10), 0), img)
 			canv.paste(temp, (0, 0), mask)
+			
+			temp.close()
+			mask.close()
+
 		frames.append(canv.crop((10, 0, 290, 300)))
+		canv.close()
+
+	simg.close()
+	cnv.close()
+	img.close()
 
 	return wand_gif(frames)
 
 @executor_function
 def ripped_func(img):
-	top_img = ImageOps.fit(Image.open(img).convert('RGBA'), (400, 400))
+	img = Image.open(img)
+	cnv = img.convert('RGBA')
+
+	top_img = ImageOps.fit(cnv, (400, 400))
 	bot_img = top_img.copy()
 
 	alpha = top_img.split()[-1]
@@ -4831,22 +5277,35 @@ def ripped_func(img):
 	top_draw.polygon([(0, 0), (400, 0), *rp], 'white')
 	bot_draw.polygon([(0, 400), (400, 400), *rp], 'white')
 
-	top_mask = ImageChops.darker(top_mask, alpha)
-	bot_mask = ImageChops.darker(bot_mask, alpha)
-	top_img.putalpha(top_mask)
-	bot_img.putalpha(bot_mask)
+	top_mask_d = ImageChops.darker(top_mask, alpha)
+	bot_mask_d = ImageChops.darker(bot_mask, alpha)
+	top_img.putalpha(top_mask_d)
+	bot_img.putalpha(bot_mask_d)
 
 	comb = Image.new('RGBA', (440, 490))
 	canv = Image.new('RGBA', (440, 490))
 
-	comb.paste(top_img, (20, 20), top_mask)
-	comb.paste(bot_img, (20, 70), bot_mask)
+	comb.paste(top_img, (20, 20), top_mask_d)
+	comb.paste(bot_img, (20, 70), bot_mask_d)
 
 	shad = np.dstack([np.zeros((490, 440, 3), np.uint8), comb.split()[-1]])
-	shad = Image.fromarray(shad).filter(ImageFilter.GaussianBlur(10))
+	shad = Image.fromarray(shad)
+	blur_shad = shad.filter(ImageFilter.GaussianBlur(10))
 
-	canv.paste(shad, (0, 0), shad)
+	canv.paste(blur_shad, (0, 0), blur_shad)
 	canv.paste(comb, (-20, -20), comb)
+
+	img.close()
+	cnv.close()
+	top_img.close()
+	bot_img.close()
+	top_mask.close()
+	bot_mask.close()
+	top_mask_d.close()
+	bot_mask_d.close()
+	comb.close()
+	shad.close()
+	blur_shad.close()
 
 	buf = BytesIO()
 	canv.save(buf, 'PNG')

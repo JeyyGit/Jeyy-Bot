@@ -3537,7 +3537,7 @@ def advertize_func(img):
 
 @executor_function
 def pattern_func(img):
-	imgs = Image.open()
+	imgs = Image.open(img)
 	cnv = imgs.convert('RGBA')
 	img = ImageOps.fit(cnv, (400, 400))
 

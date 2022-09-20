@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def pyramid(self, ctx, imgb: ToImage = None):
+		"""Aliens made this"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, pyramid_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "pyramid.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def ripped(self, ctx, imgb: ToImage = None):
 		"""Ripped paper"""
 		async with ctx.typing():

@@ -36,6 +36,7 @@ if True:
 	pv.global_theme.transparent_background = True
 	cow_mesh = examples.download_cow().smooth()
 	cube_mesh = pv.read("./models/cube.obj")
+	pyr_mesh = pv.read("./models/pyramid.obj")
 	wall_mesh = pv.read("./models/wall.obj")
 	bed_mesh = pv.read("./models/bed.obj")
 	glitcher = ImageGlitcher()
@@ -5312,6 +5313,50 @@ def ripped_func(img):
 	buf.seek(0)
 
 	return buf
+
+@executor_function
+def pyramid_func(img):
+	imgs = Image.open(img)
+	cnv = imgs.convert('RGBA')
+	img = ImageOps.fit(cnv, (300, 300))
+
+	bg = Image.new('RGBA', (300, 300), 'black')
+	bg.paste(img, (0, 0), img)
+	bg_cnv = bg.convert('RGB')
+
+	buf = BytesIO()
+	bg_cnv.save(buf, 'PNG')
+	buf.seek(0)
+
+	tex = pv.Texture(imageio.imread(buf))
+
+	mesh = pyr_mesh.copy(deep=False)
+
+	pl = pv.Plotter(off_screen=True, window_size=[350, 320])
+
+	camera = pv.Camera()
+	camera.position = 3.7, 3.7, 3.7
+	camera.focal_point = 0, -1, 0
+	pl.camera = camera
+
+	frames = []
+	for i in np.linspace(0, 355, 50):
+		rot = mesh.rotate_y(i, inplace=False)
+		actor = pl.add_mesh(rot, texture=tex, smooth_shading=True)
+		buf = BytesIO()
+		pl.screenshot(buf)
+		buf.seek(0)
+		frames.append(Image.open(buf))
+		pl.remove_actor(actor)
+
+	pl.close()
+	imgs.close()
+	cnv.close()
+	img.close()
+	bg.close()
+	bg_cnv.close()
+
+	return wand_gif(frames)
 
 #
 # Utility

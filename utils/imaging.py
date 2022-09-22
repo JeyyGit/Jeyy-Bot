@@ -168,6 +168,7 @@ if True:
 	brush_mask = Image.open("./image/brush_mask.gif")
 	flare_img = Image.open("./image/flare.png").resize((50, 50)).convert('RGBA')
 	kanye_img = Image.open("./image/kanye.png").convert('RGBA')
+	cinema_img = ImageOps.contain(Image.open("./image/cinema.png"), (400, 400))
 
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
@@ -5357,6 +5358,27 @@ def pyramid_func(img):
 	bg_cnv.close()
 
 	return wand_gif(frames)
+
+@executor_function
+def cinema_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i >= 100: break
+
+		durations.append(frame.info.get('duration', 50))
+		frame_fit = ImageOps.fit(frame, (244, 120))
+		frame_cnv = frame_fit.convert('RGBA')
+		canv = cinema_img.copy()
+		canv.paste(frame_cnv, (80, 22), frame_cnv)
+		frames.append(canv)
+
+		frame_fit.close()
+		frame_cnv.close()
+
+	return wand_gif(frames, durations)
 
 #
 # Utility

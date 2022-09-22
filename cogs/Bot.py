@@ -5,8 +5,9 @@ from difflib import get_close_matches
 from discord.ext import commands
 from io import BytesIO, StringIO
 from tabulate import tabulate
-import urllib.parse
+import psutil
 import asyncio
+import humanize
 import datetime as dt
 import discord
 import humanize
@@ -431,7 +432,10 @@ class Bots(commands.Cog, name='Bot'):
 			r = await self.bot.session.get("https://api.jeyy.xyz/general/ping")
 			e = time.perf_counter()
 
-			embed = discord.Embed(url="https://api.jeyy.xyz", title="Jeyy API", description="Public API with wide range of image manipulation endpoints", color=self.bot.c)
+			info = psutil.virtual_memory()
+			cb = f'```py\nTotal     : {humanize.naturalsize(info[0])}\nAvailable : {humanize.naturalsize(info[1])}\nUsed      : {humanize.naturalsize(info[3])}\nPercent   : {["", "⚠️ "][info[2]>80]}{info[2]}% {["", "⚠️"][info[2]>80]}```'
+
+			embed = discord.Embed(url="https://api.jeyy.xyz", title="Jeyy API", description="Public API with wide range of image manipulation endpoints"+cb, color=self.bot.c)
 			
 			embed.add_field(name="Status", value=['Offline <:status_offline:596576752013279242>', 'Online <:status_online:596576749790429200>'][r.status == 200])
 			if r.status == 200:

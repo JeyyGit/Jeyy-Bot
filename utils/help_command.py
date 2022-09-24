@@ -17,8 +17,6 @@ class JeyyHelp(commands.MinimalHelpCommand):
 
 	async def send_command_help(self, command):
 		ctx = self.get_context()
-		if ctx.guild.id == 336642139381301249 and command.name == "snipe":
-			return
 			
 		aliases = command.aliases
 		if aliases:

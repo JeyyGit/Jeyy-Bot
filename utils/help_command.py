@@ -21,7 +21,7 @@ class JeyyHelp(commands.MinimalHelpCommand):
 		aliases = command.aliases
 		if aliases:
 			aliases = [f"`{alias}`" for alias in aliases]
-			embed = discord.Embed(title=f"{self.get_command_signature(command)}", description="**Aliases: **"+", ".join(aliases), color=ctx.bot.c)
+			embed = discord.Embed(title=f"{self.get_command_signature(command)}", description=f"**Alias{['es', ''][len(aliases) == 1]}: **"+", ".join(aliases), color=ctx.bot.c)
 		else:
 			embed = discord.Embed(title=f"{self.get_command_signature(command)}", color=ctx.bot.c)
 		if command.help:

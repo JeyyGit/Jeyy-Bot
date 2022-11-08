@@ -15,6 +15,7 @@ import datetime as dt
 import discord
 import importlib
 import os
+import io
 import random
 import re
 import logging
@@ -40,7 +41,7 @@ from utils.imaging import (
 
 from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
 from utils.converters import ToImage
-from utils.trocr import TROCR
+from utils.trocr import TROCR, TROCRError
 from utils.sounder import Sounder
 
 service = services.Chromedriver(binary='../chromedriver', log_file=os.devnull)
@@ -1170,15 +1171,21 @@ class Utility(commands.Cog):
 			else:
 				return await ctx.reply('Please provide the image.')
 
-		translated, source, destination = await self.translate_func(lang, 'dummy text')
-
-		if translated == "Failed":
-			return await ctx.reply(source)
-
 		async with ctx.typing():
-			trocr = TROCR(self.bot, self.translator, lang, image)
+			trocr = TROCR(self.bot, lang, image)
+			
+			try:
+				result = await trocr.run()
+				url = result.url
+			except TROCRError as e:
+				return await ctx.reply(e)
+			
+			r = await self.bot.session.get(url)
+			img = io.BytesIO(await r.read())
+			
+			file = discord.File(img, 'trocr.png')
 
-			await ctx.reply(file=discord.File(await trocr.run(), 'trocr.png'))
+			await ctx.reply(file=file)
 
 	@commands.command(hidden=True)
 	@commands.cooldown(1, 3, commands.BucketType.user)

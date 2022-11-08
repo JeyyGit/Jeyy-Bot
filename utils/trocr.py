@@ -2,6 +2,7 @@ from io import BytesIO
 from dataclasses import dataclass
 
 import aiohttp
+from PIL import ImageOps, Image
 
 
 @dataclass
@@ -16,7 +17,6 @@ class TROCRError(Exception):
 
 
 class TROCR:
-	font = ImageFont.truetype('/home/jeyy/Jeyy Bot/fonts/SourceHanSans-Bold.ttc', 50)
 	languages = []
 	
 	def __init__(self, bot, lang, image):
@@ -38,7 +38,7 @@ class TROCR:
 			'translated_text': data['translatedText']
 		}
 		
-		return TranslateOCRResult(**parsed_data)
+		return TranslateOCRResult(**passed_data)
 	
 	async def get_languages(self):
 		if self.languages:

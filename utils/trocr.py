@@ -33,10 +33,10 @@ class TROCR:
 		data = await self.call_api()
 		
 		passed_data = {
-            		'url': data['url'],
-            		'original_text': data['originalText'],
-            		'translated_text': data['translatedText']
-        	}
+			'url': data['url'],
+			'original_text': data['originalText'],
+			'translated_text': data['translatedText']
+		}
 		
 		return TranslateOCRResult(**parsed_data)
 	

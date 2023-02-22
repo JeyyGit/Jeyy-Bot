@@ -1,6 +1,8 @@
 from PIL import Image
 import PIL
+import json
 import discord
+import numpy as np
 from discord.ext import commands
 from io import BytesIO
 import humanize
@@ -232,6 +234,9 @@ class JeyyBot(commands.Bot):
 			self.keys('GOOGLEKEY4'),
 			self.keys('GOOGLEKEY5'),
 		])
+
+		with open('./image/ios_emojis/emoji_lut.json', 'r') as f:
+			self.emoji_lut = np.array(json.load(f))
 		
 		await super().start(*args, **kwargs)
 

@@ -1,35 +1,38 @@
-from bisect import bisect_left
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence, ImageOps, ImageEnhance, ImageChops
-from colorthief import ColorThief
-from glitch_this import ImageGlitcher
-from imgaug import augmenters as iaa
-from io import BytesIO
-from jishaku.functools import executor_function
-from os.path import basename, dirname
-from skimage.transform import swirl
-from textwrap import TextWrapper
-from wand.image import Image as wImage
-import albumentations as alb
-from pyvista import examples
-from pixelsort import pixelsort
 import colorsys
-import pyvista as pv
-import imageio
-import cv2
 import datetime as dt
+import functools
 import glob
 import math
-import numpy as np
 import os
-import pymunk
 import random
 import re
 import string
 import textwrap
 import time
+from bisect import bisect_left
+from io import BytesIO
+from os.path import basename, dirname
+from textwrap import TextWrapper
+
+import albumentations as alb
+import cv2
+import imageio
+import numpy as np
+import pymunk
+import pyvista as pv
+import scipy.ndimage
+from colorthief import ColorThief
+from glitch_this import ImageGlitcher
+from imgaug import augmenters as iaa
+from jishaku.functools import executor_function
+from PIL import (Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter,
+                 ImageFont, ImageOps, ImageSequence)
+from pixelsort import pixelsort
+from pyvista import examples
+from skimage.transform import swirl
+from wand.image import Image as wImage
 
 from utils.useful import osc
-
 
 if True:
 	res = 300
@@ -839,7 +842,7 @@ def lever_gif(img1, img2):
 	return wand_gif([img_1, img_2], 500)
 
 @executor_function
-def img_to_iso(img, best):
+def  img_to_iso(img, best):
 	img = Image.open(img).resize((best, best)).convert('RGBA').transpose(Image.FLIP_TOP_BOTTOM)
 
 	colors = np.array([
@@ -5380,6 +5383,157 @@ def cinema_func(img):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def swap_func(img1, img2):
+	img1 = Image.open(img1)
+	img2 = Image.open(img2)
+
+	cnv1 = img1.convert('RGBA')
+	cnv2 = img2.convert('RGBA')
+
+	fit1 = ImageOps.fit(cnv1, (300, 300))
+	fit2 = ImageOps.fit(cnv2, (300, 300))
+
+	frames = []
+	def do():
+		gray = fit2.convert('L')
+		npag = np.array(gray)
+		npa2 = np.array(img2)
+		for i in np.linspace(0, 255, 100, dtype=np.uint8):
+			canv = fit1.copy()
+			alphas = npa2[:,:,3]
+			alphas[npag < i] = 0
+			npa2[:,:,3] = alphas
+			cov = Image.fromarray(npa2)
+			canv.paste(cov, (0, 0), cov)
+
+			cov.close()
+			frames.append(canv)
+
+		gray.close()
+
+	do()
+	fit1, fit2 = fit2, fit1
+	do()
+
+	return wand_gif(frames)
+	
+@executor_function
+def emojify_func(img, size, emoji_lut):
+	colors = np.array(list(emoji_lut[:,0]))
+
+	@functools.cache
+	def get_closest(r, g, b):
+		color = np.array([r, g, b])
+		distances = np.sqrt(np.sum((colors-color)**2, axis=1))
+		index_of_smallest = np.where(distances==np.amin(distances))
+		return emoji_lut[index_of_smallest[0][0]]
+
+	bs = 1024
+	ss = size
+
+	img = Image.open(img).convert('RGBA')
+	img = ImageOps.fit(img, (ss, ss), Image.BILINEAR)
+	alpha = img.split()[-1]
+	img = img.quantize().convert('RGB')
+	img.putalpha(alpha)
+	npa = np.array(img)
+	canv = np.zeros([bs, bs, 4], dtype=np.uint8)
+
+	em_cache = {}
+
+	d = bs // ss
+	for i in range(ss):
+		for j in range(ss):
+			r, g, b, a = npa[j][i]
+			if a > 0:
+				em_dir = get_closest(r, g, b)[1]
+				emoji = em_cache.get(em_dir)
+				if emoji is None:
+					emoji = cv2.cvtColor(cv2.resize(cv2.imread(em_dir), (d, d), interpolation=cv2.INTER_LINEAR), cv2.COLOR_RGBA2BGRA)
+					em_cache[em_dir] = emoji
+				canv[d*j:d*j+d, d*i:d*i+d] = emoji
+	
+	buf = BytesIO()
+	Image.fromarray(canv[:d*ss,:d*ss]).save(buf, 'PNG')
+	buf.seek(0)
+
+	return buf
+
+@executor_function
+def fall_func(img):
+	img = ImageOps.fit(Image.open(img), (150, 150)).convert('RGBA')
+	canv = Image.new('RGBA', (300, 150))
+	canv.paste(img, (75, 0), img)
+
+	frames = []
+	for i in np.linspace(0, 75, 50):
+		pts1 = np.float32([[75, 0], [225, 0], [75, 150], [225, 150]])
+		pts2 = np.float32([[75-i, i*2], [225+i, i*2], [75, 150], [225, 150]])
+		pts3 = np.float32([
+							[75-(i+75/2)%75, (i*2+75)%150], 
+							[225+(i+75/2)%75, (i*2+75)%150], 
+							[75, 150], [225, 150]
+		])
+		M = cv2.getPerspectiveTransform(pts1, pts3)
+		M2 = cv2.getPerspectiveTransform(pts1, pts2)
+		frame = cv2.cvtColor(np.array(canv), cv2.COLOR_RGBA2BGRA)
+
+		dst = cv2.warpPerspective(frame, M, (300, 150))
+		dst2 = cv2.warpPerspective(frame, M2, (300, 150))
+
+		_, buf = cv2.imencode(".png", dst)
+		_, buf2 = cv2.imencode(".png", dst2)
+		ro = Image.open(BytesIO(buf))
+		ro2 = Image.open(BytesIO(buf2))
+
+		im = canv.copy()
+		if 75/2 - i < 0:
+			im.paste(ro, (0, 0), ro)
+			im.paste(ro2, (0, 0), ro2)
+		else:
+			im.paste(ro2, (0, 0), ro2)
+			im.paste(ro, (0, 0), ro)
+
+		ro.close()
+		ro2.close()
+
+		frames.append(im)
+	
+	return wand_gif(frames)
+
+@executor_function
+def contour_func(img, rainbow=False):
+	img = cv2.cvtColor(np.array(ImageOps.contain(Image.open(img), (300, 300))), cv2.COLOR_RGBA2BGRA)
+	h, w, _ = img.shape
+
+	edges = cv2.Canny(img, 300, 300)
+
+	kernel = np.ones((2, 2), np.uint8)
+	closing = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+	distances = scipy.ndimage.distance_transform_edt(closing==0).astype(np.uint8)
+
+	frames = []
+	for i in range(20, 3, -1):
+		base = np.zeros((h, w), np.uint8)
+		base[distances % i == 0] = 255
+
+		if rainbow:
+			labeled, n_label = scipy.ndimage.label(base, np.ones((3, 3), np.uint8))
+
+			base_2 = np.zeros((h, w, 3), np.uint8)
+
+			for i in range(1, n_label):
+				base_2[labeled==i] = np.array(random.sample(range(256), 3))
+			frames.append(Image.fromarray(base_2))
+		else:
+			frames.append(Image.fromarray(base))
+			
+	frames += frames[-2:0:-1]
+
+	return wand_gif(frames)
+
 #
 # Utility
 # #
@@ -5782,6 +5936,23 @@ def skyline_func(contributions, username, year):
 	return wand_gif(frames[1:], 100)
 
 @executor_function
+def combine_func(bufs):
+	images = [Image.open(buf) for buf in bufs]
+	canv = Image.new('RGBA', (max(im.width for im in images), sum(im.height for im in images)))
+
+	y = 0
+	for i, im in enumerate(images):
+		canv.paste(im, (0, y), im)
+		y += im.height
+
+	[im.close() for im in images]
+
+	buf = BytesIO()
+	canv.save(buf, 'PNG')
+	buf.seek(0)
+	return buf
+
+@executor_function
 def spotify_func(title, artists, cover_buf, duration_seconds, start_timestamp):
 	def shorten(text, font, max_length):
 		res = ''
@@ -5864,4 +6035,3 @@ def player_func(title, seconds_played, total_seconds, thumbnail_buf, line_1, lin
 	buf.seek(0)
 
 	return buf
-

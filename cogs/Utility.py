@@ -35,7 +35,8 @@ from utils.imaging import (
 	scrap_func,
 	circle_func,
 	scrolling_text_func,
-	skyline_func
+	skyline_func,
+	combine_func
 )
 
 from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
@@ -43,7 +44,7 @@ from utils.converters import ToImage
 from utils.trocr import TROCR
 from utils.sounder import Sounder
 
-service = services.Chromedriver(binary='../chromedriver', log_file=os.devnull)
+service = services.Chromedriver(binary='../chromedriver_109', log_file=os.devnull)
 browser = browsers.Chrome()
 browser.capabilities = {"goog:chromeOptions": {"args": ["--no-sandbox", "--headless", "--disable-dev-shm-usage"]}}
 
@@ -79,7 +80,6 @@ def img_to_emoji(image, best):
 				r = p[0]
 				g = p[1]
 				b = p[2]
-
 				er = e[0]
 				eg = e[1]
 				eb = e[2]
@@ -1191,9 +1191,12 @@ class Utility(commands.Cog):
 
 	@commands.command(cooldown_after_parsing=True)
 	@commands.cooldown(1, 30, commands.BucketType.user)
-	async def skyline(self, ctx, github_username, year:int=2022):
+	async def skyline(self, ctx, github_username, year: int = None):
 		"""3D GitHub contribution graph"""
-		if year < 2008 or year > 2022:
+		current_year = dt.datetime.now().year
+		year = year or current_year
+
+		if year < 2008 or year > current_year:
 			ctx.command.reset_cooldown(ctx)
 			return await ctx.reply('Invalid year')
 
@@ -1206,6 +1209,28 @@ class Utility(commands.Cog):
 			js = await r.json()
 			buf = await skyline_func(js['contributions'], js['username'], str(year))
 		await ctx.reply(file=discord.File(buf, 'github_skyline.gif'))		
+
+	@commands.command(hidden=True)
+	@commands.is_owner()
+	# @commands.cooldown(1, 3,)
+	async def rtfm(self, ctx, query: str):
+		url = "https://discordpy.readthedocs.io/en/stable/api.html"
+
+		query = query.replace('.', '\\.')
+		try:
+			async with ctx.typing(), get_session(service, browser) as session:
+				await session.set_window_size(1092, 2000)
+				await session.get(url)
+				element = await session.get_element(f'dl.py.class:has(> #{query})')
+				section = await element.get_elements('dt, div')
+				bufs = [await sect.get_screenshot() for sect in section[:2]]
+
+			buf = await combine_func(bufs)
+		except:
+			return await ctx.reply('u bad')
+
+		return await ctx.reply(file=discord.File(buf, 'rtfm.png'))
+		
 
 def setup(bot):
 	bot.add_cog(Utility(bot))

@@ -19,8 +19,8 @@ os.environ["JISHAKU_HIDE"] = "True"
 
 async def create_db_pool():
 	bot.db = await asyncpg.create_pool(
-  		host=bot.keys('DBHOST'), database=bot.keys('DBNAME'), 
-  		user=bot.keys('DBUSER'), password=bot.keys('DBPASS')
+		host=bot.keys('DBHOST'), database=bot.keys('DBNAME'), 
+		user=bot.keys('DBUSER'), password=bot.keys('DBPASS')
 	)
 
 @bot.command(aliases=['l'], hidden=True)

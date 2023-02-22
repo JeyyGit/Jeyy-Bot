@@ -5,13 +5,15 @@ import importlib
 import typing
 from collections import OrderedDict
 
-from utils import imaging, useful, converters
+from utils import imaging, useful, converters, makesweet
 importlib.reload(useful)
 importlib.reload(imaging)
 importlib.reload(converters)
+importlib.reload(makesweet)
 
 from utils.imaging import *
 from utils.converters import ToImage
+from utils.makesweet import get_locket, get_billboard, get_flag
 
 
 class IMAGE(commands.Cog, name="Image"):
@@ -43,6 +45,71 @@ class IMAGE(commands.Cog, name="Image"):
 			self.bot.image_cache[cmd].popitem(last=True)
 
 		return buf
+
+	@commands.command(usage="<User|Member|Emoji|URL> <rainbow=False>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def contour(self, ctx, imgb: ToImage = None, rainbow: bool = False):
+		"""Outline Contours"""
+		async with ctx.typing():
+			buf = await contour_func(imgb or await ToImage.none(ctx), rainbow)
+
+			await ctx.reply(file=discord.File(buf, "contour.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def fall(self, ctx, imgb: ToImage = None):
+		"""Tripped"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, fall_func, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "fall.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def flag(self, ctx, imgb: ToImage = None):
+		"""A country"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, get_flag, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "flag.gif"))
+
+	@commands.command(aliases=["bb"], usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def billboard(self, ctx, imgb: ToImage = None):
+		"""Be Famous"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, get_billboard, imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "billboard.gif"))
+
+	@commands.command(name="heart-locket", aliases=["locket", "hl"], usage="<User|Member|Emoji|URL> <User|Member|Emoji|URL=None>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def heart_locket(self, ctx, imgb1: ToImage = None, imgb2: ToImage = None):
+		"""Only you <3"""
+		async with ctx.typing():
+			buf = await get_locket(imgb1 or await ToImage.none(ctx), imgb2)
+
+			return await ctx.reply(file=discord.File(buf, "heart-locket.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL> [size=32]")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def emojify(self, ctx, imgb: ToImage = None, size: int = 32):
+		"""Emojify an image"""
+		async with ctx.typing():
+			if size < 16 or size > 64:
+				raise Exception('`size` must be between 16 and 64, inclusive.')
+			buf = await emojify_func(imgb or await ToImage.none(ctx), size, ctx.bot.emoji_lut)
+
+			await ctx.reply(file=discord.File(buf, "emojify.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def swap(self, ctx, imgb1: ToImage, imgb2: ToImage = None):
+		"""Swap images"""
+		async with ctx.typing():
+			buf = await swap_func(imgb1, imgb2 or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "swap.gif"))
 
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)

@@ -242,6 +242,7 @@ class SupportServerView(discord.ui.View):
 	def __init__(self):
 		super().__init__()
 		self.add_item(discord.ui.Button(label='Support Server', url='https://discord.gg/uwKsfMzGJA'))
+		self.add_item(discord.ui.Button(label='Try API', url='https://jeyy.xyz/try'))
 
 # Isometric cog
 class Switch(discord.ui.View):

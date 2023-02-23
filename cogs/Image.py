@@ -974,7 +974,7 @@ class IMAGE(commands.Cog, name="Image"):
 				return await ctx.reply("Only accept gif member avatar, emojis, url, tenor formats.", mention_author=False)
 			await ctx.reply(file=discord.File(buf, "scan.gif"), mention_author=False)
 
-	@commands.command(cooldown_after_parsing=True, aliases=['pats', 'pet', 'petpet'], usage="<User|Member|Emoji|URL>")
+	@commands.command(cooldown_after_parsing=True, alxiases=['pats', 'pet', 'petpet'], usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def patpat(self, ctx, imgb: ToImage = None):
 		"""Pat-pat--"""
@@ -1211,5 +1211,5 @@ class IMAGE(commands.Cog, name="Image"):
 			buf = await glitch_func(imgb or await ToImage.none(ctx), level)
 			await ctx.reply(file=discord.File(buf, "glitch.gif"), mention_author=False)
 
-def setup(bot):
-	bot.add_cog(IMAGE(bot))
+async def setup(bot):
+	await bot.add_cog(IMAGE(bot))

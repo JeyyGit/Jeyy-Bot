@@ -94,7 +94,7 @@ class HelpView(discord.ui.View):
 		for chunk in chunks:
 			embed = discord.Embed(title="Help", description="List of commands available", color=self.ctx.bot.c)
 			embed.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.display_avatar.url)
-			embed.set_thumbnail(url=getattr(cog, 'thumbnail', discord.Embed.Empty))
+			embed.set_thumbnail(url=getattr(cog, 'thumbnail', None))
 			embed.add_field(name=f"-=: {cog.qualified_name} :=-", value=cog.description, inline=False)
 
 			for command in chunk:

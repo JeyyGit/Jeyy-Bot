@@ -70,17 +70,17 @@ class Paginator(discord.ui.View):
 			return
 
 		self.index = 0
-		await self.update()
+		await self.update(interaction)
 
 	async def button_previous_callback(self, interaction):
 		if self.index == 0:
 			return
 
 		self.index -= 1
-		await self.update()
+		await self.update(interaction)
 
-	async def button_index_callback(self, interaction):
-		await self.message.delete()
+	async def button_index_callback(self, interaction: discord.Interaction):
+		await interaction.message.delete()
 		self.stop()
 
 	async def button_next_callback(self, interaction):
@@ -88,16 +88,16 @@ class Paginator(discord.ui.View):
 			return
 
 		self.index += 1
-		await self.update()
+		await self.update(interaction)
 
 	async def button_last_callback(self, interaction):
 		if self.index == self.length-1:
 			return
 
 		self.index = self.length-1
-		await self.update()
+		await self.update(interaction)
 		
-	async def update(self):
+	async def update(self, interaction):
 		self.button_index.label = f"Page {self.index+1} of {self.length}"
 
 		self.button_next.disabled = False
@@ -113,5 +113,6 @@ class Paginator(discord.ui.View):
 			self.button_previous.disabled = True
 			self.button_first.disabled = True
 
-		await self.message.edit(embed=self.embeds[self.index], view=self)
+		await interaction.response.edit_message(embed=self.embeds[self.index], view=self)
+		# await self.message.edit(embed=self.embeds[self.index], view=self)
 

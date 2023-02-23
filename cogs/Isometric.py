@@ -17,7 +17,7 @@ import enchant
 import textwrap
 
 from utils import imaging, views, useful, nonogram_maps, golf_maps
-importlib.reload(imaging)
+# importlib.reload(imaging)
 importlib.reload(views)
 importlib.reload(useful)
 importlib.reload(nonogram_maps)
@@ -336,7 +336,7 @@ class Fun(commands.Cog):
 			"https://cdn.discordapp.com/attachments/779892741696913438/844834255887532062/unknown.png",
 			"https://cdn.discordapp.com/attachments/779892741696913438/844853924040802314/unknown.png",
 			"https://cdn.discordapp.com/attachments/785808264591704095/844761990458900530/isometric_gif.gif",
-			discord.Embed.Empty
+			None
 			]
 
 		embeds = []
@@ -561,14 +561,17 @@ class Fun(commands.Cog):
 
 		class InfoView(discord.ui.View):
 			@discord.ui.button(label=f'Builds owned by {owner}')
-			async def owned(self, button: discord.ui.Button, interaction:discord.Interaction):
+			async def owned(self, interaction: discord.Interaction, button: discord.ui.Button):
 				if interaction.user == ctx.author:
 					button.disabled = True
-					cmd = ctx.bot.get_command('build owned')
-					await msg.edit(view=self)
-					await cmd(ctx, member=owner)
+					await interaction.response.edit_message(view=self)
 
-		msg = await ctx.reply(embed=embed, view=InfoView(), mention_author=False)
+					cmd = ctx.bot.get_command('build owned')
+					await cmd(ctx, member=owner)
+					print('afaw')
+					
+
+		await ctx.reply(embed=embed, view=InfoView(), mention_author=False)
 
 	@build.command(usage="[build name] [new code]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -836,11 +839,11 @@ class Fun(commands.Cog):
 				self.msg = None
 				
 			@discord.ui.button(label='Example')
-			async def example(self, button: discord.Button, interaction: discord.Interaction):
+			async def example(self, interaction: discord.Interaction, button: discord.Button):
 				await interaction.response.send_message('https://cdn.discordapp.com/attachments/381963689470984203/937701492561965066/example.png', ephemeral=True)
 
 			@discord.ui.button(label='Exit', style=discord.ButtonStyle.red)
-			async def exit(self, button: discord.Button, interaction: discord.Interaction):
+			async def exit(self, interaction: discord.Interaction, button: discord.Button):
 				if interaction.user == ctx.author:
 					await interaction.response.send_message(f'Exited. Correct word is **{word}**')
 					self.exit = True
@@ -1100,7 +1103,7 @@ class Fun(commands.Cog):
 					pass
 
 			@discord.ui.button(label='Attorney', style=discord.ButtonStyle.green)
-			async def inp(self, button, interaction):
+			async def inp(self, interaction, button):
 				modal = Modal(ctx.bot, 'Attorney Dialogue')
 				modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
 				modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
@@ -1124,7 +1127,7 @@ class Fun(commands.Cog):
 				await ctx.reply(file=discord.File(buf, 'attorney.gif'), mention_author=False)
 
 			@discord.ui.button(label='Prosecutor', style=discord.ButtonStyle.red)
-			async def prosecutor(self, button, interaction):
+			async def prosecutor(self, interaction, button):
 				modal = Modal(ctx.bot, 'Prosecutor Dialogue')
 				modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
 				modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
@@ -1191,5 +1194,5 @@ class Fun(commands.Cog):
 
 		view.msg = await ctx.reply(embed=embed, view=view, mention_author=False)
 
-def setup(bot):
-	bot.add_cog(Fun(bot))
+async def setup(bot):
+	await bot.add_cog(Fun(bot))

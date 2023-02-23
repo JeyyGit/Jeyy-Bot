@@ -648,5 +648,5 @@ class Api(commands.Cog):
 
 		await ctx.reply(embed=embed, mention_author=False)
 
-def setup(bot):
-	bot.add_cog(Api(bot))
+async def setup(bot):
+	await bot.add_cog(Api(bot))

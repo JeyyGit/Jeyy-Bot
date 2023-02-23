@@ -228,7 +228,6 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def source(self, ctx, *, command=None):
 		"""See bot's source code"""
-		# await ctx.trigger_typing()
 		# num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
 
 		# url = f"https://http.cat/{num}"
@@ -536,5 +535,5 @@ class Bots(commands.Cog, name='Bot'):
 	async def push(self, ctx: JeyyContext, *, commit_message='update'):
 		await ctx.push(commit_message)
 
-def setup(bot):
-	bot.add_cog(Bots(bot))
+async def setup(bot):
+	await bot.add_cog(Bots(bot))

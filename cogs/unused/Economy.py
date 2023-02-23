@@ -234,8 +234,6 @@ class Economy(commands.Cog):
 		if not await self.check_account(ctx):
 			return
 
-		await ctx.trigger_typing()
-
 		asset = member.avatar_url_as(size=512)
 		pfp = BytesIO(await asset.read())
 		pfp.seek(0)

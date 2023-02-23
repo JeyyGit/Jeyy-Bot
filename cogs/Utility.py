@@ -986,7 +986,7 @@ class Utility(commands.Cog):
 
 		class UploadPDF(discord.ui.View):
 			@discord.ui.button(label="Upload PDF", style=discord.ButtonStyle.primary)
-			async def upload(self, button, interaction):
+			async def upload(self, interaction, button):
 				if interaction.user != ctx.author:
 					return await interaction.response.send_message("This is not your interaction!", ephemeral=True)
 
@@ -1232,5 +1232,5 @@ class Utility(commands.Cog):
 		return await ctx.reply(file=discord.File(buf, 'rtfm.png'))
 		
 
-def setup(bot):
-	bot.add_cog(Utility(bot))
+async def setup(bot):
+	await bot.add_cog(Utility(bot))

@@ -1,28 +1,29 @@
-from PIL import Image
-import PIL
+import datetime as dt
 import json
-import discord
-import numpy as np
-from discord.ext import commands
+import re
 from io import BytesIO
+import os
+
+import aiohttp
+import async_cse
+import asyncpg
+import decouple
+import discord
 import humanize
+import numpy as np
+import PIL
+from bs4 import BeautifulSoup
+from discord.ext import commands
+from discord_together import DiscordTogether
+from jishaku.functools import executor_function
+from PIL import Image
 from twemoji_parser import emoji_to_url
 from zneitiz import NeitizClient, NeitizException, NeitizRatelimitException
-from jishaku.functools import executor_function
-from discord_together import DiscordTogether
-from bs4 import BeautifulSoup
-import datetime as dt
-import async_cse
-import aiohttp
-import decouple
-import re
 
-
-from utils.useful import chunk, Queue
-from utils.paginator import Paginator
-from utils.imaging import wand_gif
 from utils.converters import ToImage
-
+from utils.imaging import wand_gif
+from utils.paginator import Paginator
+from utils.useful import Queue, chunk
 
 url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
@@ -222,8 +223,18 @@ class JeyyBot(commands.Bot):
 
 	async def get_context(self, message, *, cls=JeyyContext):
 		return await super().get_context(message, cls=cls)
+	
+	async def setup_hook(self):
+		self.db = await asyncpg.create_pool(
+			host=self.keys('DBHOST'), database=self.keys('DBNAME'),
+			user=self.keys('DBUSER'), password=self.keys('DBPASS')
+    	)
 
-	async def start(self, *args, **kwargs):
+		for filename in os.listdir("./cogs"):
+			if filename.endswith(".py"):
+				await self.load_extension(f"cogs.{filename[:-3]}")
+		await self.load_extension("jishaku")
+
 		self.session = aiohttp.ClientSession()
 		self.togetherclient = await DiscordTogether(self.keys('BOTTOKEN'))
 		self.znclient = NeitizClient()
@@ -236,9 +247,7 @@ class JeyyBot(commands.Bot):
 		])
 
 		with open('./image/ios_emojis/emoji_lut.json', 'r') as f:
-			self.emoji_lut = np.array(json.load(f))
-		
-		await super().start(*args, **kwargs)
+			self.emoji_lut = np.array(json.load(f), dtype='object')
 
 	async def close(self):
 		await self.session.close()

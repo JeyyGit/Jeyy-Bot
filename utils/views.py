@@ -1746,31 +1746,55 @@ class AkiView(discord.ui.View):
 	@discord.ui.button(emoji='\U0001f1fe', style=discord.ButtonStyle.primary)
 	async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'yes'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f1f3', style=discord.ButtonStyle.primary)
 	async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'no'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f937', style=discord.ButtonStyle.primary)
 	async def idk(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'idk'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f4ad', style=discord.ButtonStyle.primary)
 	async def p(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'p'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 	
 	@discord.ui.button(emoji='\U0001f5ef', style=discord.ButtonStyle.primary)
 	async def pn(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'pn'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 	
 	@discord.ui.button(emoji='\U0001f6d1', style=discord.ButtonStyle.red)
 	async def exit_game(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'exit'
+		button.style = discord.ButtonStyle.green
+		for child in self.children:
+			child.disabled = True
+		await interaction.response.edit_message(view=self)
 		self.stop()
 
 	async def interaction_check(self, interaction):

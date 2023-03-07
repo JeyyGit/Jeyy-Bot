@@ -14,6 +14,7 @@ from discord.ext import commands
 
 from utils import pour_puzzle, sounder
 from utils.imaging import isometric_func, liquid
+
 importlib.reload(pour_puzzle)
 importlib.reload(sounder)
 
@@ -33,15 +34,6 @@ class BaseView(discord.ui.View):
 			return False
 
 		return True
-
-class DelView(BaseView):
-	def __init__(self, ctx, *, timeout=180):
-		super().__init__(ctx, timeout=timeout)
-
-	@discord.ui.button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
-	async def delete(self, button, interaction):
-		await interaction.response.defer()
-		await interaction.delete_original_message()
 
 # Bot cog
 class HelpView(discord.ui.View):
@@ -109,7 +101,7 @@ class HelpView(discord.ui.View):
 
 		return embeds
 		
-	async def change_cog_to(self, cog):
+	async def change_cog_to(self, cog, interaction=None):
 		self.embeds = self.embed_mapping[cog]
 
 		for child in self.children[:]:
@@ -150,24 +142,25 @@ class HelpView(discord.ui.View):
 		self.add_item(self.button_next)
 		self.add_item(self.button_last)
 
-		if self.message is None:
+		if not self.message:
 			self.message = await self.ctx.reply(embed=self.embeds[0], view=self)
 		else:
-			await self.message.edit(embed=self.embeds[0], view=self)
+			await interaction.response.edit_message(embed=self.embeds[0], view=self)
+			# await self.message.edit(embed=self.embeds[0], view=self)
 
 	async def button_first_callback(self, interaction):
 		if self.index == 0:
 			return
 
 		self.index = 0
-		await self.update()
+		await self.update(interaction)
 
 	async def button_previous_callback(self, interaction):
 		if self.index == 0:
 			return
 
 		self.index -= 1
-		await self.update()
+		await self.update(interaction)
 
 	async def button_index_callback(self, interaction):
 		await self.message.delete()
@@ -178,16 +171,16 @@ class HelpView(discord.ui.View):
 			return
 
 		self.index += 1
-		await self.update()
+		await self.update(interaction)
 
 	async def button_last_callback(self, interaction):
 		if self.index == self.length-1:
 			return
 
 		self.index = self.length-1
-		await self.update()
+		await self.update(interaction)
 		
-	async def update(self):
+	async def update(self, interaction):
 		self.button_index.label = f"Page {self.index+1} of {self.length}"
 
 		self.button_next.disabled = False
@@ -203,7 +196,8 @@ class HelpView(discord.ui.View):
 			self.button_previous.disabled = True
 			self.button_first.disabled = True
 
-		await self.message.edit(embed=self.embeds[self.index], view=self)
+		await interaction.response.edit_message(embed=self.embeds[self.index], view=self)
+		# await self.message.edit(embed=self.embeds[self.index], view=self)
 
 class HelpMenu(discord.ui.Select):
 	def __init__(self, view):
@@ -218,20 +212,21 @@ class HelpMenu(discord.ui.Select):
 
 		cog = discord.utils.get(self.parent_view.mapping, qualified_name=self.values[0])
 		
-		await self.parent_view.change_cog_to(cog)
+		await self.parent_view.change_cog_to(cog, interaction)
 
 class EndpointView(discord.ui.View):
-	def __init__(self, msg, results):
+	def __init__(self, results):
 		super().__init__()
-		self.msg = msg
 		self.results = results
 
 	@discord.ui.button(label='Show result', style=discord.ButtonStyle.primary)
-	async def show(self, button, interaction):
+	async def show(self, interaction, button):
 		button.label = 'Result sent!'
 		button.disabled = True
-		await self.msg.edit(view=self)
-		await interaction.response.send_message(self.results)
+		# await self.msg.edit(view=self)
+		await interaction.response.edit_message(view=self)
+		await interaction.followup.send(self.results)
+		# await interaction.followup.send_message(self.results)
 
 class ApiKeyView(discord.ui.View):
 	def __init__(self, ctx: commands.Context):
@@ -249,21 +244,23 @@ class Switch(discord.ui.View):
 	def __init__(self, ctx):
 		super().__init__()
 		self.ctx = ctx
-		self.text1 = None
-		self.text2 = None
+		self.file_1 = None
+		self.file_2 = None
+		self.text = None
 		self.state = 0
 		self.button = None
 		self.message = None
 
-	async def switch(self, text1, text2):
-		self.text1 = text1
-		self.text2 = text2
+	async def switch(self, file_1, file_2, text=None):
+		self.file_1 = file_1
+		self.file_2 = file_2
+		self.text = text
 
 		self.button = discord.ui.Button(emoji="<:lever:843768316002172958>", style=discord.ButtonStyle.red)
 		self.button.callback = self.callback
 
 		self.add_item(self.button)
-		self.message = await self.ctx.reply(self.text1, view=self, allowed_mentions=discord.AllowedMentions.none())
+		self.message = await self.ctx.reply(self.text, file=file_1, view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def callback(self, interaction):
 		if interaction.user != self.ctx.author:
@@ -272,11 +269,15 @@ class Switch(discord.ui.View):
 		if not self.state:
 			self.state = 1
 			self.button.style = discord.ButtonStyle.green
-			await self.message.edit(content=self.text2, view=self, allowed_mentions=discord.AllowedMentions.none())
+			self.file_2.fp.seek(0)
+			await interaction.response.edit_message(content=self.text, attachments=[self.file_2], view=self)
+			# await self.message.edit(content=self.text2, view=self, allowed_mentions=discord.AllowedMentions.none())
 		else:
 			self.state = 0
 			self.button.style = discord.ButtonStyle.red
-			await self.message.edit(content=self.text1, view=self, allowed_mentions=discord.AllowedMentions.none())
+			self.file_1.fp.seek(0)
+			await interaction.response.edit_message(content=self.text, attachments=[self.file_1], view=self)
+			# await self.message.edit(content=self.text1, view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def on_timeout(self):
 		self.clear_items()
@@ -341,12 +342,13 @@ class BuildView(discord.ui.View):
 
 		return True
 
-	async def update_view(self):
-		await self.message.edit(view=self)
+	async def update_view(self, interaction):
+		await interaction.response.edit_message(view=self)
+		# await self.message.edit(view=self)
 
 	async def on_timeout(self):
 		self.clear_items()
-		await self.update_view()
+		await self.message.edit(view=self)
 
 	async def render_callback(self, interaction):
 		self.render_button.disabled = True
@@ -356,7 +358,7 @@ class BuildView(discord.ui.View):
 		if self.gif_button:
 			self.remove_item(self.gif_button)
 
-		await self.update_view()
+		await self.update_view(interaction)
 
 		cmd = self.ctx.bot.get_command("isometric")
 		await cmd(self.ctx, blocks=self.build_search["build"])
@@ -367,7 +369,7 @@ class BuildView(discord.ui.View):
 		self.render_button.style = discord.ButtonStyle.grey
 		self.remove_item(self.gif_button)
 
-		await self.update_view()
+		await self.update_view(interaction)
 
 		cmd = self.ctx.bot.get_command("isometric")
 		await cmd(self.ctx, blocks=self.build_search["build"]+' gif')
@@ -376,7 +378,7 @@ class BuildView(discord.ui.View):
 		self.info_button.disabled = True
 		self.info_button.label = "Info sent!"
 
-		await self.update_view()
+		await self.update_view(interaction)
 
 		cmd = self.ctx.bot.get_command("build info")
 		await cmd(self.ctx, build_name=self.build_search["build_name"])
@@ -396,7 +398,7 @@ class BuildView(discord.ui.View):
 		self.star_button.emoji = "<:nostar:596577059673866260>"
 		self.star_button.disabled = True
 
-		await self.update_view()
+		await self.update_view(interaction)
 
 class NonoButton(discord.ui.Button):
 	def __init__(self, idx, kind):
@@ -460,7 +462,7 @@ class NonoView(discord.ui.View):
 		
 		return buf
 
-	async def pressed(self, button, interaction):
+	async def pressed(self, interaction, button):
 		if interaction.user != self.ctx.author:
 			return await interaction.response.send_message('You can\'t use this button!', ephemeral=True)
 
@@ -473,15 +475,17 @@ class NonoView(discord.ui.View):
 			self.board[button.idx//5][button.idx%5] = 1
 
 			buf = await self.draw_board()
-			url = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
+			board_file = discord.File(buf, 'board.png')
+			# url = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
 
 			embed = self.msg.embeds[0]
-			embed.set_image(url=url)
+			embed.set_image(url='attachment://board.png')
 
 			if self.board == self.ans_map:
 				embed.description = 'You\'ve won!'
 				self.clear_items()
-			await self.msg.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none(), view=self)
+			await interaction.response.edit_message(attachments=[board_file], embed=embed, view=self)
+			# await self.msg.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none(), view=self)
 		else:
 			for child in self.children:
 				if child.kind:
@@ -489,7 +493,8 @@ class NonoView(discord.ui.View):
 				else:
 					child.style = discord.ButtonStyle.danger
 				child.disabled = True
-			await interaction.message.edit(view=self)
+			await interaction.response.edit_message(view=self)
+			# await interaction.message.edit(view=self)
 
 class BottleButton(discord.ui.Button):
 	def __init__(self, bottle: Bottle, **kwargs):
@@ -514,7 +519,8 @@ class BottleButton(discord.ui.Button):
 					except IndexError:
 						btn.disabled = False
 			self.view.state = 1
-			await interaction.message.edit(view=self.view)
+			await interaction.response.edit_message(view=self.view)
+			# await interaction.message.edit(view=self.view)
 		elif self.view.state == 1:
 			await self.view.selected.bottle.pour(self.bottle)
 
@@ -533,8 +539,9 @@ class BottleButton(discord.ui.Button):
 			self.view.state = 0
 			embed = self.view.msg.embeds[0]
 			img_buf = await self.view.draw_image()
-			url = await self.view.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
-			embed.set_image(url=url)
+			img_file = discord.File(img_buf, 'pour_game.png')
+			# url = await self.view.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+			embed.set_image(url='attachment://pour_game.png')
 
 			if self.view.win_check():
 				embed.description = f'Level : {self.view.level}\nYou\'ve completed this level!'
@@ -552,7 +559,8 @@ class BottleButton(discord.ui.Button):
 
 					self.view.add_item(next_button)
 
-			await interaction.message.edit(embed=embed, view=self.view)
+			await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self.view)
+			# await interaction.message.edit(embed=embed, view=self.view)
 
 class PourView(discord.ui.View):
 	font = ImageFont.truetype('./image/GothamMedium.ttf', 30)
@@ -608,16 +616,17 @@ class PourView(discord.ui.View):
 		return True
 
 	@discord.ui.button(label='Exit', style=discord.ButtonStyle.danger, custom_id='exit_btn', row=0)
-	async def exit_button(self, button: discord.Button, interaction: discord.Interaction):
+	async def exit_button(self, interaction: discord.Interaction, button: discord.Button):
 		for btn in self.children:
 			btn.disabled = True
 		
 		button.label = 'Exited'
-		await interaction.message.edit(view=self)
+		await interaction.response.edit_message(view=self)
+		# await interaction.message.edit(view=self)
 		self.stop()
 
 	@discord.ui.button(label='Reset', style=discord.ButtonStyle.danger, custom_id='reset_btn', row=0)
-	async def reset_button(self, button: discord.Button, interaction: discord.Interaction):
+	async def reset_button(self, interaction: discord.Interaction, button: discord.Button):
 		self.state = 0
 		self.selected = None
 
@@ -639,12 +648,14 @@ class PourView(discord.ui.View):
 		
 		embed = self.msg.embeds[0]
 		img_buf = await self.draw_image()
-		url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
-		embed.set_image(url=url)
-		await interaction.message.edit(embed=embed, view=self)
+		img_file = discord.File(img_buf, 'pour_game.png')
+		# url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+		embed.set_image(url='attachment://pour_game.png')
+		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
+		# await interaction.message.edit(embed=embed, view=self)
 
 	@discord.ui.button(label='Cancel', style=discord.ButtonStyle.primary, custom_id='cancel_btn', disabled=True, row=0)
-	async def cancel_button(self, button: discord.Button, interaction: discord.Interaction):
+	async def cancel_button(self, interaction: discord.Interaction, button: discord.Button):
 		if self.state == 1:
 			for btn in self.children:
 				if isinstance(btn, BottleButton):
@@ -657,7 +668,8 @@ class PourView(discord.ui.View):
 			button.disabled = True
 			self.selected = None
 			self.state = 0
-			await interaction.message.edit(view=self)
+			await interaction.response.edit_message(view=self)
+			# await interaction.message.edit(view=self)
 
 	async def next_button_callback(self, interaction):
 		self.state = 0
@@ -680,14 +692,16 @@ class PourView(discord.ui.View):
 		embed = self.msg.embeds[0]
 		embed.description = f'Level : {self.level}'
 		img_buf = await self.draw_image()
-		url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
-		embed.set_image(url=url)
-		await interaction.message.edit(embed=embed, view=self)
+		img_file = discord.File(img_buf, 'pour_game.png')
+		# url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+		embed.set_image(url='attachment://pour_game.png')
+		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
+		# await interaction.message.edit(embed=embed, view=self)
 
 class BlockSelector(discord.ui.Select):
 	def __init__(self, selector_pos):
 		options = [
-			discord.SelectOption(label=f'Grass Block', value='1'),
+			discord.SelectOption(label=f'Grass Block', value='1', default=True),
 			discord.SelectOption(label=f'Water', value='2'),
 			discord.SelectOption(label=f'Sand Block', value='3'),
 			discord.SelectOption(label=f'Stone Block', value='4'),
@@ -707,10 +721,16 @@ class BlockSelector(discord.ui.Select):
 			discord.SelectOption(label=f'Cake', value='k'),
 			discord.SelectOption(label=f'Lava', value='v'),
 		]
-		super().__init__(placeholder=f'Grass Block | {tuple(reversed(selector_pos))}' ,options=options, row=0)
+		super().__init__(options=options, row=0)
 
 	async def callback(self, interaction):
 		self.view.block = self.values[0]
+		for option in self.options:
+			option.default = False
+			if option.value == self.values[0]:
+				option.default = True
+
+		await interaction.response.edit_message(view=self.view)
 
 class InteractiveIsoView(discord.ui.View):
 	block_names = {
@@ -789,7 +809,7 @@ class InteractiveIsoView(discord.ui.View):
 		
 		return True
 
-	async def update(self):
+	async def update(self, interaction: discord.Interaction):
 		self.destroy_btn.disabled = self.box[tuple(self.selector_pos)] == '0'
 		self.finish_btn.disabled = np.all(self.box == '0')
 
@@ -797,57 +817,60 @@ class InteractiveIsoView(discord.ui.View):
 		if '2' in code or 'v' in code:
 			code = liquid(code)
 
-		buf, _ = await isometric_func(code.split(), self.selector_pos)
-		link = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
-		self.block_selector.placeholder = f'{self.block_names[self.block]} | {tuple(reversed(self.selector_pos))}'
-		await self.message.edit(link, view=self, allowed_mentions=discord.AllowedMentions.none())
+		buf, c = await isometric_func(code.split(), self.selector_pos)
+		c -= 1
+		buf_file = discord.File(buf, 'interactive_iso.png')
+		# link = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
+		# self.block_selector.placeholder = f'{self.block_names[self.block]} | {tuple(reversed(self.selector_pos))}'
+		await interaction.response.edit_message(content=f"`{tuple(reversed(self.selector_pos))}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", attachments=[buf_file], view=self)
+		# await self.message.edit(link, view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def selatan_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[2] > 0:
 			self.utara_btn.disabled = False
 		self.selector_pos[2] -= 1
 		if self.selector_pos[2] == 0:
 			self.selatan_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 	async def up_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[0] > 0:
 			self.down_btn.disabled = False
 		self.selector_pos[0] += 1
 		if self.selector_pos[0] == self.box.shape[0] - 1:
 			self.up_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 	async def barat_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[1] > 0:
 			self.timur_btn.disabled = False
 		self.selector_pos[1] -= 1
 		if self.selector_pos[1] == 0:
 			self.barat_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 	async def destroy(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 
 		self.box[tuple(self.selector_pos)] = '0'
 
-		await self.update()
+		await self.update(interaction)
 
 	async def place(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 
 		self.box[tuple(self.selector_pos)] = self.block
 
-		await self.update()
+		await self.update(interaction)
 
 	async def finish(self, interaction: discord.Interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 
 		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in self.box])
 
@@ -859,38 +882,39 @@ class InteractiveIsoView(discord.ui.View):
 
 		for child in self.children[:]:
 			child.disabled = True
-		await self.message.edit(view=self)
+		await interaction.response.edit_message(view=self)
+		# await self.message.edit(view=self)
 		self.stop()
 
 	async def timur_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[1] < self.box.shape[1] - 1:
 			self.barat_btn.disabled = False
 		self.selector_pos[1] += 1
 		if self.selector_pos[1] == self.box.shape[1] - 1:
 			self.timur_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 	async def down_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[0] < self.box.shape[0] - 1:
 			self.up_btn.disabled = False
 		self.selector_pos[0] -= 1
 		if self.selector_pos[0] == 0:
 			self.down_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 	async def utara_arrow(self, interaction):
-		await interaction.response.defer()
+		# await interaction.response.defer()
 		if self.selector_pos[2] < self.box.shape[2] - 1:
 			self.selatan_btn.disabled = False
 		self.selector_pos[2] += 1
 		if self.selector_pos[2] == self.box.shape[2] - 1:
 			self.utara_btn.disabled = True
 		
-		await self.update()
+		await self.update(interaction)
 
 class RoomyView(discord.ui.View):
 	def __init__(self, ctx):
@@ -922,28 +946,28 @@ class RoomyView(discord.ui.View):
 				...
 
 	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success)
-	async def finish(self, button, interaction):
+	async def finish(self, interaction, button):
 		...
 
 	@discord.ui.button(label='Floor: white', disabled=True, custom_id='floor white', style=discord.ButtonStyle.primary, row=1)
-	async def floor_white(self, button, interaction):
+	async def floor_white(self, interaction, button):
 		self.floor_tex = 'white'
 
 
 	@discord.ui.button(label='Floor: red', custom_id='floor red', style=discord.ButtonStyle.secondary, row=1)
-	async def floor_red(self, button, interaction):
+	async def floor_red(self, interaction, button):
 		...
 
 	@discord.ui.button(label='Floor: brown', custom_id='floor brown', style=discord.ButtonStyle.secondary, row=1)
-	async def floor_brown(self, button, interaction):
+	async def floor_brown(self, interaction, button):
 		...
 
 	@discord.ui.button(label='Floor: tan', custom_id='floor tan', style=discord.ButtonStyle.secondary, row=1)
-	async def floor_tan(self, button, interaction):
+	async def floor_tan(self, interaction, button):
 		...
 
 	@discord.ui.button(label='Floor: Custom', custom_id='floor custom', style=discord.ButtonStyle.secondary, row=1)
-	async def floor_custom(self, button, interaction):
+	async def floor_custom(self, interaction, button):
 		...
 
 	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
@@ -1020,7 +1044,7 @@ class EmbedBuilder(discord.ui.View):
 		return message.author == self.ctx.author and message.channel == self.ctx.channel
 
 	@discord.ui.button(emoji='Set title', style=discord.ButtonStyle.primary)
-	async def set_title(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def set_title(self, interaction: discord.Interaction, button: discord.ui.Button):
 		askm = await self.ctx.send("Type below your embed title")
 
 		while True:
@@ -1053,7 +1077,7 @@ class AnsiMaker(discord.ui.View):
 			'bgcolor': None
 		}
 	
-	async def update(self, button: discord.Button | None = None, identifier: str | None = None):
+	async def update(self, interaction: discord.Interaction, button: discord.Button | None = None, identifier: str | None = None):
 		if identifier:
 			for child in self.children:
 				if child != button and child.label.startswith(identifier):
@@ -1079,10 +1103,12 @@ class AnsiMaker(discord.ui.View):
 
 		if any([fmt['bold'], fmt['underline'], state['color'], state['bgcolor']]):
 			self.code = f"\u001b[{';'.join(ansis)}m"
-			await self.msg.edit(f'```ansi\n{self.code}{self.text}\u001b[0m\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
+			await interaction.response.edit_message(content=f'```ansi\n{self.code}{self.text}\u001b[0m\n```', view=self)
+			# await self.msg.edit(f'```ansi\n{self.code}{self.text}\u001b[0m\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
 		else:
 			self.code = ''
-			await self.msg.edit(f'```ansi\n{self.text}\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
+			await interaction.response.edit_message(content=f'```ansi\n{self.text}\n```', view=self)
+			# await self.msg.edit(f'```ansi\n{self.text}\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def interaction_check(self, interaction: discord.Interaction):
 		if interaction.user != self.ctx.author:
@@ -1092,15 +1118,16 @@ class AnsiMaker(discord.ui.View):
 		return True
 
 	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success)
-	async def finish(self, button: discord.ui.Button, interaction: discord.Interaction):
-		await self.ctx.message.reply(f'\`\`\`ansi\n{self.code}{self.text}\u001b[0m\n\`\`\`')
+	async def finish(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.response.send_message(f'\`\`\`ansi\n{self.code}{self.text}\u001b[0m\n\`\`\`', view=DeleteView(interaction.user))
+		# await self.ctx.message.reply(f'\`\`\`ansi\n{self.code}{self.text}\u001b[0m\n\`\`\`')
 
 	@discord.ui.button(label='Delete', style=discord.ButtonStyle.danger)
-	async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await self.msg.delete()
 
 	@discord.ui.button(label='Bold', style=discord.ButtonStyle.primary)
-	async def bolder(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bolder(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['format']['bold']:
 			self.state['format']['bold'] = False
 			button.style = discord.ButtonStyle.primary
@@ -1108,10 +1135,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['format']['bold'] = True
 			button.style = discord.ButtonStyle.danger
 
-		await self.update()
+		await self.update(interaction)
 
 	@discord.ui.button(label='Underline', style=discord.ButtonStyle.primary)
-	async def underliner(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def underliner(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['format']['underline']:
 			self.state['format']['underline'] = False
 			button.style = discord.ButtonStyle.primary
@@ -1119,10 +1146,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['format']['underline'] = True
 			button.style = discord.ButtonStyle.danger
 
-		await self.update()
+		await self.update(interaction)
 
 	@discord.ui.button(label='T Gray', style=discord.ButtonStyle.primary)
-	async def t_gray(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_gray(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '30':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1130,10 +1157,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '30'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Red', style=discord.ButtonStyle.primary)
-	async def t_red(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_red(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '31':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1141,10 +1168,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '31'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Green', style=discord.ButtonStyle.primary)
-	async def t_green(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_green(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '32':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1152,10 +1179,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '32'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Yellow', style=discord.ButtonStyle.primary)
-	async def t_yellow(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_yellow(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '33':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1163,10 +1190,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '33'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Blue', style=discord.ButtonStyle.primary)
-	async def t_blue(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_blue(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '34':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1174,10 +1201,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '34'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Pink', style=discord.ButtonStyle.primary)
-	async def t_pink(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_pink(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '35':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1185,10 +1212,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '35'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T Cyan', style=discord.ButtonStyle.primary)
-	async def t_cyan(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_cyan(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '36':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1196,10 +1223,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '36'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='T White', style=discord.ButtonStyle.primary)
-	async def t_white(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def t_white(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['color'] == '37':
 			self.state['color'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1207,10 +1234,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['color'] = '37'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'T')
+		await self.update(interaction, button, 'T')
 
 	@discord.ui.button(label='BG D Blue', style=discord.ButtonStyle.primary)
-	async def bg_d_blue(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_d_blue(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '40':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1218,10 +1245,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '40'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Orange', style=discord.ButtonStyle.primary)
-	async def bg_orange(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_orange(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '41':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1229,10 +1256,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '41'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Gray 1', style=discord.ButtonStyle.primary)
-	async def bg_gray_1(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_gray_1(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '42':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1240,10 +1267,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '42'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Gray 2', style=discord.ButtonStyle.primary)
-	async def bg_gray_2(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_gray_2(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '43':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1251,10 +1278,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '43'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Gray 3', style=discord.ButtonStyle.primary)
-	async def bg_gray_3(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_gray_3(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '44':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1262,10 +1289,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '44'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Gray 4', style=discord.ButtonStyle.primary)
-	async def bg_gray_4(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_gray_4(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '46':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1273,10 +1300,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '46'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG Indigo', style=discord.ButtonStyle.primary)
-	async def bg_indigo(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_indigo(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '45':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1284,10 +1311,10 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '45'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 	@discord.ui.button(label='BG White', style=discord.ButtonStyle.primary)
-	async def bg_white(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def bg_white(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if self.state['bgcolor'] == '47':
 			self.state['bgcolor'] = None
 			button.style = discord.ButtonStyle.primary
@@ -1295,7 +1322,7 @@ class AnsiMaker(discord.ui.View):
 			self.state['bgcolor'] = '47'
 			button.style = discord.ButtonStyle.danger
 
-		await self.update(button, 'BG')
+		await self.update(interaction, button, 'BG')
 
 class SounderView(discord.ui.View):
 	def __init__(self, ctx, sounder, *, timeout=None):
@@ -1316,15 +1343,14 @@ class SounderView(discord.ui.View):
 		return True
 
 	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success, disabled=True)
-	async def finish(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def finish(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await interaction.response.defer()
 		buf = await self.sounder.export()
 
-		view = DeleteView(self.ctx)
-		view.message = await self.ctx.message.reply(', '.join(self.sounder.sounds), file=discord.File(buf, 'sounder.mp3'), view=view, mention_author=False)
+		await self.ctx.message.reply(', '.join(self.sounder.sounds), file=discord.File(buf, 'sounder.mp3'), view=DeleteView(self.ctx.author), mention_author=False)
 
 	@discord.ui.button(label='Clear', style=discord.ButtonStyle.primary, disabled=True)
-	async def clear(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def clear(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await self.sounder.init()
 		self.sounder.count_sound = 0
 		self.sounder.position = 0
@@ -1336,16 +1362,16 @@ class SounderView(discord.ui.View):
 			else:
 				btn.disabled = False
 
-		await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
+		await interaction.response.edit_message(content=', '.join(self.sounder.sounds), view=self)
+		# await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	@discord.ui.button(label='Delete', style=discord.ButtonStyle.danger)
-	async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
-		await self.msg.delete()
+	async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.message.delete()
 
 	def create_callback(self, sound):
-
 		async def callback(interaction):
-			await interaction.response.defer()
+			# await interaction.response.defer()
 			await self.sounder.append_sound(sound)
 			for btn in self.children:
 				if btn.label in ['Finish', 'Clear']:
@@ -1354,7 +1380,8 @@ class SounderView(discord.ui.View):
 					if self.sounder.position > 15:
 						btn.disabled = True
 			
-			return await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
+			return await interaction.response.edit_message(content=', '.join(self.sounder.sounds), view=self)
+			# return await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
 
 		return callback
 
@@ -1377,8 +1404,8 @@ class PollView(discord.ui.View):
 		self.args = {arg: set() for arg in args}
 		self.btns = {}
 		self.ended = False
-		self.message = None
 		self.c = None
+		self.message = None
 		self.cd = commands.CooldownMapping.from_cooldown(1, 3, lambda i: i.user)
 		self.ping_result = []
 		
@@ -1449,14 +1476,15 @@ class PollView(discord.ui.View):
 				btn = self.btns.get(arg)
 				btn.count += 1
 				btn.label = f"{arg} ({btn.count})"
-
-			await self.message.edit(embed=self.create_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
+				
+			await interaction.response.edit_message(embed=self.create_embed(), view=self)
+			# await self.message.edit(embed=self.create_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
 			
 		return callback
 
 	async def cancel(self, interaction):
 		if interaction.user == self.ctx.author:
-			await self.end()
+			await self.end(interaction)
 		else:
 			await interaction.response.send_message('Only poll creator can stop this poll.', ephemeral=True)
 
@@ -1468,7 +1496,7 @@ class PollView(discord.ui.View):
 			self.ping_result.remove(interaction.user)
 			await interaction.response.send_message(f'Okay {interaction.user.mention}, you won\'t be dmed when the poll ends.', ephemeral=True)
 	
-	async def end(self):
+	async def end(self, interaction=None):
 		self.ended = True
 		self.stop()
 
@@ -1497,8 +1525,11 @@ class PollView(discord.ui.View):
 				await user.send(f'{user.mention}, poll `{self.title}` is ended.', view=reference_view)
 			except:
 				...
-				
-		await self.message.edit(embed=embed, view=self)
+		
+		if interaction:
+			await interaction.response.edit_message(embed=embed, view=self)
+		else:
+			await self.message.edit(embed=embed, view=self)
 		
 class CariResults(discord.ui.View):
 	def __init__(self, ctx, msg, data):
@@ -1524,8 +1555,10 @@ class CariResults(discord.ui.View):
 		s.seek(0)
 
 		self.button_1.disabled = True
-		await self.msg.edit(view=self)
-		await self.msg.reply(file=discord.File(s, f'{self.table_1_title}.txt'))
+		await interaction.response.edit_message(view=self)
+		# await self.msg.edit(view=self)
+		await interaction.followup.send(file=discord.File(s, f'{self.table_1_title}.txt'))
+		# await self.msg.reply(file=discord.File(s, f'{self.table_1_title}.txt'))
 
 	async def button_2_callback(self, interaction: discord.Interaction):
 		table = tabulate(self.table_2_data, headers='firstrow', tablefmt='pretty')
@@ -1535,8 +1568,10 @@ class CariResults(discord.ui.View):
 		s.seek(0)
 
 		self.button_2.disabled = True
-		await self.msg.edit(view=self)
-		await self.msg.reply(file=discord.File(s, f'{self.table_2_title}.txt'))
+		await interaction.response.edit_message(view=self)
+		# await self.msg.edit(view=self)
+		await interaction.followup.send(file=discord.File(s, f'{self.table_2_title}.txt'))
+		# await self.msg.reply(file=discord.File(s, f'{self.table_2_title}.txt'))
 
 class CariMenu(discord.ui.Select):
 	def __init__(self, ctx, session: Session, mapping, tipe, **kwargs):
@@ -1615,7 +1650,8 @@ class CariMenu(discord.ui.Select):
 		embed = discord.Embed(title=f'Biodata {self.tipe.capitalize()}', description='\n'.join(biodata), color=self.ctx.bot.c)
 
 		result_view = CariResults(self.ctx, self.view.msg, data)
-		await self.view.msg.edit(content=None, embed=embed, view=result_view, allowed_mentions=discord.AllowedMentions.none())
+		await interaction.response.edit_message(content=None, embed=embed, view=result_view)
+		# await self.view.msg.edit(content=None, embed=embed, view=result_view, allowed_mentions=discord.AllowedMentions.none())
 
 		await stop_session(self.session)
 
@@ -1629,13 +1665,13 @@ class ConfirmView(discord.ui.View):
 		self.ctx = ctx
 
 	@discord.ui.button(emoji="<:check:827600687926870046>", style=discord.ButtonStyle.green)
-	async def confirm(self, button, interaction):
+	async def confirm(self, interaction, button):
 		self.value = True
 		await self.message.delete()
 		self.stop()
 
 	@discord.ui.button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
-	async def cancel(self, button, interaction):
+	async def cancel(self, interaction, button):
 		self.value = False
 		await self.message.delete()
 		self.stop()
@@ -1684,18 +1720,18 @@ class ConfirmationView(discord.ui.View):
 		self.stop()
 
 class DeleteView(discord.ui.View):
-	def __init__(self, ctx):
+	def __init__(self, author):
 		super().__init__()
-		self.message = None
-		self.ctx = ctx
+		self.author = author
 
 	@discord.ui.button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
-	async def cancel(self, button, interaction):
-		await self.message.delete()
+	async def cancel(self, interaction, button):
+		# await self.message.delete()
+		await interaction.message.delete()
 		self.stop()
 
 	async def interaction_check(self, interaction):
-		if interaction.user != self.ctx.author:
+		if interaction.user != self.author:
 			await interaction.response.send_message("This is not your interaction!", ephemeral=True)
 			return False
 		
@@ -1708,32 +1744,32 @@ class AkiView(discord.ui.View):
 		self.result = None
 
 	@discord.ui.button(emoji='\U0001f1fe', style=discord.ButtonStyle.primary)
-	async def yes(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'yes'
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f1f3', style=discord.ButtonStyle.primary)
-	async def no(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'no'
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f937', style=discord.ButtonStyle.primary)
-	async def idk(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def idk(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'idk'
 		self.stop()
 
 	@discord.ui.button(emoji='\U0001f4ad', style=discord.ButtonStyle.primary)
-	async def p(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def p(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'p'
 		self.stop()
 	
 	@discord.ui.button(emoji='\U0001f5ef', style=discord.ButtonStyle.primary)
-	async def pn(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def pn(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'pn'
 		self.stop()
 	
 	@discord.ui.button(emoji='\U0001f6d1', style=discord.ButtonStyle.red)
-	async def exit(self, button: discord.ui.Button, interaction: discord.Interaction):
+	async def exit_game(self, interaction: discord.Interaction, button: discord.ui.Button):
 		self.result = 'exit'
 		self.stop()
 

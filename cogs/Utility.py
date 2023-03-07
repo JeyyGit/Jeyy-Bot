@@ -1187,7 +1187,7 @@ class Utility(commands.Cog):
 		await sounder.init()
 		sounder_view = SounderView(ctx, sounder)
 
-		sounder_view.msg = await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
+		await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
 
 	@commands.command(cooldown_after_parsing=True)
 	@commands.cooldown(1, 30, commands.BucketType.user)

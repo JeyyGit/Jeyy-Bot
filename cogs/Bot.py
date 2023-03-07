@@ -460,7 +460,7 @@ class Bots(commands.Cog, name='Bot'):
 		se = time.perf_counter()
 
 		results = f"[{endpoint} endpoint](https://api.jeyy.xyz/docs#/IMAGE/{endpoint.capitalize()}_image_{endpoint}_get \"Click me for docs!\") took `{e-s}` seconds.\nreading response took `{ce-cs}` seconds.\nsending message took `{se-ss}` seconds."
-		view = EndpointView(msg, results)
+		view = EndpointView(results)
 		await msg.edit(view=view, allowed_mentions=discord.AllowedMentions.none())
 
 	@api.command()

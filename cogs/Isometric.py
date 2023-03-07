@@ -218,10 +218,17 @@ class Fun(commands.Cog):
 
 					return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "auto_lever.gif"))
 
-				link_1 = await ctx.upload_bytes(buf_1.getvalue(), 'image/png', name='isometric first state')
-				link_2 = await ctx.upload_bytes(buf_2.getvalue(), 'image/png', name='isometric second state')
+				# link_1 = await ctx.upload_bytes(buf_1.getvalue(), 'image/png', name='isometric first state')
+				# link_2 = await ctx.upload_bytes(buf_2.getvalue(), 'image/png', name='isometric second state')
 
-				return await Switch(ctx).switch(link_1, link_2)
+				file_1 = discord.File(buf_1, 'iso_state_1.png')
+				file_2 = discord.File(buf_2, 'iso_state_2.png')
+
+				end = time.perf_counter()
+				timed = end - start
+				timed_s = si_format(timed, 4) + 's'
+
+				return await Switch(ctx).switch(file_1, file_2, f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b")
 			
 			try:
 				if is_gif:
@@ -249,10 +256,12 @@ class Fun(commands.Cog):
 
 		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in interactive_view.box])
 
-		buf, _ = await isometric_func(code.split(), interactive_view.selector_pos)
-		link = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
+		buf, c = await isometric_func(code.split(), interactive_view.selector_pos)
+		c -= 1
+		buf_file = discord.File(buf, 'interactive_iso.png')
+		# link = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
 
-		interactive_view.message = await ctx.reply(link, view=interactive_view, mention_author=False)
+		interactive_view.message = await ctx.reply(f"`{tuple(reversed(interactive_view.selector_pos))}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=buf_file, view=interactive_view, mention_author=False)
 
 	@isometric.command(cooldown_after_parsing=True, name='help')
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -1159,13 +1168,14 @@ class Fun(commands.Cog):
 		mapp = random.choice(ans_maps)
 		view = NonoView(ctx, mapp)
 		buf = await view.draw_board()
-		url = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
+		board_file = discord.File(buf, 'board.png')
+		# url = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
 
 		embed = discord.Embed(title='Nonogram', color=self.bot.c, timestamp=dt.datetime.now())
-		embed.set_image(url=url)
+		embed.set_image(url='attachment://board.png')
 		embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 
-		view.msg = await ctx.reply(embed=embed, view=view, mention_author=False)	
+		view.msg = await ctx.reply(file=board_file, embed=embed, view=view, mention_author=False)	
 
 	@commands.command(aliases=['sp', 'pp', 'pour', 'sort'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -1188,11 +1198,12 @@ class Fun(commands.Cog):
 
 		embed = discord.Embed(title='Pour Puzzle', description=f'Level : {highest_level}', timestamp=dt.datetime.now(), color=self.bot.c)
 		img_buf = await view.draw_image()
-		url = await ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
-		embed.set_image(url=url)
+		img_file = discord.File(img_buf, 'pour_game.png')
+		# url = await ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+		embed.set_image(url='attachment://pour_game.png')
 		embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 
-		view.msg = await ctx.reply(embed=embed, view=view, mention_author=False)
+		view.msg = await ctx.reply(embed=embed, file=img_file, view=view, mention_author=False)
 
 async def setup(bot):
 	await bot.add_cog(Fun(bot))

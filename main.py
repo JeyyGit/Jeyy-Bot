@@ -2,7 +2,6 @@ import asyncio
 import os
 import traceback
 
-import asyncpg
 import discord
 from discord.ext import commands
 
@@ -103,7 +102,6 @@ async def reloadall(ctx):
 async def main():
     async with bot:
         await bot.start(bot.keys('BOTTOKEN'))
-        print(bot.commands)
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -16,12 +16,13 @@ import random
 import enchant
 import textwrap
 
-from utils import imaging, views, useful, nonogram_maps, golf_maps
+from utils import imaging, views, useful, nonogram_maps, golf_maps, modals
 # importlib.reload(imaging)
 importlib.reload(views)
 importlib.reload(useful)
 importlib.reload(nonogram_maps)
 importlib.reload(golf_maps)
+importlib.reload(modals)
 
 from utils.imaging import (
 	letters,
@@ -54,7 +55,8 @@ from utils.views import (
 	PourView
 )
 
-from utils.useful import parse_multiplication, Modal
+from utils.modals import AceModal
+from utils.useful import parse_multiplication
 from utils.nonogram_maps import ans_maps
 from utils.golf_maps import golf_maps
 
@@ -1112,52 +1114,107 @@ class Fun(commands.Cog):
 					pass
 
 			@discord.ui.button(label='Attorney', style=discord.ButtonStyle.green)
-			async def inp(self, interaction, button):
-				modal = Modal(ctx.bot, 'Attorney Dialogue')
-				modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
-				modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
-				await modal.send_modal(interaction)
-				interacted, result = await modal.wait()
-				if not interacted:
-					return
-				await modal.adapter.create_interaction_response(
-					interacted.id,
-					interacted.token,
-					session=interacted._session,
-					type=6
-				)
-				await self.msg.delete()
-				name = result[0].value
-				text = result[1].value
+			async def attorney(self, interaction: discord.Interaction, button: discord.Button):
+				modal = AceModal(ctx, 'Attorney Dialogue')
+
+				await interaction.response.send_modal(modal)
+				await modal.wait()
+
+				name = modal.name_input.value
+				text = modal.text_input.value
+
+				await interaction.message.delete()
+				# for btn in self.children:
+				# 	btn.disabled = True
+				# 	if btn == button:
+				# 		btn.style = discord.ButtonStyle.success
+				# 	else:
+				# 		btn.style = discord.ButtonStyle.secondary
+
+				# await interaction.followup.edit_message(view=self)
+
 				async with ctx.typing():
 					buf = await attorney_func(name, text)
+
 				if (bsize := buf.getbuffer().nbytes) > file_limit:
-					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
-				await ctx.reply(file=discord.File(buf, 'attorney.gif'), mention_author=False)
+					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.')
+
+				await ctx.reply(file=discord.File(buf, 'attorney.gif'))
+
+				# modal = Modal(ctx.bot, 'Attorney Dialogue')
+				# modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
+				# modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
+				# await modal.send_modal(interaction)
+				# interacted, result = await modal.wait()
+				# if not interacted:
+				# 	return
+				# await modal.adapter.create_interaction_response(
+				# 	interacted.id,
+				# 	interacted.token,
+				# 	session=interacted._session,
+				# 	type=6
+				# )
+				# await self.msg.delete()
+				# name = result[0].value
+				# text = result[1].value
+				# async with ctx.typing():
+				# 	buf = await attorney_func(name, text)
+				# if (bsize := buf.getbuffer().nbytes) > file_limit:
+				# 	return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
+				# await ctx.reply(file=discord.File(buf, 'attorney.gif'), mention_author=False)
 
 			@discord.ui.button(label='Prosecutor', style=discord.ButtonStyle.red)
-			async def prosecutor(self, interaction, button):
-				modal = Modal(ctx.bot, 'Prosecutor Dialogue')
-				modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
-				modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
-				await modal.send_modal(interaction)
-				interacted, result = await modal.wait()
-				if not interacted:
-					return
-				await modal.adapter.create_interaction_response(
-					interacted.id,
-					interacted.token,
-					session=interacted._session,
-					type=6
-				)
-				await self.msg.delete()
-				name = result[0].value
-				text = result[1].value
+			async def prosecutor(self, interaction: discord.Interaction, button: discord.Button):
+				modal = AceModal(ctx, 'Prosecutor Dialogue')
+				
+				await interaction.response.send_modal(modal)
+				await modal.wait()
+
+				name = modal.name_input.value
+				text = modal.text_input.value
+
+				await interaction.message.delete()
+				# await interaction.followup.delete()
+				# for btn in self.children:
+				# 	btn.disabled = True
+				# 	if btn == button:
+				# 		btn.style = discord.ButtonStyle.success
+				# 	else:
+				# 		btn.style = discord.ButtonStyle.secondary
+
+				# await interaction.response.edit_message(view=self)
+
 				async with ctx.typing():
 					buf = await prosecutor_func(name, text)
+
 				if (bsize := buf.getbuffer().nbytes) > file_limit:
-					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
-				await ctx.reply(file=discord.File(buf, 'prosecutor.gif'), mention_author=False)
+					# return await interaction.followup.send(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.')
+					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.')
+				
+				await ctx.reply(file=discord.File(buf, 'prosecutor.gif'))
+				# await interaction.followup.send(file=discord.File(buf, 'prosecutor.gif'))
+
+				# modal = Modal(ctx.bot, 'Prosecutor Dialogue')
+				# modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
+				# modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
+				# await modal.send_modal(interaction)
+				# interacted, result = await modal.wait()
+				# if not interacted:
+				# 	return
+				# await modal.adapter.create_interaction_response(
+				# 	interacted.id,
+				# 	interacted.token,
+				# 	session=interacted._session,
+				# 	type=6
+				# )
+				# await self.msg.delete()
+				# name = result[0].value
+				# text = result[1].value
+				# async with ctx.typing():
+				# 	buf = await prosecutor_func(name, text)
+				# if (bsize := buf.getbuffer().nbytes) > file_limit:
+				# 	return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
+				# await ctx.reply(file=discord.File(buf, 'prosecutor.gif'), mention_author=False)
 		
 		view = View()
 		view.msg = await ctx.reply('Choose side', view=view, mention_author=False)

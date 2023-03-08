@@ -507,7 +507,7 @@ class Bots(commands.Cog, name='Bot'):
 				self.submiter = []
 
 			@discord.ui.button(label='Form-aline', style=discord.ButtonStyle.success)
-			async def btn(self, button, interaction):
+			async def btn(self, interaction, button):
 				if interaction.user.id in self.submiter:
 					return await interaction.response.send_message('you have filled this form.', ephemeral=True)
 

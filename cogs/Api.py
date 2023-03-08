@@ -62,8 +62,7 @@ class Api(commands.Cog):
 			embed.set_image(url=res['url'])
 			embed.set_footer(text="Message will be deleted in 60s or click delete button")
 
-			delview = DeleteView(ctx)
-			delview.message = await ctx.reply(embed=embed, view=delview, delete_after=60, mention_author=False)
+			await ctx.reply(embed=embed, view=DeleteView(ctx.author), delete_after=60, mention_author=False)
 		else:
 			await ctx.reply("That command is NSFW. You can open it on NSFW channel only.", mention_author=False)
 
@@ -268,8 +267,7 @@ class Api(commands.Cog):
 
 									embed = discord.Embed(title=name, description=f"<:upvote:596577438461591562> {res['ups']}", color=self.bot.c).set_image(url=url).set_footer(text=f"Posted by u/{res['author']} on r/{res['subreddit']}")
 									
-									del_view = DeleteView(ctx)
-									del_view.message = await ctx.reply(embed=embed, view=del_view, delete_after=60, mention_author=False)
+									await ctx.reply(embed=embed, view=DeleteView(ctx.author), delete_after=60, mention_author=False)
 									return
 								else:
 									nsfw += 1
@@ -648,5 +646,5 @@ class Api(commands.Cog):
 
 		await ctx.reply(embed=embed, mention_author=False)
 
-def setup(bot):
-	bot.add_cog(Api(bot))
+async def setup(bot):
+	await bot.add_cog(Api(bot))

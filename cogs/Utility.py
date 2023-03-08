@@ -986,7 +986,7 @@ class Utility(commands.Cog):
 
 		class UploadPDF(discord.ui.View):
 			@discord.ui.button(label="Upload PDF", style=discord.ButtonStyle.primary)
-			async def upload(self, button, interaction):
+			async def upload(self, interaction, button):
 				if interaction.user != ctx.author:
 					return await interaction.response.send_message("This is not your interaction!", ephemeral=True)
 
@@ -1187,7 +1187,7 @@ class Utility(commands.Cog):
 		await sounder.init()
 		sounder_view = SounderView(ctx, sounder)
 
-		sounder_view.msg = await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
+		await ctx.reply(f'\u200b', view=sounder_view, mention_author=False, allowed_mentions=discord.AllowedMentions.none())
 
 	@commands.command(cooldown_after_parsing=True)
 	@commands.cooldown(1, 30, commands.BucketType.user)
@@ -1232,5 +1232,5 @@ class Utility(commands.Cog):
 		return await ctx.reply(file=discord.File(buf, 'rtfm.png'))
 		
 
-def setup(bot):
-	bot.add_cog(Utility(bot))
+async def setup(bot):
+	await bot.add_cog(Utility(bot))

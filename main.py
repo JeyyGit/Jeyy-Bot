@@ -95,8 +95,7 @@ async def reloadall(ctx):
                             "```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
 
     await ctx.reply("Cogs reloaded:\n{}\n{}".format(", ".join(success), ['', "\n".join(errors)][1]), mention_author=False)
-    print("Cogs reloaded:\n{}\n{}".format(
-        ", ".join(success), "\n".join(errors)))
+    print("Cogs reloaded:\n{}\n{}".format(", ".join(success), "\n".join(errors)))
 
 
 async def main():

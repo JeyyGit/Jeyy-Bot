@@ -146,7 +146,6 @@ class HelpView(discord.ui.View):
 			self.message = await self.ctx.reply(embed=self.embeds[0], view=self)
 		else:
 			await interaction.response.edit_message(embed=self.embeds[0], view=self)
-			# await self.message.edit(embed=self.embeds[0], view=self)
 
 	async def button_first_callback(self, interaction):
 		if self.index == 0:
@@ -197,7 +196,6 @@ class HelpView(discord.ui.View):
 			self.button_first.disabled = True
 
 		await interaction.response.edit_message(embed=self.embeds[self.index], view=self)
-		# await self.message.edit(embed=self.embeds[self.index], view=self)
 
 class HelpMenu(discord.ui.Select):
 	def __init__(self, view):
@@ -229,10 +227,9 @@ class EndpointView(discord.ui.View):
 	async def show(self, interaction, button):
 		button.label = 'Result sent!'
 		button.disabled = True
-		# await self.msg.edit(view=self)
+		
 		await interaction.response.edit_message(view=self)
 		await interaction.followup.send(self.results)
-		# await interaction.followup.send_message(self.results)
 
 class ApiKeyView(discord.ui.View):
 	def __init__(self, ctx: commands.Context):
@@ -277,13 +274,11 @@ class Switch(discord.ui.View):
 			self.button.style = discord.ButtonStyle.green
 			self.file_2.fp.seek(0)
 			await interaction.response.edit_message(content=self.text, attachments=[self.file_2], view=self)
-			# await self.message.edit(content=self.text2, view=self, allowed_mentions=discord.AllowedMentions.none())
 		else:
 			self.state = 0
 			self.button.style = discord.ButtonStyle.red
 			self.file_1.fp.seek(0)
 			await interaction.response.edit_message(content=self.text, attachments=[self.file_1], view=self)
-			# await self.message.edit(content=self.text1, view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def on_timeout(self):
 		self.clear_items()
@@ -350,7 +345,6 @@ class BuildView(discord.ui.View):
 
 	async def update_view(self, interaction):
 		await interaction.response.edit_message(view=self)
-		# await self.message.edit(view=self)
 
 	async def on_timeout(self):
 		self.clear_items()
@@ -482,7 +476,6 @@ class NonoView(discord.ui.View):
 
 			buf = await self.draw_board()
 			board_file = discord.File(buf, 'board.png')
-			# url = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
 
 			embed = self.msg.embeds[0]
 			embed.set_image(url='attachment://board.png')
@@ -491,7 +484,6 @@ class NonoView(discord.ui.View):
 				embed.description = 'You\'ve won!'
 				self.clear_items()
 			await interaction.response.edit_message(attachments=[board_file], embed=embed, view=self)
-			# await self.msg.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none(), view=self)
 		else:
 			for child in self.children:
 				if child.kind:
@@ -500,7 +492,6 @@ class NonoView(discord.ui.View):
 					child.style = discord.ButtonStyle.danger
 				child.disabled = True
 			await interaction.response.edit_message(view=self)
-			# await interaction.message.edit(view=self)
 
 class BottleButton(discord.ui.Button):
 	def __init__(self, bottle: Bottle, **kwargs):
@@ -526,7 +517,7 @@ class BottleButton(discord.ui.Button):
 						btn.disabled = False
 			self.view.state = 1
 			await interaction.response.edit_message(view=self.view)
-			# await interaction.message.edit(view=self.view)
+
 		elif self.view.state == 1:
 			await self.view.selected.bottle.pour(self.bottle)
 
@@ -545,8 +536,8 @@ class BottleButton(discord.ui.Button):
 			self.view.state = 0
 			embed = self.view.msg.embeds[0]
 			img_buf = await self.view.draw_image()
+
 			img_file = discord.File(img_buf, 'pour_game.png')
-			# url = await self.view.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
 			embed.set_image(url='attachment://pour_game.png')
 
 			if self.view.win_check():
@@ -566,7 +557,6 @@ class BottleButton(discord.ui.Button):
 					self.view.add_item(next_button)
 
 			await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self.view)
-			# await interaction.message.edit(embed=embed, view=self.view)
 
 class PourView(discord.ui.View):
 	font = ImageFont.truetype('./image/GothamMedium.ttf', 30)
@@ -628,7 +618,7 @@ class PourView(discord.ui.View):
 		
 		button.label = 'Exited'
 		await interaction.response.edit_message(view=self)
-		# await interaction.message.edit(view=self)
+
 		self.stop()
 
 	@discord.ui.button(label='Reset', style=discord.ButtonStyle.danger, custom_id='reset_btn', row=0)
@@ -654,11 +644,11 @@ class PourView(discord.ui.View):
 		
 		embed = self.msg.embeds[0]
 		img_buf = await self.draw_image()
+
 		img_file = discord.File(img_buf, 'pour_game.png')
-		# url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
 		embed.set_image(url='attachment://pour_game.png')
+
 		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
-		# await interaction.message.edit(embed=embed, view=self)
 
 	@discord.ui.button(label='Cancel', style=discord.ButtonStyle.primary, custom_id='cancel_btn', disabled=True, row=0)
 	async def cancel_button(self, interaction: discord.Interaction, button: discord.Button):
@@ -675,7 +665,6 @@ class PourView(discord.ui.View):
 			self.selected = None
 			self.state = 0
 			await interaction.response.edit_message(view=self)
-			# await interaction.message.edit(view=self)
 
 	async def next_button_callback(self, interaction):
 		self.state = 0
@@ -699,10 +688,9 @@ class PourView(discord.ui.View):
 		embed.description = f'Level : {self.level}'
 		img_buf = await self.draw_image()
 		img_file = discord.File(img_buf, 'pour_game.png')
-		# url = await self.ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+		
 		embed.set_image(url='attachment://pour_game.png')
 		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
-		# await interaction.message.edit(embed=embed, view=self)
 
 class BlockSelector(discord.ui.Select):
 	def __init__(self, selector_pos):
@@ -826,13 +814,10 @@ class InteractiveIsoView(discord.ui.View):
 		buf, c = await isometric_func(code.split(), self.selector_pos)
 		c -= 1
 		buf_file = discord.File(buf, 'interactive_iso.png')
-		# link = await self.ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
-		# self.block_selector.placeholder = f'{self.block_names[self.block]} | {tuple(reversed(self.selector_pos))}'
+		
 		await interaction.response.edit_message(content=f"`{tuple(reversed(self.selector_pos))}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", attachments=[buf_file], view=self)
-		# await self.message.edit(link, view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	async def selatan_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[2] > 0:
 			self.utara_btn.disabled = False
 		self.selector_pos[2] -= 1
@@ -842,7 +827,6 @@ class InteractiveIsoView(discord.ui.View):
 		await self.update(interaction)
 
 	async def up_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[0] > 0:
 			self.down_btn.disabled = False
 		self.selector_pos[0] += 1
@@ -852,7 +836,6 @@ class InteractiveIsoView(discord.ui.View):
 		await self.update(interaction)
 
 	async def barat_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[1] > 0:
 			self.timur_btn.disabled = False
 		self.selector_pos[1] -= 1
@@ -862,21 +845,18 @@ class InteractiveIsoView(discord.ui.View):
 		await self.update(interaction)
 
 	async def destroy(self, interaction):
-		# await interaction.response.defer()
 
 		self.box[tuple(self.selector_pos)] = '0'
 
 		await self.update(interaction)
 
 	async def place(self, interaction):
-		# await interaction.response.defer()
 
 		self.box[tuple(self.selector_pos)] = self.block
 
 		await self.update(interaction)
 
 	async def finish(self, interaction: discord.Interaction):
-		# await interaction.response.defer()
 
 		code = '- '.join([' '.join([''.join(row) for row in lay]) for lay in self.box])
 
@@ -889,11 +869,10 @@ class InteractiveIsoView(discord.ui.View):
 		for child in self.children[:]:
 			child.disabled = True
 		await interaction.response.edit_message(view=self)
-		# await self.message.edit(view=self)
+
 		self.stop()
 
 	async def timur_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[1] < self.box.shape[1] - 1:
 			self.barat_btn.disabled = False
 		self.selector_pos[1] += 1
@@ -903,7 +882,6 @@ class InteractiveIsoView(discord.ui.View):
 		await self.update(interaction)
 
 	async def down_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[0] < self.box.shape[0] - 1:
 			self.up_btn.disabled = False
 		self.selector_pos[0] -= 1
@@ -913,7 +891,6 @@ class InteractiveIsoView(discord.ui.View):
 		await self.update(interaction)
 
 	async def utara_arrow(self, interaction):
-		# await interaction.response.defer()
 		if self.selector_pos[2] < self.box.shape[2] - 1:
 			self.selatan_btn.disabled = False
 		self.selector_pos[2] += 1
@@ -1110,12 +1087,10 @@ class AnsiMaker(discord.ui.View):
 		if any([fmt['bold'], fmt['underline'], state['color'], state['bgcolor']]):
 			self.code = f"\u001b[{';'.join(ansis)}m"
 			await interaction.response.edit_message(content=f'```ansi\n{self.code}{self.text}\u001b[0m\n```', view=self)
-			# await self.msg.edit(f'```ansi\n{self.code}{self.text}\u001b[0m\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
 		else:
 			self.code = ''
 			await interaction.response.edit_message(content=f'```ansi\n{self.text}\n```', view=self)
-			# await self.msg.edit(f'```ansi\n{self.text}\n```', view=self, allowed_mentions=discord.AllowedMentions.none())
-
+			
 	async def interaction_check(self, interaction: discord.Interaction):
 		if interaction.user != self.ctx.author:
 			await interaction.response.send_message('This is not your interaction!', ephemeral=True)
@@ -1126,8 +1101,7 @@ class AnsiMaker(discord.ui.View):
 	@discord.ui.button(label='Finish', style=discord.ButtonStyle.success)
 	async def finish(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await interaction.response.send_message(f'\`\`\`ansi\n{self.code}{self.text}\u001b[0m\n\`\`\`', view=DeleteView(interaction.user))
-		# await self.ctx.message.reply(f'\`\`\`ansi\n{self.code}{self.text}\u001b[0m\n\`\`\`')
-
+		
 	@discord.ui.button(label='Delete', style=discord.ButtonStyle.danger)
 	async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await self.msg.delete()
@@ -1369,15 +1343,13 @@ class SounderView(discord.ui.View):
 				btn.disabled = False
 
 		await interaction.response.edit_message(content=', '.join(self.sounder.sounds), view=self)
-		# await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
-
+		
 	@discord.ui.button(label='Delete', style=discord.ButtonStyle.danger)
 	async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
 		await interaction.message.delete()
 
 	def create_callback(self, sound):
 		async def callback(interaction):
-			# await interaction.response.defer()
 			await self.sounder.append_sound(sound)
 			for btn in self.children:
 				if btn.label in ['Finish', 'Clear']:
@@ -1387,8 +1359,7 @@ class SounderView(discord.ui.View):
 						btn.disabled = True
 			
 			return await interaction.response.edit_message(content=', '.join(self.sounder.sounds), view=self)
-			# return await self.msg.edit(content=', '.join(self.sounder.sounds), view=self, allowed_mentions=discord.AllowedMentions.none())
-
+			
 		return callback
 
 class PollButton(discord.ui.Button):
@@ -1484,7 +1455,6 @@ class PollView(discord.ui.View):
 				btn.label = f"{arg} ({btn.count})"
 				
 			await interaction.response.edit_message(embed=self.create_embed(), view=self)
-			# await self.message.edit(embed=self.create_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
 			
 		return callback
 
@@ -1562,9 +1532,7 @@ class CariResults(discord.ui.View):
 
 		self.button_1.disabled = True
 		await interaction.response.edit_message(view=self)
-		# await self.msg.edit(view=self)
 		await interaction.followup.send(file=discord.File(s, f'{self.table_1_title}.txt'))
-		# await self.msg.reply(file=discord.File(s, f'{self.table_1_title}.txt'))
 
 	async def button_2_callback(self, interaction: discord.Interaction):
 		table = tabulate(self.table_2_data, headers='firstrow', tablefmt='pretty')
@@ -1575,9 +1543,7 @@ class CariResults(discord.ui.View):
 
 		self.button_2.disabled = True
 		await interaction.response.edit_message(view=self)
-		# await self.msg.edit(view=self)
 		await interaction.followup.send(file=discord.File(s, f'{self.table_2_title}.txt'))
-		# await self.msg.reply(file=discord.File(s, f'{self.table_2_title}.txt'))
 
 class CariMenu(discord.ui.Select):
 	def __init__(self, ctx, session: Session, mapping, tipe, **kwargs):
@@ -1657,8 +1623,7 @@ class CariMenu(discord.ui.Select):
 
 		result_view = CariResults(self.ctx, self.view.msg, data)
 		await interaction.response.edit_message(content=None, embed=embed, view=result_view)
-		# await self.view.msg.edit(content=None, embed=embed, view=result_view, allowed_mentions=discord.AllowedMentions.none())
-
+		
 		await stop_session(self.session)
 
 # Api cog
@@ -1732,7 +1697,6 @@ class DeleteView(discord.ui.View):
 
 	@discord.ui.button(emoji="<:redx:827600701768597554>", style=discord.ButtonStyle.red)
 	async def cancel(self, interaction, button):
-		# await self.message.delete()
 		await interaction.message.delete()
 		self.stop()
 

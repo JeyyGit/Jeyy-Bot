@@ -114,5 +114,4 @@ class Paginator(discord.ui.View):
 			self.button_first.disabled = True
 
 		await interaction.response.edit_message(embed=self.embeds[self.index], view=self)
-		# await self.message.edit(embed=self.embeds[self.index], view=self)
 

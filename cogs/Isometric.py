@@ -220,9 +220,6 @@ class Fun(commands.Cog):
 
 					return await ctx.reply(f"`finished in {timed_s}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=discord.File(buf, "auto_lever.gif"))
 
-				# link_1 = await ctx.upload_bytes(buf_1.getvalue(), 'image/png', name='isometric first state')
-				# link_2 = await ctx.upload_bytes(buf_2.getvalue(), 'image/png', name='isometric second state')
-
 				file_1 = discord.File(buf_1, 'iso_state_1.png')
 				file_2 = discord.File(buf_2, 'iso_state_2.png')
 
@@ -261,7 +258,6 @@ class Fun(commands.Cog):
 		buf, c = await isometric_func(code.split(), interactive_view.selector_pos)
 		c -= 1
 		buf_file = discord.File(buf, 'interactive_iso.png')
-		# link = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'interactive_iso')
 
 		interactive_view.message = await ctx.reply(f"`{tuple(reversed(interactive_view.selector_pos))}::rendered {c} block{['', 's'][c > 1]}`\n\u200b", file=buf_file, view=interactive_view, mention_author=False)
 
@@ -1124,14 +1120,6 @@ class Fun(commands.Cog):
 				text = modal.text_input.value
 
 				await interaction.message.delete()
-				# for btn in self.children:
-				# 	btn.disabled = True
-				# 	if btn == button:
-				# 		btn.style = discord.ButtonStyle.success
-				# 	else:
-				# 		btn.style = discord.ButtonStyle.secondary
-
-				# await interaction.followup.edit_message(view=self)
 
 				async with ctx.typing():
 					buf = await attorney_func(name, text)
@@ -1140,28 +1128,6 @@ class Fun(commands.Cog):
 					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.')
 
 				await ctx.reply(file=discord.File(buf, 'attorney.gif'))
-
-				# modal = Modal(ctx.bot, 'Attorney Dialogue')
-				# modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
-				# modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
-				# await modal.send_modal(interaction)
-				# interacted, result = await modal.wait()
-				# if not interacted:
-				# 	return
-				# await modal.adapter.create_interaction_response(
-				# 	interacted.id,
-				# 	interacted.token,
-				# 	session=interacted._session,
-				# 	type=6
-				# )
-				# await self.msg.delete()
-				# name = result[0].value
-				# text = result[1].value
-				# async with ctx.typing():
-				# 	buf = await attorney_func(name, text)
-				# if (bsize := buf.getbuffer().nbytes) > file_limit:
-				# 	return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
-				# await ctx.reply(file=discord.File(buf, 'attorney.gif'), mention_author=False)
 
 			@discord.ui.button(label='Prosecutor', style=discord.ButtonStyle.red)
 			async def prosecutor(self, interaction: discord.Interaction, button: discord.Button):
@@ -1174,15 +1140,6 @@ class Fun(commands.Cog):
 				text = modal.text_input.value
 
 				await interaction.message.delete()
-				# await interaction.followup.delete()
-				# for btn in self.children:
-				# 	btn.disabled = True
-				# 	if btn == button:
-				# 		btn.style = discord.ButtonStyle.success
-				# 	else:
-				# 		btn.style = discord.ButtonStyle.secondary
-
-				# await interaction.response.edit_message(view=self)
 
 				async with ctx.typing():
 					buf = await prosecutor_func(name, text)
@@ -1192,29 +1149,6 @@ class Fun(commands.Cog):
 					return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.')
 				
 				await ctx.reply(file=discord.File(buf, 'prosecutor.gif'))
-				# await interaction.followup.send(file=discord.File(buf, 'prosecutor.gif'))
-
-				# modal = Modal(ctx.bot, 'Prosecutor Dialogue')
-				# modal.add_field(1, 'Name', value=str(ctx.author), min_length=1, max_length=240, required=True)
-				# modal.add_field(2, 'Text', min_length=1, max_length=240, required=True)
-				# await modal.send_modal(interaction)
-				# interacted, result = await modal.wait()
-				# if not interacted:
-				# 	return
-				# await modal.adapter.create_interaction_response(
-				# 	interacted.id,
-				# 	interacted.token,
-				# 	session=interacted._session,
-				# 	type=6
-				# )
-				# await self.msg.delete()
-				# name = result[0].value
-				# text = result[1].value
-				# async with ctx.typing():
-				# 	buf = await prosecutor_func(name, text)
-				# if (bsize := buf.getbuffer().nbytes) > file_limit:
-				# 	return await ctx.reply(f'Resulting gif size: `{humanize.naturalsize(bsize)}` is bigger than this guild file size limit: `{humanize.naturalsize(file_limit)}`. Please lessen the text to make its size smaller.', mention_author=False)
-				# await ctx.reply(file=discord.File(buf, 'prosecutor.gif'), mention_author=False)
 		
 		view = View()
 		view.msg = await ctx.reply('Choose side', view=view, mention_author=False)
@@ -1226,7 +1160,6 @@ class Fun(commands.Cog):
 		view = NonoView(ctx, mapp)
 		buf = await view.draw_board()
 		board_file = discord.File(buf, 'board.png')
-		# url = await ctx.upload_bytes(buf.getvalue(), 'image/png', 'nonogram')
 
 		embed = discord.Embed(title='Nonogram', color=self.bot.c, timestamp=dt.datetime.now())
 		embed.set_image(url='attachment://board.png')
@@ -1256,7 +1189,7 @@ class Fun(commands.Cog):
 		embed = discord.Embed(title='Pour Puzzle', description=f'Level : {highest_level}', timestamp=dt.datetime.now(), color=self.bot.c)
 		img_buf = await view.draw_image()
 		img_file = discord.File(img_buf, 'pour_game.png')
-		# url = await ctx.upload_bytes(img_buf.getvalue(), 'image/png', 'pour game')
+		
 		embed.set_image(url='attachment://pour_game.png')
 		embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 

@@ -208,6 +208,12 @@ class HelpMenu(discord.ui.Select):
 	async def callback(self, interaction: discord.Interaction):
 		if self.previous == self.values[0]:
 			return
+		
+		for option in self.options:
+			option.default = False
+			if option.value == self.values[0]:
+				option.default = True
+		
 		self.previous = self.values[0]
 
 		cog = discord.utils.get(self.parent_view.mapping, qualified_name=self.values[0])

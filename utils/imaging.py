@@ -6035,3 +6035,4 @@ def player_func(title, seconds_played, total_seconds, thumbnail_buf, line_1, lin
 	buf.seek(0)
 
 	return buf
+

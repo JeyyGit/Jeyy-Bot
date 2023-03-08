@@ -228,7 +228,6 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def source(self, ctx, *, command=None):
 		"""See bot's source code"""
-		# await ctx.trigger_typing()
 		# num = random.choice([451, 204, 303, 400, 402, 403, 404, 405, 406, 410, 423, 444, 501, 450])
 
 		# url = f"https://http.cat/{num}"
@@ -244,7 +243,7 @@ class Bots(commands.Cog, name='Bot'):
 
 		if command is None:
 			view.add_item(discord.ui.Button(label='Jeyy Bot Source Code', url='https://github.com/JeyyGit/Jeyy-Bot'))
-			return await ctx.reply('<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
+			return await ctx.reply('A \U00002b50 is very much appreciated \U0000270c\n\n<https://github.com/JeyyGit/Jeyy-Bot>', view=view)
 
 		command = command.lower()
 		if command == 'help':
@@ -267,7 +266,7 @@ class Bots(commands.Cog, name='Bot'):
 		link = f'{base}/blob/{branch}/{module}.py#L{line_no}-L{line_no+len(lines)-1}'
 		
 		view.add_item(discord.ui.Button(label=f'Source code for {command}', url=link))
-		await ctx.reply(f'<{link}>', view=view)
+		await ctx.reply(f'A \U00002b50 is very much appreciated \U0000270c\n\n<{link}>', view=view)
 
 	@commands.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -461,7 +460,7 @@ class Bots(commands.Cog, name='Bot'):
 		se = time.perf_counter()
 
 		results = f"[{endpoint} endpoint](https://api.jeyy.xyz/docs#/IMAGE/{endpoint.capitalize()}_image_{endpoint}_get \"Click me for docs!\") took `{e-s}` seconds.\nreading response took `{ce-cs}` seconds.\nsending message took `{se-ss}` seconds."
-		view = EndpointView(msg, results)
+		view = EndpointView(results)
 		await msg.edit(view=view, allowed_mentions=discord.AllowedMentions.none())
 
 	@api.command()
@@ -508,7 +507,7 @@ class Bots(commands.Cog, name='Bot'):
 				self.submiter = []
 
 			@discord.ui.button(label='Form-aline', style=discord.ButtonStyle.success)
-			async def btn(self, button, interaction):
+			async def btn(self, interaction, button):
 				if interaction.user.id in self.submiter:
 					return await interaction.response.send_message('you have filled this form.', ephemeral=True)
 
@@ -536,5 +535,5 @@ class Bots(commands.Cog, name='Bot'):
 	async def push(self, ctx: JeyyContext, *, commit_message='update'):
 		await ctx.push(commit_message)
 
-def setup(bot):
-	bot.add_cog(Bots(bot))
+async def setup(bot):
+	await bot.add_cog(Bots(bot))

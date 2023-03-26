@@ -1631,6 +1631,7 @@ class CariMenu(discord.ui.Select):
 
 		await chosen[2].click()
 		await asyncio.sleep(3)
+		await interaction.message.delete()
 
 		source = await self.session.get_page_source()
 		biodata, data = await self.parse_source(source)
@@ -1638,7 +1639,7 @@ class CariMenu(discord.ui.Select):
 		embed = discord.Embed(title=f'Biodata {self.tipe.capitalize()}', description='\n'.join(biodata), color=self.ctx.bot.c)
 
 		result_view = CariResults(self.ctx, self.view.msg, data)
-		await interaction.response.edit_message(content=None, embed=embed, view=result_view)
+		await self.ctx.reply(embed=embed, view=result_view)
 		
 		await stop_session(self.session)
 

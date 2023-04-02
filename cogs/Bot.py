@@ -469,7 +469,7 @@ class Bots(commands.Cog, name='Bot'):
 
 		r = await self.bot.session.get("https://api.jeyy.xyz/general/ping")
 
-		endpoints = await self.bot.db.fetch("SELECT method, endpoint, SUM(usage) AS usage FROM api_usage GROUP BY endpoint ORDER BY usage DESC")
+		endpoints = await self.bot.db.fetch("SELECT method, endpoint, SUM(usage) AS usage FROM api_usage GROUP BY method, endpoint ORDER BY usage DESC")
 
 		lines = [f"[`{i+1:>2}. {endpoint['endpoint']:<23}{endpoint['usage']:>5}`](https://api.jeyy.xyz/docs#/{endpoint['endpoint'].split('/')[1].upper()}/{endpoint['endpoint'].split('/')[2].capitalize()}_{endpoint['endpoint'].split('/')[1]}_{endpoint['endpoint'].split('/')[2]}_{endpoint['method'].lower()} \"Click me for docs!\")" for i, endpoint in enumerate(endpoints)]
 

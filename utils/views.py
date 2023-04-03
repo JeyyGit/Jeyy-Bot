@@ -1379,8 +1379,9 @@ class SounderView(discord.ui.View):
 		return callback
 
 class PollButton(discord.ui.Button):
-	def __init__(self, **kwargs):
+	def __init__(self, arg, **kwargs):
 		super().__init__(**kwargs)
+		self.arg = arg
 		self.count = 0
 
 class PollView(discord.ui.View):
@@ -1403,7 +1404,7 @@ class PollView(discord.ui.View):
 		self.ping_result = []
 		
 		for arg in args:
-			btn = PollButton(label=f'{arg} (0)', style=discord.ButtonStyle.primary)
+			btn = PollButton(arg, label=f'{arg} (0)', style=discord.ButtonStyle.primary)
 			btn.callback = self.create_callback(arg)
 			self.btns[arg] = btn
 			self.add_item(btn)
@@ -1452,7 +1453,7 @@ class PollView(discord.ui.View):
 							self.args[choice].remove(interaction.user)
 							btn = self.btns.get(arg)
 							btn.count -= 1
-							btn.label = f"{arg} ({btn.count})"
+							btn.label = f"{btn.arg} ({btn.count})"
 							break
 					break
 			else:
@@ -1461,14 +1462,14 @@ class PollView(discord.ui.View):
 						choosers.remove(interaction.user)
 						btn = self.btns.get(choice)
 						btn.count -= 1
-						btn.label = f"{arg} ({btn.count})"
+						btn.label = f"{btn.arg} ({btn.count})"
 					except KeyError:
 						...
 				self.args[arg].add(interaction.user)
 
 				btn = self.btns.get(arg)
 				btn.count += 1
-				btn.label = f"{arg} ({btn.count})"
+				btn.label = f"{btn.arg} ({btn.count})"
 				
 			await interaction.response.edit_message(embed=self.create_embed(), view=self)
 			

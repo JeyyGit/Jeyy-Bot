@@ -45,6 +45,15 @@ class IMAGE(commands.Cog, name="Image"):
 			self.bot.image_cache[cmd].popitem(last=True)
 
 		return buf
+	
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def painting(self, ctx, imgb: ToImage = None):
+		"""Very artsy"""
+		async with ctx.typing():
+			buf = await painting_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "painting.gif"))
 
 	@commands.command(usage="<User|Member|Emoji|URL> <rainbow=False>")
 	@commands.cooldown(1, 3, commands.BucketType.user)

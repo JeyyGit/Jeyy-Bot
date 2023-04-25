@@ -28,6 +28,7 @@ from jishaku.functools import executor_function
 from PIL import (Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter,
                  ImageFont, ImageOps, ImageSequence)
 from pixelsort import pixelsort
+from pykuwahara import kuwahara
 from pyvista import examples
 from skimage.transform import swirl
 from wand.image import Image as wImage
@@ -5533,6 +5534,23 @@ def contour_func(img, rainbow=False):
 	frames += frames[-2:0:-1]
 
 	return wand_gif(frames)
+
+@executor_function
+def painting_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i >= 50: break
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.contain(frame.convert('RGBA'), (300, 300))
+		img = np.array(frame)
+		res = kuwahara(img, method='gaussian', radius=50, sigma=2)
+		frames.append(Image.fromarray(res))
+
+	return wand_gif(frames, durations)
+
 
 #
 # Utility

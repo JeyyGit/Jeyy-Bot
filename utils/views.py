@@ -1386,9 +1386,10 @@ class PollButton(discord.ui.Button):
 
 class PollView(discord.ui.View):
 	nums = [f'{num}\U0000fe0f\U000020e3' for num in (
-		"\U00000031", "\U00000032", "\U00000033", "\U00000034", "\U00000035", 
-		"\U00000036", "\U00000037", "\U00000038", "\U00000039")] + ["\U0001f51f"
-	]
+			"\U00000031", "\U00000032", "\U00000033", "\U00000034", "\U00000035", 
+			"\U00000036", "\U00000037", "\U00000038", "\U00000039"
+		)] + ["\U0001f51f"]
+	
 	def __init__(self, ctx, title, timeout, args):
 		super().__init__(timeout=None)
 		self.created_at = dt.datetime.now()

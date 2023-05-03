@@ -1519,7 +1519,7 @@ def attorney_func(name, text):
 		draw = ImageDraw.Draw(canv)
 		text_drawn += char
 		draw.multiline_text((7, 240), text_drawn, 'white', ace_text_font)
-		frames.append(canv)
+		frames.append(canv.quantize(method=Image.LIBIMAGEQUANT))
 
 	canv = Image.new('RGBA', bg.size)
 	canv.paste(bg, (0, 0), bg)
@@ -1529,7 +1529,7 @@ def attorney_func(name, text):
 	canv.paste(name_img, (0, 195), name_img)
 	draw = ImageDraw.Draw(canv)
 	draw.multiline_text((7, 240), text_drawn, 'white', ace_text_font)
-	frames.append(canv)
+	frames.append(canv.quantize(method=Image.LIBIMAGEQUANT))
 
 	durations = [100]*len(text) + [1500]
 
@@ -1574,7 +1574,7 @@ def prosecutor_func(name, text):
 		draw = ImageDraw.Draw(canv)
 		text_drawn += char
 		draw.multiline_text((7, 240), text_drawn, 'white', ace_text_font)
-		frames.append(canv)
+		frames.append(canv.quantize(method=Image.LIBIMAGEQUANT))
 
 	canv = Image.new('RGBA', bg.size)
 	canv.paste(bg, (0, 0), bg)
@@ -1584,7 +1584,7 @@ def prosecutor_func(name, text):
 	canv.paste(name_img, (0, 195), name_img)
 	draw = ImageDraw.Draw(canv)
 	draw.multiline_text((7, 240), text_drawn, 'white', ace_text_font)
-	frames.append(canv)
+	frames.append(canv.quantize(method=Image.LIBIMAGEQUANT))
 
 	durations = [100]*len(text) + [1500]
 
@@ -1673,6 +1673,8 @@ def wand_gif(frames, durations=50):
 
 	with wImage.from_array(frames[0] if is_npa else np.array(frames[0])) as bg:
 		for i, pframe in enumerate(frames):
+			if not is_npa:
+				pframe = pframe.quantize(method=Image.LIBIMAGEQUANT)
 			with wImage.from_array(pframe if is_npa else np.array(pframe.convert('RGBA'))) as frame:
 				frame.dispose = 'background'
 				bg.composite(frame, 0, 0)
@@ -1874,7 +1876,7 @@ def nohorni_func(bonked, bonker):
 		if bonker:
 			newframe.paste(bonker, (150, 170), bonker)
 
-		frames.append(newframe)
+		frames.append(newframe.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', save_all=True, append_images=frames[1:])
@@ -1997,11 +1999,13 @@ def patpat_func(img):
 	patted = Image.open(img).convert('RGBA')
 	patted =  ImageOps.fit(patted, (80, 80))
 
-	seq = { 0: [(80,  70), (11,   30)], 
-			1: [(90,  60), (11-5, 30+10)], 
-			2: [(96, 55), (11-8, 30+15)], 
-			3: [(100, 50), (11-10, 30+20)], 
-			4: [(90, 60), (11-5, 30+10)]}
+	seq = { 
+		0: [(80,  70), (11,   30)], 
+		1: [(90,  60), (11-5, 30+10)], 
+		2: [(96, 55), (11-8, 30+15)], 
+		3: [(100, 50), (11-10, 30+20)], 
+		4: [(90, 60), (11-5, 30+10)]
+	}
 
 	frames = []
 	for i, hand in enumerate(hands):
@@ -2012,15 +2016,9 @@ def patpat_func(img):
 
 		canvas.paste(hand, (0, 0), hand)
 
-		fobj = BytesIO()
-		canvas.save(fobj, "GIF", transparency=0)
-		canvas = Image.open(fobj)
 		frames.append(canvas)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=60, disposal=2, loop=0)
-	igif.seek(0)
-	return igif
+	return wand_gif(frames, 60)
 
 @executor_function
 def equation_func(img):
@@ -2057,7 +2055,7 @@ def buffering_func(img):
 		newframe = newframe.resize((330, 330))
 		newframe = Image.blend(newframe, img, 0.4)
 
-		frames.append(newframe)
+		frames.append(newframe.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', save_all=True, append_images=frames[1:], loop=0)
@@ -2238,7 +2236,7 @@ def discotic_func(img):
 		fobj = BytesIO()
 		blend.save(fobj, "GIF")
 		blend = Image.open(fobj)
-		frames.append(blend)
+		frames.append(blend.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=2, loop=0)
@@ -2406,7 +2404,7 @@ def gallery_func(img):
 		fobj = BytesIO()
 		frame.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=20, disposal=2, loop=0)
@@ -2711,7 +2709,7 @@ def shoot_func(img):
 		fobj = BytesIO()
 		canvas.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 		durations.append(100)
 	durations[-1] = 500
 
@@ -2723,7 +2721,7 @@ def shoot_func(img):
 		fobj = BytesIO()
 		canvas.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 		durations.append(20)
 
 	durations[0] = durations[-1] = 1000
@@ -2738,7 +2736,7 @@ def shoot_func(img):
 		fobj = BytesIO()
 		canvas.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 		durations.append(50)
 
 	durations[-1] = 3000
@@ -2766,7 +2764,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 	
 	for i in range(15):
 		gmi = ImageOps.invert(img)
@@ -2780,7 +2778,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 
 	for i in range(15):
 		gmi = ImageOps.invert(img)
@@ -2794,7 +2792,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 
 	for i in range(15):
 		gmi = ImageOps.invert(img)
@@ -2808,7 +2806,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 
 	for i in range(16):
 		gmi = ImageOps.invert(img)
@@ -2822,7 +2820,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 
 	for i in range(15):
 		gmi = ImageOps.invert(img)
@@ -2836,7 +2834,7 @@ def halfinvert_func(img):
 		fobj = BytesIO()
 		gmi.save(fobj, "GIF")
 		gmi = Image.open(fobj)
-		frames.append(gmi)
+		frames.append(gmi.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=60, disposal=0, loop=0)
@@ -2925,7 +2923,7 @@ def lamp_func(img):
 		fobj = BytesIO()
 		frame.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
@@ -3041,7 +3039,7 @@ def shock_func(img):
 		fobj = BytesIO()
 		frame.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
@@ -3080,7 +3078,7 @@ def boil_func(img, level):
 			fobj = BytesIO()
 			frame.save(fobj, "GIF")
 			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 	else:
 		durations = 50
 		im = ImageOps.contain(img.convert('RGBA'), (300, 300))
@@ -3099,7 +3097,7 @@ def boil_func(img, level):
 			fobj = BytesIO()
 			frame.save(fobj, "GIF")
 			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -3316,7 +3314,7 @@ def print_func(img):
 		fobj = BytesIO()
 		canvas.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	durations = [200]*(len(frames)-1) + [2000]
 	igif = BytesIO()
@@ -3339,7 +3337,7 @@ def paparazzi_func(img):
 		fobj = BytesIO()
 		canv.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	for _ in range(30):
 		transform = alb.RandomBrightnessContrast(p=1)
@@ -3354,7 +3352,7 @@ def paparazzi_func(img):
 		fobj = BytesIO()
 		canv.save(fobj, "GIF")
 		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=100, disposal=2, loop=0)
@@ -3456,7 +3454,7 @@ def sensitive_func(img):
 		frame_fit.close()
 		frame.close()
 
-		frames.append(canvas)
+		frames.append(canvas.quantize(method=Image.LIBIMAGEQUANT))
 
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations, disposal=0, loop=0)
@@ -3714,7 +3712,7 @@ def logoff_func(img):
 
 	frames = []
 	for i in np.linspace(0, 1, 100):
-		frames.append(Image.blend(img, creep, i))
+		frames.append(Image.blend(img, creep, i).quantize(method=Image.LIBIMAGEQUANT))
 	
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0)
@@ -3747,7 +3745,7 @@ def dilate_func(img):
 		dst = cv2.dilate(npa, kernel, iterations=i)
 		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
-		frames.append(Image.open(buf))
+		frames.append(Image.open(buf).quantize(method=Image.LIBIMAGEQUANT))
 	
 	igif = BytesIO()
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
@@ -3780,7 +3778,7 @@ def undilate_func(img):
 		dst = cv2.dilate(npa, kernel, iterations=i)
 		_, buf = cv2.imencode(".png", dst)
 		buf = BytesIO(buf)
-		frames.append(Image.open(buf))
+		frames.append(Image.open(buf).quantize(method=Image.LIBIMAGEQUANT))
 		durations.append(50)
 
 	durations[-1] = 1000
@@ -4598,7 +4596,7 @@ def phone_func(img):
 		frame_cnv = frame.convert('RGBA')
 		if i == 34:
 			frame_cnv.paste(screen, (139, 27), screen)
-		frames.append(frame_cnv)
+		frames.append(frame_cnv.quantize(method=Image.LIBIMAGEQUANT))
 
 	imgs.close()
 	cnv.close()

@@ -4312,7 +4312,7 @@ def blocks_func(img):
 		for _ in range(5000):
 			x1, y1 = random.randint(20, w-20), random.randint(20, h-20)
 			angle = random.randint(0, 360)
-			x2, y2 = x1 + line_length * math.cos(angle), y1 + line_length*math.sin(angle)
+			x2, y2 = x1 + line_length * abs(math.cos(angle)), y1 + line_length*abs(math.sin(angle))
 			mx, my = (x2 + x1) / 2, (y2 + y1) / 2
 			if (pix := img.getpixel((mx, my)))[-1] != 0:
 				draw.rectangle([x1, y1, x2, y2], pix)

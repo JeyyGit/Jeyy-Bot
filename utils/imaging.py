@@ -5549,6 +5549,30 @@ def painting_func(img):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def dither_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if getattr(img, "is_animated", False):
+			if i == 0: continue
+		if i >= 100: break
+
+		durations.append(frame.info.get('duration', 50))
+		frame = ImageOps.contain(frame, (300, 300))
+		with wImage.from_array(np.array(frame)) as f:
+			f.ordered_dither('2x1')
+			f.format ='GIF'
+			buf = BytesIO()
+			f.save(file=buf)
+			buf.seek(0)
+			frames.append(Image.open(buf))
+		
+	return wand_gif(frames, durations)
+
+
 
 #
 # Utility

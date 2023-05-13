@@ -48,6 +48,15 @@ class IMAGE(commands.Cog, name="Image"):
 	
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def dither(self, ctx, imgb: ToImage = None):
+		"""Retro game"""
+		async with ctx.typing():
+			buf = await dither_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "dither.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def painting(self, ctx, imgb: ToImage = None):
 		"""Very artsy"""
 		async with ctx.typing():

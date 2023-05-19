@@ -510,19 +510,19 @@ class Utility(commands.Cog):
 
 			buf, res, _time, last, c = await wheel_func(args)
 
-			link1 = await ctx.upload_bytes(buf.getvalue(), 'image/gif', 'wheel spin')
-			link2 = await ctx.upload_bytes(last.getvalue(), 'image/png', 'wheel result')
+			file_1 = discord.File(buf, 'wheel_spin.gif')
+			file_2 = discord.File(last, 'wheel_result.png')			
 
-			embed.set_image(url=link1)
+			embed.set_image(url='attachment://wheel_spin.gif')
 		
-		msg = await ctx.reply(embed=embed, mention_author=False)
+		msg = await ctx.reply(embed=embed, file=file_1)
 
 		await asyncio.sleep(_time/1000+1)
 		embed.add_field(name="\u2800", value=f"> **The result is {colors[c]} : {res} !**")
 		embed.color = embed_colors[c]
-		embed.set_image(url=link2)
-		embed.set_thumbnail(url=link1)
-		await msg.edit(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+		embed.set_image(url='attachment://wheel_result.png')
+		embed.set_thumbnail(url='attachment://wheel_spin.gif')
+		await msg.edit(embed=embed, attachments=[discord.File(buf, 'wheel_spin.gif'), file_2])
 
 	@commands.command(cooldown_after_parsing=True, usage="[*arguments]")
 	@commands.cooldown(1, 3, commands.BucketType.user)
@@ -653,7 +653,7 @@ class Utility(commands.Cog):
 		for page in pages:
 			embed = discord.Embed(title=f'Search result for: {query}', color=self.bot.c, timestamp=dt.datetime.now())
 			for result in page:
-				embed.add_field(name=result.title, value=f'[*{result.url}*]({result.url})\n{result.description}', inline=False)
+				embed.add_field(name=result.title, value=f'_{result.url}_\n{result.description}', inline=False)
 			embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 			embeds.append(embed)
 

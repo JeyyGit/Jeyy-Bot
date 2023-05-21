@@ -4800,7 +4800,7 @@ def lines_func(img):
 				avg = np.mean(npa[i*6:i*6+5, j*3:j*3+5]) / 255
 				lines[i].append(avg)
 
-		canv = Image.new('RGB', (295, 300))
+		canv = Image.new('RGB', (295, 300), 'black')
 		draw = ImageDraw.Draw(canv)
 
 		for i, line in enumerate(lines):

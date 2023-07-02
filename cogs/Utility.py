@@ -1230,7 +1230,20 @@ class Utility(commands.Cog):
 			return await ctx.reply('u bad')
 
 		return await ctx.reply(file=discord.File(buf, 'rtfm.png'))
+	
+	@commands.command(name='plat-nomor', aliases=['plat'])
+	async def plat_nomor(self, ctx, *, plat: str):
+		"""Memberikan lokasi pulau, wilayah, dan daerah pendaftaran kendaraan bermotor dari plat nomornya"""
+		r = await self.bot.session.get('https://api.jeyy.xyz/v2/general/plat-nomor', params={'plat': plat}, headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
+		if r.status != 200:
+			raise Exception(await r.json())
 		
+		data = await r.json()
+		bagian = data['bagian']
+		lokasi = data['lokasi']
+		res = f"```\nBagian:\n - Kode Wilayah: {bagian.get('kode_wilayah')}\n - Nomor Polisi: {bagian.get('nomor_polisi')}\n - Kode Seri Wilayah: {bagian.get('kode_seri_wilayah')}\nLokasi:\n - Pulau: {lokasi.get('pulau')}\n - Wilayah: {lokasi.get('wilayah')}\n - Daerah: {'/'.join(lokasi.get('daerah'))}```"
+
+		return await ctx.reply(res)
 
 async def setup(bot):
 	await bot.add_cog(Utility(bot))

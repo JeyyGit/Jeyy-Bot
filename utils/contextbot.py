@@ -245,6 +245,7 @@ class JeyyBot(commands.Bot):
 			self.keys('GOOGLEKEY4'),
 			self.keys('GOOGLEKEY5'),
 		])
+		self.jeyy_key = self.keys('JEYYAPIKEY')
 
 		with open('./image/ios_emojis/emoji_lut.json', 'r') as f:
 			self.emoji_lut = np.array(json.load(f), dtype='object')

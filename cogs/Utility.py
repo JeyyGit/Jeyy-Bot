@@ -1234,7 +1234,7 @@ class Utility(commands.Cog):
 	@commands.command(name='plat-nomor', aliases=['plat'])
 	async def plat_nomor(self, ctx, *, plat: str):
 		"""Memberikan lokasi pulau, wilayah, dan daerah pendaftaran kendaraan bermotor dari plat nomornya"""
-		r = await self.bot.session.get('https://api.jeyy.xyz/v2/general/plat-nomor', params={'plat': plat}, headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
+		r = await self.bot.session.get('https://api.jeyy.xyz/v2/general/plat_nomor', params={'plat': plat}, headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
 		if r.status != 200:
 			raise Exception(await r.json())
 		

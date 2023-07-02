@@ -5592,32 +5592,23 @@ def wheel_2(args):
 
 	for _ in range(loop):
 		for frame in wheel_images['wheel_2']:
-			fobj = BytesIO()
-			frame.save(fobj, "gif", transparency=4)
-			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.copy())
 
 	durations = [50] * (len(frames)-15)
 	durations.extend([100]*10)
 
 	for i in range(stop):
 		frame = wheel_images['wheel_2'][i]
-		
-		fobj = BytesIO()
-		frame.save(fobj, "GIF", transparency=4)
-		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.copy())
 
 	durations.extend([300]*(stop+5))
 
-	last_frame = wheel_images['wheel_2'][stop-1]
+	last_frame = wheel_images['wheel_2'][stop-1].copy()
 	buf = BytesIO()
 	last_frame.save(buf, "PNG")
 	buf.seek(0)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=durations)
-	igif.seek(0)
+	igif = wand_gif(frames, durations)
 
 	return igif, result, sum(durations), buf, c
 
@@ -5638,32 +5629,23 @@ def wheel_3(args):
 
 	for _ in range(loop):
 		for frame in wheel_images['wheel_3']:
-			fobj = BytesIO()
-			frame.save(fobj, "gif", transparency=5)
-			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.copy())
 
 	durations = [50] * (len(frames)-15)
 	durations.extend([100]*10)
 
 	for i in range(stop):
 		frame = wheel_images['wheel_3'][i]
-
-		fobj = BytesIO()
-		frame.save(fobj, "gif", transparency=5)
-		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.copy())
 
 	durations.extend([300]*(stop+5))
 
-	last_frame = wheel_images['wheel_3'][stop-1]
+	last_frame = wheel_images['wheel_3'][stop-1].copy()
 	buf = BytesIO()
 	last_frame.save(buf, "PNG")
 	buf.seek(0)
 	
-	igif = BytesIO()
-	frames[0].save(igif, format='gif', append_images=frames[1:], save_all=True, duration=durations)
-	igif.seek(0)
+	igif = wand_gif(frames, durations)
 
 	return igif, result, sum(durations), buf, c
 
@@ -5687,32 +5669,23 @@ def wheel_4(args):
 
 	for _ in range(loop):
 		for frame in wheel_images['wheel_4']:
-			fobj = BytesIO()
-			frame.save(fobj, "gif", transparency=6)
-			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.copy())
 
 	durations = [50] * (len(frames)-15)
 	durations.extend([100]*10)
 
 	for i in range(stop):
 		frame = wheel_images['wheel_4'][i]
-
-		fobj = BytesIO()
-		frame.save(fobj, "gif", transparency=6)
-		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.copy())
 
 	durations.extend([300]*(stop+5))
 
-	last_frame = wheel_images['wheel_4'][stop-1]
+	last_frame = wheel_images['wheel_4'][stop-1].copy()
 	buf = BytesIO()
 	last_frame.save(buf, "PNG")
 	buf.seek(0)
 
-	igif = BytesIO()
-	frames[0].save(igif, format='gif', append_images=frames[1:], save_all=True, duration=durations)
-	igif.seek(0)
+	igif = wand_gif(frames, durations)
 
 	return igif, result, sum(durations), buf, c
 
@@ -5742,32 +5715,23 @@ def wheel_6(args):
 
 	for _ in range(loop):
 		for frame in wheel_images['wheel_6']:
-			fobj = BytesIO()
-			frame.save(fobj, "gif", transparency=8)
-			frame = Image.open(fobj)
-			frames.append(frame)
+			frames.append(frame.copy())
 
 	durations = [50] * (len(frames)-15)
 	durations.extend([100]*10)
 
 	for i in range(stop):
 		frame = wheel_images['wheel_6'][i]
-
-		fobj = BytesIO()
-		frame.save(fobj, "gif", transparency=8)
-		frame = Image.open(fobj)
-		frames.append(frame)
+		frames.append(frame.copy())
 
 	durations.extend([300]*(stop+5))
 
-	last_frame = wheel_images['wheel_6'][stop-1]
+	last_frame = wheel_images['wheel_6'][stop-1].copy()
 	buf = BytesIO()
 	last_frame.save(buf, "PNG")
 	buf.seek(0)
 	
-	igif = BytesIO()
-	frames[0].save(igif, format='gif', append_images=frames[1:], save_all=True, duration=durations, include_color_table=True)
-	igif.seek(0)
+	igif = wand_gif(frames, durations)
 
 	return igif, result, sum(durations), buf, c
 

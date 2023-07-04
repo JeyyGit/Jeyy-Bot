@@ -582,7 +582,7 @@ class PourView(discord.ui.View):
 		for btn in self.children:
 			if isinstance(btn, BottleButton):
 				for i, liquid in enumerate(btn.bottle.liquids):
-					draw.rectangle((btn.bottle.num*50-20, 150-i*20, 16+btn.bottle.num*50, 130-i*20), liquid.color)
+					draw.rectangle((btn.bottle.num*50-20, 130-i*20, 16+btn.bottle.num*50, 150-i*20), liquid.color)
 				draw.rectangle((btn.bottle.num*50-20, 50, 16+btn.bottle.num*50, 150), None, 'black', 3)
 				draw.text((btn.bottle.num*50, 160), str(btn.bottle.num), 'black', self.font, 'mt')
 		draw.rectangle((0, 50, 1000, 55), (255, 242, 161))

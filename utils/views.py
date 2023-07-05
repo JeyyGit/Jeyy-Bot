@@ -407,7 +407,7 @@ class NonoButton(discord.ui.Button):
 		self.kind = kind
 
 	async def callback(self, interaction):
-		await self.view.pressed(self, interaction)
+		await self.view.pressed(interaction, self)
 
 class NonoView(discord.ui.View):
 	font = ImageFont.truetype('./image/GothamMedium.ttf', 40)
@@ -447,7 +447,7 @@ class NonoView(discord.ui.View):
 		draw = ImageDraw.Draw(img)
 		for j, row in enumerate(self.board, start=1):
 			for i, cell in enumerate(row, start=1):
-				draw.rectangle([(100+i*70, 100+j*70), (i*70+30, j*70+20)], 'black' if cell else 'white', 'grey', 5)
+				draw.rectangle([(30+i*70, 20+j*70), (100+i*70, 100+j*70)], 'black' if cell else 'white', 'grey', 5)
 
 		for i, row_ans in enumerate(side_ans):
 			draw.text((90, 115+i*70), ' '.join(str(c) for c in row_ans), 'black', self.font, 'ra')

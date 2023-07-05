@@ -4888,13 +4888,22 @@ def plates_func(img):
 	img = ImageOps.fit(cnv, (300, 300))
 	alpha = img.split()[-1] 
 
+	def rot_need(a, b):
+		if a < b:
+			return a, b
+		return b, a
+
 	plates = []
 	for i in range(29):
 		plate = img.copy()
 		mask = Image.new('L', img.size)
 		draw = ImageDraw.Draw(mask)
-		draw.ellipse((i*10, i*10, mask.width - 1 - i*10, mask.height - 1 - i*10), fill=255)
-		draw.ellipse((i*10+10, i*10+10, mask.width - 11 - i*10, mask.height - 11 - i*10), fill='black')
+		x01, x02 = rot_need(i*10, 300 - 1 - i*10)
+		y01, y02 = rot_need(i*10, 300 - 1 - i*10)
+		draw.ellipse((x01, y01, x02, y02), fill=255)
+		x1, x2 = rot_need(i*10+10, 300 - 11 - i*10)
+		y1, y2 = rot_need(i*10+10, 300 - 11 - i*10)
+		draw.ellipse((x1, y1, x2, y2), fill='black')
 		mask_d = ImageChops.darker(mask, alpha)
 		plate.putalpha(mask_d)
 		plates.append(plate)
@@ -4914,7 +4923,10 @@ def plates_func(img):
 				plate_r.close()
 			else:
 				canv.paste(plate, (0, 0), plate)
-			draw.ellipse((j*10, j*10, plate.width-1-j*10, plate.height-1-j*10), outline=0, width=2)
+				
+			x11, x12 = rot_need(j*10, plate.width-1-j*10)
+			y11, y12 = rot_need(j*10, plate.height-1-j*10)
+			draw.ellipse((x11, y11, x12, y12), outline=0, width=2)
 		frames.append(canv)
 		durations.append(50)
 

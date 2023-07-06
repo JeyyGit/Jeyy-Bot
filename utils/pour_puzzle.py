@@ -9,7 +9,7 @@ class Bottle:
 		self.num = num
 		self.liquids = liquids
 
-	async def pour(self, onto):
+	def pour(self, onto):
 		top = self.liquids[-1]
 		for liquid in reversed(self.liquids):
 			if liquid.color == top.color:
@@ -31,7 +31,7 @@ class Bottle:
 		return self.is_full() and len({l.color for l in self.liquids}) == 1
 
 	def __repr__(self):
-		return f'Bottle(num={self.num}, Liquids[{", ".join(l.color for l in self.liquids)}])'
+		return f'Bottle(num={self.num}, Liquids[{", ".join(str(l.color) for l in self.liquids)}])'
 
 y = (251, 255, 28)
 g = (67, 255, 15)

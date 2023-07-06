@@ -1,16 +1,18 @@
 import asyncio
 import datetime as dt
+import importlib
+import random
+from io import BytesIO, StringIO
+
 import discord
 import humanize
-import importlib
 import numpy as np
-from io import StringIO, BytesIO
-from tabulate import tabulate
+from arsenic import Session, stop_session
 from bs4 import BeautifulSoup
+from discord.ext import commands
 from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageFont
-from arsenic import stop_session, Session
-from discord.ext import commands
+from tabulate import tabulate
 
 from utils import pour_puzzle, sounder
 from utils.imaging import isometric_func, liquid
@@ -18,9 +20,11 @@ from utils.imaging import isometric_func, liquid
 importlib.reload(pour_puzzle)
 importlib.reload(sounder)
 
-from utils.pour_puzzle import Liquid, Bottle, levels
-from utils.sounder import Sounder, audios
 from utils.imaging import roomy_func
+from utils.pour_puzzle import (Bottle, Liquid, b, br, c, db, g, levels, o, pi,
+                               pu, r, y)
+from utils.sounder import Sounder, audios
+
 
 # Base
 class BaseView(discord.ui.View):
@@ -519,7 +523,7 @@ class BottleButton(discord.ui.Button):
 			await interaction.response.edit_message(view=self.view)
 
 		elif self.view.state == 1:
-			await self.view.selected.bottle.pour(self.bottle)
+			self.view.selected.bottle.pour(self.bottle)
 
 			for btn in self.view.children:
 				if btn.custom_id == 'cancel_btn':
@@ -550,11 +554,11 @@ class BottleButton(discord.ui.Button):
 				if highest_level == self.view.level:
 					await self.view.ctx.db.execute('UPDATE pour_level SET level = level + 1 WHERE user_id = $1', self.view.ctx.author.id)
 				self.view.level += 1
-				if self.view.level <= len(levels):
-					next_button = discord.ui.Button(label=f'Level {self.view.level} >', style=discord.ButtonStyle.success, row=0, custom_id='next_lvl_btn')
-					next_button.callback = self.view.next_button_callback
+				# if self.view.level <= len(levels):
+				next_button = discord.ui.Button(label=f'Level {self.view.level} >', style=discord.ButtonStyle.success, row=0, custom_id='next_lvl_btn')
+				next_button.callback = self.view.next_button_callback
 
-					self.view.add_item(next_button)
+				self.view.add_item(next_button)
 
 			await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self.view)
 
@@ -568,14 +572,63 @@ class PourView(discord.ui.View):
 		self.selected = None
 		self.msg = None
 		self.next_btn = None
+		self.levels = levels
+		self.n_bottle = 0
 		
-		for i, bottle_data in enumerate(levels[self.level], start=1):
-			bottle = Bottle(i, [Liquid(color) for color in bottle_data])
-			self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
+		if level <= 50:
+			for i, bottle_data in enumerate(levels[self.level], start=1):
+				bottle = Bottle(i, [Liquid(color) for color in bottle_data])
+				self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
+		else:
+			self.gen_level()
+			
+	def gen_level(self):
+		random.seed(self.level)
+		colors = (r, g, b, y, o, r, c, pi, pu, br, db)
+
+		s_c = random.sample(colors, k=10)
+		if len(set(s_c)) != 10:
+			s_c = list(set(s_c))
+			for cl in colors:
+				if cl not in s_c:
+					s_c.append(cl)
+				if len(set(s_c)) == 10:
+					break
+
+		bottles = [Bottle(i+1, [Liquid(s_c[i])]*4) for i in range(10)]
+		bottles.append(Bottle(11, []))
+		bottles.append(Bottle(12, []))
+		
+		for _ in range(100+(50*self.level//50)-1):
+			while True:
+				rand_btl = random.choice(bottles)
+				if not rand_btl.is_empty():
+					break
+			top = rand_btl.liquids.pop()
+			while True:
+				rand_btl_2 = random.choice(bottles)
+				if rand_btl_2 is not rand_btl and not rand_btl_2.is_full():
+					break
+			rand_btl_2.liquids.append(top)
+
+		for i in range(1, 3):
+			btl = bottles[-i]
+			for j in range(10):
+				onto = bottles[j]
+				if not onto.is_full() and not btl.is_empty():
+					btl.pour(onto)
+
+		for bottle in bottles:
+			self.add_item(BottleButton(bottle, label=bottle.num, style=discord.ButtonStyle.secondary, row=1+(bottle.num-1)//5, disabled=True if bottle.is_empty() else False))
+
+		self.n_bottle = len(bottles)
 
 	@executor_function
 	def draw_image(self):
-		n_bottle = len(levels[self.level])
+		if self.level <= 50:
+			n_bottle = len(levels[self.level])
+		else:
+			n_bottle = self.n_bottle
 		img = Image.new('RGBA', (50+50*n_bottle, 200), (255, 242, 161))
 		draw = ImageDraw.Draw(img)
 
@@ -638,10 +691,13 @@ class PourView(discord.ui.View):
 			if isinstance(btn, BottleButton):
 				self.remove_item(btn)
 
-		for i, bottle_data in enumerate(levels[self.level], start=1):
-			bottle = Bottle(i, [Liquid(color) for color in bottle_data])
-			self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
-		
+		if self.level <= 50:
+			for i, bottle_data in enumerate(levels[self.level], start=1):
+				bottle = Bottle(i, [Liquid(color) for color in bottle_data])
+				self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
+		else:
+			self.gen_level()
+
 		embed = self.msg.embeds[0]
 		img_buf = await self.draw_image()
 
@@ -680,9 +736,12 @@ class PourView(discord.ui.View):
 				btn.disabled = False
 				continue
 
-		for i, bottle_data in enumerate(levels[self.level], start=1):
-			bottle = Bottle(i, [Liquid(color) for color in bottle_data])
-			self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
+		if self.level <= 50:
+			for i, bottle_data in enumerate(levels[self.level], start=1):
+				bottle = Bottle(i, [Liquid(color) for color in bottle_data])
+				self.add_item(BottleButton(bottle, label=i, style=discord.ButtonStyle.secondary, row=1+(i-1)//5, disabled=True if bottle.is_empty() else False))
+		else:
+			self.gen_level()
 
 		embed = self.msg.embeds[0]
 		embed.description = f'Level : {self.level}'

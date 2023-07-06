@@ -1183,7 +1183,7 @@ class Fun(commands.Cog):
 				return await ctx.reply('You haven\'t reached that level yet.', mention_author=False)
 			highest_level = level
 
-		view = PourView(ctx, highest_level)
+		view = PourView(ctx, highest_level, )
 
 		embed = discord.Embed(title='Pour Puzzle', description=f'Level : {highest_level}', timestamp=dt.datetime.now(), color=self.bot.c)
 		img_buf = await view.draw_image()

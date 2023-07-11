@@ -1241,7 +1241,7 @@ class Utility(commands.Cog):
 		data = await r.json()
 		bagian = data['bagian']
 		lokasi = data['lokasi']
-		res = f"```\nBagian:\n - Kode Wilayah: {bagian.get('kode_wilayah')}\n - Nomor Polisi: {bagian.get('nomor_polisi')}\n - Kode Seri Wilayah: {bagian.get('kode_seri_wilayah')}\nLokasi:\n - Pulau: {lokasi.get('pulau')}\n - Wilayah: {lokasi.get('wilayah')}\n - Daerah: {'/'.join(lokasi.get('daerah'))}```"
+		res = f"```\nBagian:\n - Kode Wilayah: {bagian.get('kode_wilayah')}\n - Nomor Polisi: {bagian.get('nomor_polisi')}\n - Kode Seri Wilayah: {bagian.get('kode_seri_wilayah')}\nLokasi:\n - Pulau: {lokasi.get('pulau')}\n - Wilayah: {lokasi.get('wilayah')}\n - Daerah: {'/'.join(lokasi.get('daerah')) if lokasi.get('daerah') else '-'}```"
 
 		return await ctx.reply(res)
 

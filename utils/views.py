@@ -520,7 +520,9 @@ class BottleButton(discord.ui.Button):
 					except IndexError:
 						btn.disabled = False
 			self.view.state = 1
-			await interaction.response.edit_message(view=self.view)
+			img_buf = await self.view.draw_image()
+			img_file = discord.File(img_buf, 'pour_game.png')
+			await interaction.response.edit_message(attachments=[img_file], view=self.view)
 
 		elif self.view.state == 1:
 			self.view.selected.bottle.pour(self.bottle)
@@ -636,7 +638,11 @@ class PourView(discord.ui.View):
 			if isinstance(btn, BottleButton):
 				for i, liquid in enumerate(btn.bottle.liquids):
 					draw.rectangle((btn.bottle.num*50-20, 130-i*20, 16+btn.bottle.num*50, 150-i*20), liquid.color)
-				draw.rectangle((btn.bottle.num*50-20, 50, 16+btn.bottle.num*50, 150), None, 'black', 3)
+				if self.state == 1 and self.selected == btn:
+					draw.rectangle((btn.bottle.num*50-20, 50, 16+btn.bottle.num*50, 150), None, 'white', 3)
+					draw.rectangle((btn.bottle.num*50-20, 50, 16+btn.bottle.num*50, 150), None, 'black', 2)
+				else:
+					draw.rectangle((btn.bottle.num*50-20, 50, 16+btn.bottle.num*50, 150), None, 'black', 3)
 				draw.text((btn.bottle.num*50, 160), str(btn.bottle.num), 'black', self.font, 'mt')
 		draw.rectangle((0, 50, 1000, 55), (255, 242, 161))
 		
@@ -670,7 +676,10 @@ class PourView(discord.ui.View):
 			btn.disabled = True
 		
 		button.label = 'Exited'
-		await interaction.response.edit_message(view=self)
+
+		img_buf = await self.draw_image()
+		img_file = discord.File(img_buf, 'pour_game.png')
+		await interaction.response.edit_message(attachments=[img_file], view=self)
 
 		self.stop()
 
@@ -704,7 +713,7 @@ class PourView(discord.ui.View):
 		img_file = discord.File(img_buf, 'pour_game.png')
 		embed.set_image(url='attachment://pour_game.png')
 
-		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
+		await interaction.response.edit_message(attachments=[img_file], view=self)
 
 	@discord.ui.button(label='Cancel', style=discord.ButtonStyle.primary, custom_id='cancel_btn', disabled=True, row=0)
 	async def cancel_button(self, interaction: discord.Interaction, button: discord.Button):
@@ -720,7 +729,10 @@ class PourView(discord.ui.View):
 			button.disabled = True
 			self.selected = None
 			self.state = 0
-			await interaction.response.edit_message(view=self)
+
+			img_buf = await self.draw_image()
+			img_file = discord.File(img_buf, 'pour_game.png')
+			await interaction.response.edit_message(attachments=[img_file], view=self)
 
 	async def next_button_callback(self, interaction):
 		self.state = 0
@@ -749,7 +761,7 @@ class PourView(discord.ui.View):
 		img_file = discord.File(img_buf, 'pour_game.png')
 		
 		embed.set_image(url='attachment://pour_game.png')
-		await interaction.response.edit_message(embed=embed, attachments=[img_file], view=self)
+		await interaction.response.edit_message(attachments=[img_file], view=self)
 
 class BlockSelector(discord.ui.Select):
 	def __init__(self, selector_pos):

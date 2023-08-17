@@ -24,7 +24,7 @@ async def get_locket(image, image_2 = None):
 
     command = [
         'cd', 'makesweet/', '&&', 'sudo', 'docker', 
-        'run', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
+        'run', '--rm', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
         '--zip', 'templates/heart-locket.zip', 
         '--in', f'tmp/image/{tmp_name}.png',
         '--gif', f'tmp/result/{tmp_name}.gif'
@@ -66,7 +66,7 @@ async def get_billboard(image):
 
     command = [
         'cd', 'makesweet/', '&&', 'sudo', 'docker', 
-        'run', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
+        'run', '--rm', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
         '--zip', 'templates/billboard-cityscape.zip', 
         '--in', f'tmp/image/{tmp_name}.png',
         '--gif', f'tmp/result/{tmp_name}.gif'
@@ -95,7 +95,7 @@ async def get_flag(image):
 
     command = [
         'cd', 'makesweet/', '&&', 'sudo', 'docker', 
-        'run', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
+        'run', '--rm', '-v', '\"$(pwd):/share\"', 'paulfitz/makesweet',
         '--zip', 'templates/flag.zip', 
         '--in', f'tmp/image/{tmp_name}.png',
         '--gif', f'tmp/result/{tmp_name}.gif'

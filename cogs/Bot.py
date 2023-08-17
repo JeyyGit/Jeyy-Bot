@@ -428,7 +428,7 @@ class Bots(commands.Cog, name='Bot'):
 		"""Info for [JeyyAPI](https://api.jeyy.xyz)"""
 		if endpoint is None:
 			s = time.perf_counter()
-			r = await self.bot.session.get("https://api.jeyy.xyz/general/ping")
+			r = await self.bot.session.get("https://api.jeyy.xyz/v2/general/ping", headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
 			e = time.perf_counter()
 
 			info = psutil.virtual_memory()
@@ -445,7 +445,7 @@ class Bots(commands.Cog, name='Bot'):
 		
 		async with ctx.typing():
 			s = time.perf_counter()
-			r = await self.bot.session.get(f'https://api.jeyy.xyz/image/{endpoint}', params={'image_url': ctx.author.display_avatar.url})
+			r = await self.bot.session.get(f'https://api.jeyy.xyz/v2/image/{endpoint}', params={'image_url': ctx.author.display_avatar.url}, headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
 			e = time.perf_counter()
 
 			if r.status != 200:
@@ -459,7 +459,7 @@ class Bots(commands.Cog, name='Bot'):
 		msg = await ctx.reply(file=discord.File(buf, f'{endpoint}.gif'), mention_author=False)
 		se = time.perf_counter()
 
-		results = f"[{endpoint} endpoint](https://api.jeyy.xyz/docs#/IMAGE/{endpoint.capitalize()}_image_{endpoint}_get \"Click me for docs!\") took `{e-s}` seconds.\nreading response took `{ce-cs}` seconds.\nsending message took `{se-ss}` seconds."
+		results = f"[{endpoint} endpoint](https://api.jeyy.xyz/docs#/IMAGE/{endpoint.capitalize()}_v2_image_{endpoint}_get \"Click me for docs!\") took `{e-s}` seconds.\nreading response took `{ce-cs}` seconds.\nsending message took `{se-ss}` seconds."
 		view = EndpointView(results)
 		await msg.edit(view=view, allowed_mentions=discord.AllowedMentions.none())
 
@@ -467,11 +467,11 @@ class Bots(commands.Cog, name='Bot'):
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def usage(self, ctx):
 
-		r = await self.bot.session.get("https://api.jeyy.xyz/general/ping")
+		r = await self.bot.session.get("https://api.jeyy.xyz/v2/general/ping", headers={'Authorization': f'Bearer {self.bot.jeyy_key}'})
 
 		endpoints = await self.bot.db.fetch("SELECT method, endpoint, SUM(usage) AS usage FROM api_usage GROUP BY method, endpoint ORDER BY usage DESC")
 
-		lines = [f"[`{i+1:>2}. {endpoint['endpoint']:<23}{endpoint['usage']:>5}`](https://api.jeyy.xyz/docs#/{endpoint['endpoint'].split('/')[1].upper()}/{endpoint['endpoint'].split('/')[2].capitalize()}_{endpoint['endpoint'].split('/')[1]}_{endpoint['endpoint'].split('/')[2]}_{endpoint['method'].lower()} \"Click me for docs!\")" for i, endpoint in enumerate(endpoints)]
+		lines = [f"{i+1}. [`{endpoint['endpoint']:<23}{endpoint['usage']:>5}`](https://api.jeyy.xyz/docs#/{endpoint['endpoint'].split('/')[1].upper()}/{endpoint['endpoint'].split('/')[2].capitalize()}_{endpoint['endpoint'].split('/')[1]}_{endpoint['endpoint'].split('/')[2]}_{endpoint['method'].lower()} \"Click me for docs!\")" for i, endpoint in enumerate(endpoints)]
 
 		chunks = ctx.chunk(lines, combine=True)
 

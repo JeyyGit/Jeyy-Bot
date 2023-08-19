@@ -285,4 +285,33 @@ class JeyyBot(commands.Bot):
 		else:
 			raise HTTPUploadError(f'Upload raises {r.status} HTTP exception: {await r.text()}')
 
+	async def get_api(self, endpoint, params=None, headers=None, method='GET'):
+
+		if params is None:
+			params = {}
+
+		if headers is None:
+			headers = {}
+
+		headers |= {'Authorization': f'Bearer {self.jeyy_key}'}
+
+		method = method.upper()
+		if method == 'GET':
+			r = await self.session.get(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'POST':
+			r = await self.session.post(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'HEAD':
+			r = await self.session.head(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'PUT':
+			r = await self.session.put(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'DELETE':
+			r = await self.session.delete(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'OPTIONS':
+			r = await self.session.options(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		elif method == 'PATCH':
+			r = await self.session.patch(f'https://api.jeyy.xyz/v2/{endpoint}', params=params, headers=headers)
+		else:
+			raise Exception('Invalid method')
+		
+		return r
 

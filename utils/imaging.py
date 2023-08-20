@@ -5794,7 +5794,7 @@ def scrap_func(text):
 
 				let_img = random.choice(scrap_letters[let])
 				
-				let_img.thumbnail((200, 200), Image.ANTIALIAS)
+				let_img.thumbnail((200, 200))
 				canvas.paste(let_img, (x, y), let_img)
 
 				x += let_img.size[0] + 20

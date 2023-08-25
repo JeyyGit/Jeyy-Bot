@@ -5584,6 +5584,55 @@ def dither_func(img):
 		
 	return wand_gif(frames, durations)
 
+@executor_function
+def minecraft_func(img, size, mc_lut):
+	colors = np.array(list(mc_lut[:,0]))
+
+	@functools.cache
+	def get_closest(r, g, b):
+		color = np.array([r, g, b])
+		distances = np.sqrt(np.sum((colors-color)**2, axis=1))
+		index_of_smallest = np.where(distances==np.amin(distances))
+		return mc_lut[index_of_smallest[0][0]]
+
+	bs = 300
+	ss = size
+
+	frames = []
+	durations = []
+	block_cache = {}
+	for i, frame in enumerate(ImageSequence.Iterator(Image.open(img))):
+		if i > 50:
+			break
+		durations.append(frame.info.get('duration', 50))
+		frame_cvt = frame.convert('RGBA')
+		frame_fit = ImageOps.fit(frame_cvt, (ss, ss), Image.BILINEAR)
+		frame_qt = frame_fit.quantize()
+		frame_qt_cvt = frame_qt.convert('RGBA')
+		npa = np.array(frame_qt_cvt)
+		canv = np.zeros([bs, bs, 4], dtype=np.uint8)
+
+		d = bs // ss
+		for i in range(ss):
+			for j in range(ss):
+				r, g, b, a = npa[j][i]
+				if a > 0:
+					block_dir = get_closest(r, g, b)[1]
+					block = block_cache.get(block_dir)
+					if block is None:
+						block = cv2.cvtColor(cv2.resize(cv2.imread(block_dir), (d, d), interpolation=cv2.INTER_LINEAR), cv2.COLOR_RGBA2BGRA)
+						block_cache[block_dir] = block
+					canv[d*j:d*j+d, d*i:d*i+d] = block
+		
+		res = Image.fromarray(canv[:d*ss,:d*ss])
+		frames.append(res)
+
+		frame_cvt.close()
+		frame_fit.close()
+		frame_qt.close()
+		frame_qt_cvt.close()
+
+	return wand_gif(frames, durations)
 
 
 #

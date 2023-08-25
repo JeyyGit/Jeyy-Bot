@@ -250,6 +250,9 @@ class JeyyBot(commands.Bot):
 		with open('./image/ios_emojis/emoji_lut.json', 'r') as f:
 			self.emoji_lut = np.array(json.load(f), dtype='object')
 
+		with open('./image/mc_blocks/mc_lut.json', 'r') as f:
+			self.mc_lut = np.array(json.load(f), dtype='object')
+
 	async def close(self):
 		await self.session.close()
 		await self.google_client.close()

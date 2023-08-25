@@ -46,6 +46,17 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL> [size=30]", aliases=['mc'])
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def minecraft(self, ctx, imgb: ToImage = None, size: int = 30):
+		"""Minecraft blocks!\nSize: `10 - 100`"""
+		async with ctx.typing():
+			if size < 10 or size > 100:
+				raise Exception('`size` must be between 10 and 100, inclusive.')
+			buf = await minecraft_func(imgb or await ToImage.none(ctx), size, ctx.bot.mc_lut)
+
+			await ctx.reply(file=discord.File(buf, "minecraft.gif"))
+	
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def dither(self, ctx, imgb: ToImage = None):

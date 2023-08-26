@@ -174,6 +174,9 @@ if True:
 	kanye_img = Image.open("./image/kanye.png").convert('RGBA')
 	cinema_img = ImageOps.contain(Image.open("./image/cinema.png"), (400, 400))
 
+	bubble_im = Image.open("./image/bubble.png")
+	bubble_mask = Image.open("./image/bubble_mask.png")
+
 	wheel_images = {
 		'wheel_2' : [Image.open(f"./image/wheel/wheel_2/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_2"))-1)],
 		'wheel_3' : [Image.open(f"./image/wheel/wheel_3/frame ({i+1}).png") for i in range(len(os.listdir("./image/wheel/wheel_3"))-1)],
@@ -588,6 +591,19 @@ class Poly:
 		self.rotation = 0
 		self.image = None
 
+class Bubble:
+	def __init__(self, xy):
+		self.x = xy[0]
+		self.y = xy[1]
+
+	def draw(self, mask):
+		x, y = map(int, (self.x, self.y))
+		mask.paste(bubble_mask, (x, y), bubble_mask)
+
+	def update(self, mask):
+		self.x += random.randrange(-3, 3) 
+		self.y += random.randrange(-3, 3) - 3
+		self.draw(mask)
 
 #
 # Fun
@@ -5634,6 +5650,42 @@ def minecraft_func(img, size, mc_lut):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def soap_func(img):
+	im = ImageOps.fit(Image.open(img), (200, 200)).convert('RGBA')
+	img = Image.new('RGBA', (200, 200), 'white')
+	img.paste(im, (0, 0), im)
+	bubbles = [Bubble([random.randint(0, 200), random.randint(0, 400)]) for _ in range(40)]
+
+	frames = []
+	for _ in range(60):
+		canv = img.copy()
+		mask = Image.new('RGB', (200, 200), 'black')
+
+		for bubble in bubbles:
+			bubble.update(mask)
+
+		np_mask = np.array(mask)
+		np_canv = np.array(canv)
+		with wImage.from_array(np_canv) as wcanv:
+			with wImage.from_array(np_mask) as wmask:
+				wcanv.composite(wmask, operator='displace', arguments='8,8')
+			wcanv.format = 'PNG'
+			buf = BytesIO()
+			wcanv.save(buf)
+			buf.seek(0)
+		
+		canv = Image.open(buf)
+
+		for bubble in bubbles:
+			canv.paste(bubble_im, (bubble.x, bubble.y), bubble_im)
+
+		frames.append(canv)
+
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
+	igif.seek(0)
+	return igif
 
 #
 # Utility

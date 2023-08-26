@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def soap(self, ctx, imgb: ToImage = None):
+		"""Soap bubbles \U0001fae7"""
+		async with ctx.typing():
+			buf = await soap_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "soap.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL> [size=30]", aliases=['mc'])
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def minecraft(self, ctx, imgb: ToImage = None, size: int = 30):

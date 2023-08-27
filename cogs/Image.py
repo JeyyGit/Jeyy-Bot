@@ -51,7 +51,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def soap(self, ctx, imgb: ToImage = None):
 		"""Soap bubbles \U0001fae7"""
 		async with ctx.typing():
-			buf = await soap_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, soap_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "soap.gif"))
 
@@ -71,7 +71,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def dither(self, ctx, imgb: ToImage = None):
 		"""Retro game"""
 		async with ctx.typing():
-			buf = await dither_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, dither_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "dither.gif"))
 
@@ -80,7 +80,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def painting(self, ctx, imgb: ToImage = None):
 		"""Very artsy"""
 		async with ctx.typing():
-			buf = await painting_func(imgb or await ToImage.none(ctx))
+			buf = await self.cache_check(ctx, painting_func, imgb or await ToImage.none(ctx))
 
 			await ctx.reply(file=discord.File(buf, "painting.gif"))
 

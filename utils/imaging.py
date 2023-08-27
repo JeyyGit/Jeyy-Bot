@@ -4737,12 +4737,9 @@ def reflection_func(img):
 			mask_cnv = mask_r.convert('RGBA')
 			with wImage.from_array(np.array(mask_cnv)) as wmask:
 				wimg.composite(wmask, operator='displace', arguments='8,8')
-			wimg.format = 'PNG'
-			buf = BytesIO()
-			wimg.save(file=buf)
-			buf.seek(0)
+			npa = np.array(wimg)
 
-		ref = Image.open(buf)
+		ref = Image.fromarray(npa)
 		canv = Image.new('RGBA', (w, h+100))
 		canv.paste(img, (0, 0))
 		canv.paste(ref, (0, h))
@@ -5000,12 +4997,9 @@ def liquefy_func(img):
 		with wImage.from_array(np.array(img)) as wimg:
 			with wImage.from_array(np.array(mask_r_cnv)) as wmask:
 				wimg.composite(wmask, operator='displace', arguments='0,10')
-			wimg.format = 'PNG'
-			buf = BytesIO()
-			wimg.save(file=buf)
-			buf.seek(0)
+			npa = np.array(wimg)
 
-		frames.append(Image.open(buf))
+		frames.append(Image.fromarray(npa))
 
 	return wand_gif(frames)
 
@@ -5099,16 +5093,17 @@ def plank_func(img):
 			with wImage.from_array(np.array(plank_fit)) as wplank:
 				wimg.composite(wplank, operator='displace', arguments='5,5')
 				wplank.composite(wimg, operator='color_burn')
-				wplank.format = 'PNG'
-				buf = BytesIO()
-				wplank.save(file=buf)
-				buf.seek(0)
+				# wplank.format = 'PNG'
+				# buf = BytesIO()
+				# wplank.save(file=buf)
+				# buf.seek(0)
+				npa = np.array(wplank)
 
 		cnv_frame.close()
 		frame.close()
 		plank_fit.close()
 
-		frames.append(Image.open(buf))
+		frames.append(Image.fromarray(npa))
 
 	return wand_gif(frames, durations)
 
@@ -5130,15 +5125,16 @@ def knit_func(img):
 			with wImage.from_array(np.array(knit_fit)) as wknit:
 				wimg.composite(wknit, operator='displace', arguments='5,5')
 				wknit.composite(wimg, operator='color_burn')
-				wknit.format = 'PNG'
-				buf = BytesIO()
-				wknit.save(file=buf)
-				buf.seek(0)
+				# wknit.format = 'PNG'
+				# buf = BytesIO()
+				# wknit.save(file=buf)
+				# buf.seek(0)
+				npa = np.array(wknit)
 
 		cnv_frame.close()
 		frame.close()
 		knit_fit.close()
-		frames.append(Image.open(buf))
+		frames.append(Image.fromarray(npa))
 
 	img.close()
 
@@ -5592,11 +5588,8 @@ def dither_func(img):
 		frame = ImageOps.contain(frame, (300, 300))
 		with wImage.from_array(np.array(frame)) as f:
 			f.ordered_dither('2x1')
-			f.format ='GIF'
-			buf = BytesIO()
-			f.save(file=buf)
-			buf.seek(0)
-			frames.append(Image.open(buf))
+			npa = np.array(f)
+			frames.append(Image.fromarray(npa))
 		
 	return wand_gif(frames, durations)
 

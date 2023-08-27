@@ -5652,15 +5652,15 @@ def minecraft_func(img, size, mc_lut):
 
 @executor_function
 def soap_func(img):
-	im = ImageOps.fit(Image.open(img), (200, 200)).convert('RGBA')
-	img = Image.new('RGBA', (200, 200), 'white')
+	im = ImageOps.fit(Image.open(img), (300, 300)).convert('RGBA')
+	img = Image.new('RGBA', (300, 300), 'white')
 	img.paste(im, (0, 0), im)
-	bubbles = [Bubble([random.randint(0, 200), random.randint(0, 400)]) for _ in range(40)]
+	bubbles = [Bubble([random.randint(0, 300), random.randint(0, 500)]) for _ in range(40)]
 
 	frames = []
 	for _ in range(60):
 		canv = img.copy()
-		mask = Image.new('RGB', (200, 200), 'black')
+		mask = Image.new('RGB', (300, 300), (127, 127, 127))
 
 		for bubble in bubbles:
 			bubble.update(mask)
@@ -5670,12 +5670,9 @@ def soap_func(img):
 		with wImage.from_array(np_canv) as wcanv:
 			with wImage.from_array(np_mask) as wmask:
 				wcanv.composite(wmask, operator='displace', arguments='8,8')
-			wcanv.format = 'PNG'
-			buf = BytesIO()
-			wcanv.save(buf)
-			buf.seek(0)
-		
-		canv = Image.open(buf)
+			npa = np.array(wcanv)
+
+		canv = Image.fromarray(npa)
 
 		for bubble in bubbles:
 			canv.paste(bubble_im, (bubble.x, bubble.y), bubble_im)

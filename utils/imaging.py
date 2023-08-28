@@ -18,6 +18,7 @@ import albumentations as alb
 import cv2
 import imageio
 import numpy as np
+import pyfastnoisesimd as fns
 import pymunk
 import pyvista as pv
 import scipy.ndimage
@@ -31,6 +32,7 @@ from pixelsort import pixelsort
 from pykuwahara import kuwahara
 from pyvista import examples
 from skimage.transform import swirl
+from wand.color import Color as wColor
 from wand.image import Image as wImage
 
 from utils.useful import osc
@@ -5676,6 +5678,35 @@ def soap_func(img):
 	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
 	igif.seek(0)
 	return igif
+
+@executor_function
+def phase_func(img):
+	img = np.array(Image.open(img).resize((300, 300)).convert('RGBA'))
+
+	noise = fns.Noise()
+	noise.noiseType = fns.NoiseType.Perlin
+	noise.frequency = 0.005
+	s = 200
+	mp = noise.genAsGrid([s, s, 500])
+	mp += np.amin(mp)
+	mp *= 255 / np.amax(mp)
+
+	frames = []
+	for i in range(0, 500, 5):
+		with wImage.from_array(img) as wimg:
+			wimg.background_color = wColor('white')
+			with wImage.from_array(np.array(Image.fromarray(mp.astype(np.uint8)[:, :, i], 'L'))) as wmask:
+				wmask.resize(300, 300)
+				wimg.composite(wmask, operator='displace', arguments='8,8')
+			npa = np.array(wimg)
+			im = Image.fromarray(npa)
+			frames.append(im)
+	
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
+	igif.seek(0)
+	return igif
+
 
 #
 # Utility

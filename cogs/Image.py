@@ -48,6 +48,15 @@ class IMAGE(commands.Cog, name="Image"):
 	
 	@commands.command(usage="<User|Member|Emoji|URL>")
 	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def phase(self, ctx, imgb: ToImage = None):
+		"""II''mm pphhaassiinngg!!"""
+		async with ctx.typing():
+			buf = await phase_func(imgb or await ToImage.none(ctx))
+
+			await ctx.reply(file=discord.File(buf, "phase.gif"))
+
+	@commands.command(usage="<User|Member|Emoji|URL>")
+	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def soap(self, ctx, imgb: ToImage = None):
 		"""Soap bubbles \U0001fae7"""
 		async with ctx.typing():

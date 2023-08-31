@@ -27,6 +27,9 @@ class JeyyHelp(commands.MinimalHelpCommand):
 		if command.help:
 			embed.add_field(name=command.name, value=command.help, inline=False)
 
+		if (result_img := command.extras.get('result_img')):
+			embed.set_thumbnail(url=result_img)
+
 		await ctx.reply(embed=embed, mention_author=False)
 
 	async def send_group_help(self, command):
@@ -45,6 +48,9 @@ class JeyyHelp(commands.MinimalHelpCommand):
 			embed = discord.Embed(title=f"{self.get_command_signature(command)}", color=ctx.bot.c)
 		if command.help:
 			embed.add_field(name=command.name, value=command.help.replace("j;", ctx.prefix), inline=False)
+
+		if (result_img := command.extras.get('result_img')):
+			embed.set_thumbnail(url=result_img)
 
 		children = [self.get_command_signature(cmd) for cmd in command.walk_commands()]
 		embed.add_field(name="Command(s)", value="\n".join(children))

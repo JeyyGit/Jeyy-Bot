@@ -191,7 +191,9 @@ class JeyyContext(commands.Context):
 		if self.bot._connection._get_message(self.message.id):
 			return await self.message.reply(content, mention_author=mention_author, **kwargs)
 		else:
-			return await self.channel.send(content, **kwargs)
+			if self.interaction is None:
+				return await self.channel.send(content, **kwargs)
+			return await super().reply(content, **kwargs)
 
 	@executor_function
 	def scrape_tenor(self, html):

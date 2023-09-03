@@ -74,7 +74,10 @@ class HelpView(discord.ui.View):
 			self.embed_mapping[cog] = self.create_cog_embeds(cog, commands)
 			self.menu.append_option(discord.SelectOption(label=cog.qualified_name, description=cog.description))
 		
+		commands_url_btn = discord.ui.Button(label='See all commands', url='https://jeyy.xyz/commands')
+
 		self.add_item(self.menu)
+		self.add_item(commands_url_btn)
 		self.message = await self.ctx.reply(embed=self.create_home_embed(), view=self, allowed_mentions=discord.AllowedMentions.none())
 
 	def create_home_embed(self):

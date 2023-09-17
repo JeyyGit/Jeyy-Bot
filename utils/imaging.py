@@ -5707,6 +5707,52 @@ def phase_func(img):
 	igif.seek(0)
 	return igif
 
+@executor_function
+def bevel_func(img, amount):
+	@functools.cache
+	def lighten(color, scale):
+		h, l, s = colorsys.rgb_to_hls(*[c / 255 for c in color[:3]])
+		return tuple([int(c * 255) for c in colorsys.hls_to_rgb(h, min(max(0, l * scale), 1), s)])
+
+	@functools.cache
+	def c_bevel(color):
+		shade_1 = lighten(color, 1.5)
+		shade_2 = lighten(color, 0.8)
+		shade_3 = lighten(color, 0.5)
+		canv = Image.new('RGB', (25, 25), shade_2)
+		draw = ImageDraw.Draw(canv)
+
+		draw.polygon([(0, 0), (12, 12), (25, 0)], shade_1)
+		draw.polygon([(0, 25), (12, 12), (25, 25)], shade_3)
+		draw.rectangle([(5, 5), (20, 20)], color)
+		return canv
+
+	size = 300
+	dd = size // amount
+	img = Image.open(img)
+	frames = []
+	durations = []
+	for idx, frame in enumerate(ImageSequence.Iterator(img)):
+		if idx >= 50:
+			break
+		durations.append(frame.info.get('duration', 50))
+		frame_c = frame.convert('RGBA')
+		frame_c_r = frame_c.resize((amount, amount))
+		canv = Image.new('RGBA', (size, size))
+		for i in range(amount):
+			for j in range(amount):
+				if (px_c := frame_c_r.getpixel((i, j)))[-1] < 10:
+					continue
+				bevel = c_bevel(px_c)
+				bevel_r = bevel.resize((dd, dd))
+				canv.paste(bevel_r, (i*dd, j*dd))
+				bevel_r.close()
+				
+		frames.append(canv)
+		frame_c.close()
+		frame_c_r.close()
+
+	return wand_gif(frames, durations)
 
 #
 # Utility

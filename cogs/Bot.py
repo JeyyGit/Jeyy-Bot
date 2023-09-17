@@ -46,7 +46,7 @@ class Bots(commands.Cog, name='Bot'):
 		channel = await self.bot.fetch_channel(779892741696913438)
 		await channel.send(f"Logged in as {self.bot.user}")
 
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.guild_only()
 	@commands.is_owner()
 	async def sync(self, ctx, guilds: commands.Greedy[discord.Object], spec: typing.Optional[typing.Literal["~", "*", "^"]] = None):

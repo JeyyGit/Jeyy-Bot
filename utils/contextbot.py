@@ -218,7 +218,6 @@ class JeyyBot(commands.Bot):
 		self.keys = decouple.config
 		self.ipc = winerp.Client(local_name=self.keys('WINERPLOCALNAME'), port=int(self.keys('WINERPPORT')))
 		self.walk = 0
-		self.cmd_state = [cmd.__dict__ for cmd in self.walk_commands()]
 		self.commands_cache = None
 		self.c = 0xf0ff1a
 		self.snipe = {}
@@ -240,6 +239,7 @@ class JeyyBot(commands.Bot):
 			if filename.endswith(".py"):
 				await self.load_extension(f"cogs.{filename[:-3]}")
 		await self.load_extension("jishaku")
+		self.cmd_state = [cmd.__dict__ for cmd in self.walk_commands()]
 
 		self.session = aiohttp.ClientSession()
 		self.loop.create_task(self.ipc.start())
@@ -326,7 +326,7 @@ class JeyyBot(commands.Bot):
 		return r
 
 	def get_command_list(self):
-		if all(cs == cc for cs, cc in zip(self.cmd_state, [cmd.__dict__ for cmd in self.walk_commands()], strict=False)) or self.commands_cache is not None:
+		if all(cs == cc for cs, cc in zip(self.cmd_state, [cmd.__dict__ for cmd in self.walk_commands()], strict=False)) and self.commands_cache is not None:
 			print('using cached command list')
 			return self.commands_cache
 		

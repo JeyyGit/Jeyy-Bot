@@ -1,8 +1,8 @@
 import datetime as dt
 import json
+import os
 import re
 from io import BytesIO
-import os
 
 import aiohttp
 import async_cse
@@ -12,6 +12,7 @@ import discord
 import humanize
 import numpy as np
 import PIL
+import winerp
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord_together import DiscordTogether
@@ -215,7 +216,10 @@ class JeyyBot(commands.Bot):
 		super().__init__(*args, **kwargs)
 		self.launch_time = dt.datetime.now()
 		self.keys = decouple.config
+		self.ipc = winerp.Client(local_name=self.keys('WINERPLOCALNAME'), port=int(self.keys('WINERPPORT')))
 		self.walk = 0
+		self.cmd_state = [cmd.__dict__ for cmd in self.walk_commands()]
+		self.commands_cache = None
 		self.c = 0xf0ff1a
 		self.snipe = {}
 		self.context = None
@@ -238,6 +242,7 @@ class JeyyBot(commands.Bot):
 		await self.load_extension("jishaku")
 
 		self.session = aiohttp.ClientSession()
+		self.loop.create_task(self.ipc.start())
 		self.togetherclient = await DiscordTogether(self.keys('BOTTOKEN'))
 		self.znclient = NeitizClient()
 		self.google_client = async_cse.Search([	
@@ -320,3 +325,55 @@ class JeyyBot(commands.Bot):
 		
 		return r
 
+	def get_command_list(self):
+		if all(cs == cc for cs, cc in zip(self.cmd_state, [cmd.__dict__ for cmd in self.walk_commands()], strict=False)) or self.commands_cache is not None:
+			print('using cached command list')
+			return self.commands_cache
+		
+		class Ctx:
+			clean_prefix = 'j;'
+
+		self.help_command.context = Ctx()
+
+		def walk_group(group, current):
+			for command in group.commands:
+				if command.hidden:
+					return current
+				cmd_data = {}
+				cmd_data['short_doc'] = command.short_doc or None
+				cmd_data['signature'] = self.help_command.get_command_signature(command) or None
+				cmd_data['aliases'] = command.aliases or None
+				cmd_data['extras'] = command.extras or None
+				if isinstance(command, commands.Group):
+					cmd_data['sub_commands'] = walk_group(command, {})
+					current[command.name] = cmd_data
+				else:
+					cmd_data['sub_commands'] = None
+					current[command.name] = cmd_data
+			return current
+
+		all_cmds = {}
+		for cog_name in self.cogs:
+			cog = self.get_cog(cog_name)
+			if getattr(cog, 'hidden', False) or cog.qualified_name == 'Jishaku':
+				continue
+
+			cog_cmds = {}
+			for cmd in cog.get_commands():
+				if cmd.hidden:
+					continue
+				cmd_data = {}
+				cmd_data['short_doc'] = cmd.short_doc or None
+				cmd_data['signature'] = self.help_command.get_command_signature(cmd) or None
+				cmd_data['aliases'] = cmd.aliases or None
+				cmd_data['extras'] = cmd.extras or None
+				if isinstance(cmd, commands.Group):
+					cmd_data['sub_commands'] = walk_group(cmd, {})
+					cog_cmds.update({cmd.name: cmd_data})
+				else:
+					cmd_data['sub_commands'] = None
+					cog_cmds.update({cmd.name: cmd_data})
+			all_cmds[cog_name] = cog_cmds
+
+		self.commands_cache = all_cmds
+		return all_cmds

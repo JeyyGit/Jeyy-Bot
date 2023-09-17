@@ -95,9 +95,12 @@ async def reloadall(ctx):
                             "```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
 
     await ctx.reply("Cogs reloaded:\n{}\n{}".format(", ".join(success), ['', "\n".join(errors)][1]), mention_author=False)
-    print("Cogs reloaded:\n{}\n{}".format(
-        ", ".join(success), "\n".join(errors)))
+    print("Cogs reloaded:\n{}\n{}".format(", ".join(success), "\n".join(errors)))
 
+
+@bot.ipc.route('commands_request')
+async def commands_request():
+    return bot.get_command_list()
 
 async def main():
     async with bot:

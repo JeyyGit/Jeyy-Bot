@@ -24,6 +24,7 @@ class Events(commands.Cog):
 			],
 			'emoji': [],
 		}
+		self.commands_cache = None
 
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, error):
@@ -291,6 +292,6 @@ class Events(commands.Cog):
 		if message.author == self.bot.user:
 			self.bot.reply_cache.put(message)
 
-
+	
 async def setup(bot):
 	await bot.add_cog(Events(bot))

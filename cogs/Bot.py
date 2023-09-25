@@ -489,7 +489,7 @@ class Bots(commands.Cog, name='Bot'):
 			e = time.perf_counter()
 
 			if r.status != 200:
-				raise commands.CommandError(f'{await r.json()}')
+				raise commands.CommandError(f'{r.status}: {await r.text()}')
 
 			cs = time.perf_counter()
 			buf = BytesIO(await r.read())

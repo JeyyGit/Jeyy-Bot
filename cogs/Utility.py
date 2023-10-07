@@ -39,7 +39,7 @@ from utils.imaging import (
 	combine_func
 )
 
-from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView
+from utils.views import FileView, AnsiMaker, CariMenu, SounderView, PollView, AddTaskView
 from utils.converters import ToImage
 from utils.trocr import TROCR
 from utils.sounder import Sounder
@@ -158,6 +158,25 @@ class Utility(commands.Cog):
 			destination = LANGUAGES[translation.dest.lower()]
 			
 			return translated, source, destination
+
+	@commands.group(invoke_without_command=True, name='task')
+	async def task_cmd(self, ctx):
+		task_view = AddTaskView(ctx)
+		await ctx.send('Add new task', view=task_view)
+
+	@task_cmd.command(name='add')
+	async def task_add(self, ctx):
+		task_view = AddTaskView(ctx)
+		await ctx.send('Add new task', view=task_view)
+
+	@task_cmd.command(name='list')
+	async def task_list(self, ctx):
+		embeds = []
+		tasks = await self.bot.db.fetch('SELECT * FROM task WHERE user_id = $1', ctx.author.id)
+
+		for task in tasks[-1]:
+			remind_text = "\n- ".join(f'{discord.utils.format_dt(r, "f")} \n- `{h}` hour before deadline, {discord.utils.format_dt(r, "R")}' for r, h in zip(reminds[:-1], self.remind_before.value.split(',')))
+			embed = discord.Embed(title=f"Task: `{task['name']}`", description=f"Description: {task.get('description')}\n\nWill be reminded on")
 
 	@commands.command(cooldown_after_parsing=True, aliases=['st', 'scroll_text'])
 	@commands.cooldown(1, 5, commands.BucketType.user)

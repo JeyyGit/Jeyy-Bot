@@ -14,16 +14,18 @@ from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageFont
 from tabulate import tabulate
 
-from utils import pour_puzzle, sounder
+from utils import pour_puzzle, sounder, modals
 from utils.imaging import isometric_func, liquid
 
 importlib.reload(pour_puzzle)
 importlib.reload(sounder)
+importlib.reload(modals)
 
 from utils.imaging import roomy_func
 from utils.pour_puzzle import (Bottle, Liquid, b, br, c, db, g, levels, o, pi,
                                pu, r, y)
 from utils.sounder import Sounder, audios
+from utils.modals import TaskAddModal
 
 
 # Base
@@ -1719,6 +1721,18 @@ class CariMenu(discord.ui.Select):
 		await self.ctx.reply(embed=embed, view=result_view)
 		
 		await stop_session(self.session)
+
+class AddTaskView(discord.ui.View):
+	def __init__(self, ctx):
+		super().__init__()
+		self.ctx = ctx
+		self
+
+	@discord.ui.button(label='Add new task')
+	async def add_task(self, interaction: discord.Interaction, button: discord.Button):
+		await interaction.response.send_modal(TaskAddModal(self))
+
+	
 
 # Api cog
 class ConfirmView(discord.ui.View):

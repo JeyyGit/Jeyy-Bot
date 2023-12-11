@@ -175,6 +175,7 @@ if True:
 	flare_img = Image.open("./image/flare.png").resize((50, 50)).convert('RGBA')
 	kanye_img = Image.open("./image/kanye.png").convert('RGBA')
 	cinema_img = ImageOps.contain(Image.open("./image/cinema.png"), (400, 400))
+	heart_diff_img = Image.open("./image/heart_diff.png").convert('RGBA')
 
 	bubble_im = Image.open("./image/bubble.png")
 	bubble_mask = Image.open("./image/bubble_mask.png")
@@ -5751,6 +5752,50 @@ def bevel_func(img, amount):
 		frames.append(canv)
 		frame_c.close()
 		frame_c_r.close()
+
+	return wand_gif(frames, durations)
+
+@executor_function
+def heart_diffraction_func(img):
+	img = Image.open(img)
+
+	frames = []
+	durations = []
+	for i, frame in enumerate(ImageSequence.Iterator(img)):
+		if i == 100:
+			break
+
+		durations.append(frame.info.get('duration', 50))
+		frame_cvt = frame.convert('RGBA')
+		frame_c_r = ImageOps.contain(frame_cvt, (300, 300))
+		gray = frame_c_r.convert('L')
+
+		blur = gray.filter(ImageFilter.BoxBlur(5))
+		diff = ImageChops.difference(blur, gray)
+		thresh = diff.point(lambda p: 255 if p > 50 else 0)
+		npa = np.array(thresh)
+
+		contours, _ = cv2.findContours(npa, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		mu = [cv2.moments(cont) for cont in contours]
+		mc = [(m['m10'] / (m['m00'] + 1e-5), m['m01'] / (m['m00'] + 1e-5)) for m in mu]
+
+		areas = np.array([cv2.contourArea(c) for c in contours])
+		norm = np.nan_to_num(((areas - np.min(areas)) / (np.max(areas) - np.min(areas)) + 0.3) * 20, nan=0.3 * 20)
+
+		for i, (mcx, mcy), scale in zip(range(len(contours)), mc, norm):
+			size = int(scale), int(scale)
+			h = heart_diff_img.copy().resize(size)
+			loc = int(mcx) - size[0] // 2, int(mcy) - size[1] // 2
+			frame_c_r.paste(h, loc, h)
+			h.close()
+
+		frame_cvt.close()
+		gray.close()
+		blur.close()
+		diff.close()
+		thresh.close()
+		
+		frames.append(frame_c_r)
 
 	return wand_gif(frames, durations)
 

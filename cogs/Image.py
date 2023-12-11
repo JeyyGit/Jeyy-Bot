@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["hd", "heart_diff", "h_d"], extras={'result_img': 'https://cdn.jeyy.xyz/image/heart_diffraction_443e84.gif'})
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def heart_diffraction(self, ctx, imgb: ToImage = None):
+		"""Heart sparkles \U0001f496"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, heart_diffraction_func, imgb or await ToImage.none(ctx))
+
+			return await ctx.reply(file=discord.File(buf, "heart_diffraction.gif"))
+		
 	@commands.command(usage="<User|Member|Emoji|URL> [size=15]", extras={'result_img': 'https://cdn.jeyy.xyz/image/bevel_d3c35e.gif'})
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def bevel(self, ctx, imgb: ToImage = None, size: int = 15):

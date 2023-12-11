@@ -904,8 +904,8 @@ class Utility(commands.Cog):
 		percent = random.randint(0, 100)
 
 		embed = discord.Embed(description=f"**{member}** is **{percent}%** gay! \U0001f3f3\U0000fe0f\U0000200d\U0001f308", timestamp=dt.datetime.utcnow(), color=self.bot.c)
-		embed.set_author(name=f"{member} gaymeter", icon_url=member.avatar.url)
-		embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+		embed.set_author(name=f"{member} gaymeter", icon_url=member.display_avatar.url)
+		embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
 
 		await ctx.reply(embed=embed, mention_author=False)
 

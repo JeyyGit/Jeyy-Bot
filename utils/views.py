@@ -7,8 +7,7 @@ from io import BytesIO, StringIO
 import discord
 import humanize
 import numpy as np
-from arsenic import Session, stop_session
-from bs4 import BeautifulSoup
+from dateutil import parser
 from discord.ext import commands
 from jishaku.functools import executor_function
 from PIL import Image, ImageDraw, ImageFont
@@ -1602,21 +1601,23 @@ class PollView(discord.ui.View):
 		else:
 			await self.message.edit(embed=embed, view=self)
 		
-class CariResults(discord.ui.View):
-	def __init__(self, ctx, msg, data):
+class CariResult(discord.ui.View):
+	def __init__(self, ctx, data):
 		super().__init__(timeout=None)
 		self.ctx = ctx
-		self.msg = msg
 		self.table_1_title = data[0][0]
 		self.table_1_data = data[0][1]
 		self.table_2_title = data[1][0]
 		self.table_2_data = data[1][1]
 		self.button_1 = discord.ui.Button(style=discord.ButtonStyle.primary, label=self.table_1_title)
 		self.button_2 = discord.ui.Button(style=discord.ButtonStyle.primary, label=self.table_2_title)
+		self.button_del = discord.ui.Button(style=discord.ButtonStyle.danger, label='Delete')
 		self.button_1.callback = self.button_1_callback
 		self.button_2.callback = self.button_2_callback
+		self.button_del.callback = self.button_del_callback
 		self.add_item(self.button_1)
 		self.add_item(self.button_2)
+		self.add_item(self.button_del)
 
 	async def button_1_callback(self, interaction: discord.Interaction):
 		table = tabulate(self.table_1_data, headers='firstrow', tablefmt='pretty')
@@ -1625,9 +1626,17 @@ class CariResults(discord.ui.View):
 		s.write(table)
 		s.seek(0)
 
-		self.button_1.disabled = True
-		await interaction.response.edit_message(view=self)
-		await interaction.followup.send(file=discord.File(s, f'{self.table_1_title}.txt'))
+		file_1_name = f'{self.table_1_title.replace(" ", "_")}.txt'
+		if atc_1 := discord.utils.get(interaction.message.attachments, filename=file_1_name):
+			attachments = interaction.message.attachments
+			attachments.remove(atc_1)
+			self.button_1.style = discord.ButtonStyle.primary
+		else:
+			attachments = interaction.message.attachments
+			attachments.append(discord.File(s, file_1_name))
+			self.button_1.style = discord.ButtonStyle.gray
+
+		await interaction.response.edit_message(view=self, attachments=attachments)
 
 	async def button_2_callback(self, interaction: discord.Interaction):
 		table = tabulate(self.table_2_data, headers='firstrow', tablefmt='pretty')
@@ -1636,91 +1645,163 @@ class CariResults(discord.ui.View):
 		s.write(table)
 		s.seek(0)
 
-		self.button_2.disabled = True
-		await interaction.response.edit_message(view=self)
-		await interaction.followup.send(file=discord.File(s, f'{self.table_2_title}.txt'))
+		file_2_name = f'{self.table_2_title.replace(" ", "_")}.txt'
+		if atc_2 := discord.utils.get(interaction.message.attachments, filename=file_2_name):
+			attachments = interaction.message.attachments
+			attachments.remove(atc_2)
+			self.button_2.style = discord.ButtonStyle.primary
+		else:
+			attachments = interaction.message.attachments
+			attachments.append(discord.File(s, file_2_name))
+			self.button_2.style = discord.ButtonStyle.gray
+
+		await interaction.response.edit_message(view=self, attachments=attachments)
+
+	async def button_del_callback(self, interaction: discord.Interaction):
+		await interaction.message.delete()
 
 class CariMenu(discord.ui.Select):
-	def __init__(self, ctx, session: Session, mapping, tipe, **kwargs):
+	def __init__(self, ctx, mapping, tipe, **kwargs):
 		super().__init__(placeholder=f"Hasil pencarian {tipe}", **kwargs)
 		self.ctx = ctx
-		self.session = session
 		self.mapping = mapping
 		self.tipe = tipe
 		if not mapping:
 			self.disabled = True
 			self.placeholder = f"Tidak ada {tipe}"
 			self.options.append(discord.SelectOption(label="Tidak ada hasil."))
-		for i, item in enumerate(mapping[:25]):
+		for i, (name, nim, univ, prodi, _) in enumerate(mapping[:25]):
 			self.options.append(
-				discord.SelectOption(label=item[0], value=i, description=item[1])
+				discord.SelectOption(label=name, value=i, description=' '.join([nim, univ, prodi]))
 			)
-	
-	@executor_function
-	def parse_source(self, source):
-		soup = BeautifulSoup(source, 'html.parser')
 
-		biodata_rows = soup.find('div', attrs={'class': 'single-blog-box'}).find_all('tr')
-		biodata_table = []
-		for row in biodata_rows:
-			biodata_row = []
-			for i, cell in enumerate(row.find_all('td')):
-				if i == 0:
-					text = f'`{cell.get_text().strip():>25}'
-				elif i == 1:
-					text = cell.get_text().strip()
-				elif i == 2:
-					text = f'{cell.get_text().strip():<25}`'
-				biodata_row.append(text)
-			if len(biodata_row) == 3:
-				biodata_table.append(' '.join(biodata_row))
-
-		table_1 = soup.find('div', attrs={'id': 'home'})
-		table_1_title = table_1.find('h3').get_text()
-		table_1_rows = table_1.find_all('tr')
-		
-		table_1_data = [[th.get_text() for th in table_1.find_all('th')]]
-		for row in table_1_rows:
-			row_data = []
-			for cell in row.find_all('td'):
-				row_data.append(cell.get_text())
-			if row_data:
-				table_1_data.append(row_data)
-
-		table_2 = soup.find('div', attrs={'id': 'menu1'})
-		table_2_title = table_2.find('h3').get_text()
-		table_2_rows = table_2.find_all('tr')
-		
-		table_2_data = [[th.get_text() for th in table_2.find_all('th')]]
-		for row in table_2_rows:
-			row_data = []
-			for cell in row.find_all('td'):
-				row_data.append(cell.get_text())
-			if row_data:
-				table_2_data.append(row_data)
-
-		return biodata_table, [
-			[table_1_title, table_1_data],
-			[table_2_title, table_2_data],
-		]
+	def remove_default(self):
+		for option in self.options:
+			option.default = False
 
 	async def callback(self, interaction: discord.Interaction):
 		chosen = self.mapping[int(self.values[0])]
-		await interaction.response.edit_message(content=f'Mengambil data {self.tipe} {chosen[0]}...', view=None)
-
-		await chosen[2].click()
-		await asyncio.sleep(3)
-		await interaction.message.delete()
-
-		source = await self.session.get_page_source()
-		biodata, data = await self.parse_source(source)
-
-		embed = discord.Embed(title=f'Biodata {self.tipe.capitalize()}', description='\n'.join(biodata), color=self.ctx.bot.c)
-
-		result_view = CariResults(self.ctx, self.view.msg, data)
-		await self.ctx.reply(embed=embed, view=result_view)
 		
-		await stop_session(self.session)
+		self.remove_default()
+		self.options[int(self.values[0])].default = True
+
+		if self.tipe == 'mahasiswa':
+			detail_res = await self.ctx.session.get(f'https://api-frontend.kemdikbud.go.id/detail_mhs/{chosen[4]}')
+			detail_json = await detail_res.json()
+
+			du = detail_json['dataumum']
+			if du.get('jk'):
+				jk = ['Perempuan', 'Laki-Laki'][du['jk'] == 'L']
+			else:
+				jk = '-'
+
+			if du.get('mulai_smt'):
+				semester = ['Genap ', 'Ganjil '][du['mulai_smt'][-1] == '1'] + du['mulai_smt'][:4]
+			else:
+				semester = '-'
+
+			umum = {
+				'Nama': du.get('nm_pd') or '-', 
+				'Jenis Kelamin': jk, 
+				'Nomor Induk Mahasiswa': du.get('nipd') or '-', 
+				'Perguruan Tinggi': du.get('namapt') or '-', 
+				'Jenjang': du.get('namajenjang') or '-', 
+				'Program Studi': du.get('namaprodi') or '-', 
+				'Semester Awal': semester, 
+				'Status Awal Mahasiswa': du.get('nm_jns_daftar') or '-', 
+				'Status Mahasiswa Saat Ini': du.get('ket_keluar', 'Belum Lulus') or 'Belum Lulus',
+			}
+
+			if du.get('nm_pt_asal'):
+				umum['Perguruan Tinggi Asal'] = du['nm_pt_asal']
+
+			if du.get('nm_prodi_asal'):
+				umum['Program Studi Asal'] = du['nm_prodi_asal']
+			
+			if du.get('tgl_keluar'):
+				tgl = parser.parse(du['tgl_keluar']).date()
+				umum['Status Mahasiswa Saat Ini'] += f" ({tgl})"
+
+			if du.get('no_seri_ijazah'):
+				umum['Nomor Ijazah'] = du['no_seri_ijazah']
+
+			if du.get('sert_prof'):
+				umum['Sertifikat'] = du['sert_prof']
+			
+
+			bios = []
+			for key, value in umum.items():
+				key = key.rjust(25)
+				bios.append(f'{key} : {value}')
+
+			biodata = '\n'.join(bios)
+
+			status = [['No.', 'Semester', 'Status', 'SKS']]
+			for i, sk in enumerate(detail_json['datastatuskuliah'], 1):
+				semester = ['Genap ', 'Ganjil '][sk['id_smt'][-1] == '1'] + sk['id_smt'][:4]
+				status.append([i, semester, sk['nm_stat_mhs'], sk['sks_smt']])
+
+			studi = [['No.', 'Semester', 'Kode Mata Kuliah', 'Mata Kuliah', 'SKS']]
+			for i, st in enumerate(detail_json['datastudi'], 1):
+				semester = ['Genap ', 'Ganjil '][st['id_smt'][-1] == '1'] + st['id_smt'][:4]
+				kode = st['kode_mk']
+				mk = st['nm_mk']
+				sks = st['sks_mk']
+				studi.append([i, semester, kode, mk, sks])
+
+			data = [['Riwayat Status Kuliah', status], ['Riwayat Studi', studi]]
+
+		elif self.tipe == 'dosen':
+			detail_res = await self.ctx.session.get(f'https://api-frontend.kemdikbud.go.id/detail_dosen/{chosen[4]}')
+			detail_json = await detail_res.json()
+
+			du = detail_json['dataumum']
+			if du.get('jk'):
+				jk = ['Perempuan', 'Laki-Laki'][du['jk'] == 'L']
+			else:
+				jk = '-'
+
+			umum = {
+				'Nama': du.get('nm_sdm', '-') or '-',
+				'Jenis Kelamin': jk,
+				'Tempat Lahir': du.get('tmpt_lahir', '-') or '-',
+				'Perguruan Tinggi': du.get('namapt', '-') or '-',
+				'Program Studi': du.get('namaprodi', '-') or '-',
+				'Status Aktivitas': du.get('statuskeaktifan', '-') or '-',
+				'Pendidikan Tertinggi': du.get('pend_tinggi', '-') or '-',
+				'Jabatan Fungsional': du.get('fungsional', '-') or '-',
+				'Status Ikatan Kerja': du.get('ikatankerja', '-') or '-',
+			}
+
+			bios = []
+			for key, value in umum.items():
+				key = key.rjust(20)
+				bios.append(f'{key} : {value}')
+
+			biodata = '\n'.join(bios)
+
+			pendidikan = [['No.', 'Perguruan Tinggi', 'Gelar Akademik', 'Tanggal Ijazah', 'Jenjang']]
+			for i, dp in enumerate(detail_json['datapendidikan'], 1):
+				thn_lulus, pt, jenjang, gelar = dp.values()
+				pendidikan.append([i, pt, gelar, thn_lulus, jenjang])
+
+			mengajar = [['No.', 'Semester', ]]
+			for i, rm in enumerate(detail_json['datamengajar'], 1):
+				semester, mk, kode, mk, pt, _ = rm.values()
+				semester = ['Genap ', 'Ganjil '][semester[-1] == '1'] + semester[:4]
+				mengajar.append([i, semester, kode, mk, kode, pt])
+				
+			data = [
+				['Riwayat Pendidikan', pendidikan],
+				['Riwayat Mengajar', mengajar]
+			]
+
+		embed = discord.Embed(title=f'Biodata {self.tipe.capitalize()}', description=f'```\n{biodata}\n```', color=self.ctx.bot.c)
+
+		view = CariResult(self.ctx, data)
+		view.add_item(self)
+		await interaction.response.edit_message(embed=embed, view=view, attachments=[])
+
 
 class AddTaskView(discord.ui.View):
 	def __init__(self, ctx):
@@ -1733,7 +1814,6 @@ class AddTaskView(discord.ui.View):
 		await interaction.response.send_modal(TaskAddModal(self))
 
 	
-
 # Api cog
 class ConfirmView(discord.ui.View):
 

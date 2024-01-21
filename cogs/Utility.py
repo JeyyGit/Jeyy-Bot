@@ -6,7 +6,7 @@ from discord.ext import commands
 from googletrans import Translator, LANGUAGES
 from io import BytesIO, StringIO
 from jishaku.functools import executor_function
-from arsenic import get_session, start_session, stop_session, services, browsers
+from arsenic import get_session, services, browsers
 from jishaku.codeblocks import codeblock_converter
 from tabulate import tabulate
 import async_cse
@@ -20,7 +20,6 @@ import re
 import logging
 import structlog
 import typing
-import urllib
 
 from utils import views, useful, converters, trocr, sounder
 
@@ -1093,38 +1092,47 @@ class Utility(commands.Cog):
 	@commands.command(hidden=True)
 	async def cari(self, ctx, *, cari):
 		async with ctx.Loading('Mencari data dosen dan mahasiswa...'):
-			session = await start_session(service, browser)
-			await session.set_window_size(700, 1200)
-			await session.get(f'https://pddikti.kemdikbud.go.id/search/{urllib.parse.quote(cari)}')
+			s_response = await self.bot.session.get(f'https://api-frontend.kemdikbud.go.id/hit_mhs/{cari}')
+			s_res_json = await s_response.json()
+			students_res = s_res_json['mahasiswa']
 
-			tables = await session.get_elements('div.table-responsive')
-
-			dosen_rows = await tables[2].get_elements('tr')
-			dosen_mapping = []
-			for row in dosen_rows:
-				link = await row.get_element('a.add-cart-parimary-btn')
-				text = await row.get_text()
+			students = []
+			for s_res in students_res:
+				text = s_res['text']
 				if text.startswith('Cari kata kunci'):
 					break
-				label, desc = map(lambda t: t[:95] + '...' if len(t) > 100 else t, text.split('\n'))
-				dosen_mapping.append([label, desc, link])
 
-			mahasiswa_rows = await tables[3].get_elements('tr')
-			mahasiswa_mapping = []
-			for row in mahasiswa_rows:
-				link = await row.get_element('a.add-cart-parimary-btn')
-				text = await row.get_text()
+				dest = s_res['website-link'][16:]
+				name_nim, pt, prodi = text.split(',')
+				name, nim = name_nim.split('(')
+				name = ' '.join(name.split())
+				nim = nim.replace(')', '').replace(' ', '')
+				pt = pt[6:]
+				prodi = prodi[8:]
+				students.append([name, nim, pt, prodi, dest])
+
+			d_response = await self.bot.session.get(f'https://api-frontend.kemdikbud.go.id/hit/{cari}')
+			d_res_json = await d_response.json()
+			lecturers_res = d_res_json['dosen']
+
+			lecturers = []
+			for d_res in lecturers_res:
+				text = d_res['text']
 				if text.startswith('Cari kata kunci'):
 					break
-				label, desc = map(lambda t: t[:95] + '...' if len(t) > 100 else t, text.split('\n'))
-				mahasiswa_mapping.append([label, desc, link])
 
-			if not dosen_mapping and not mahasiswa_mapping:
-				await stop_session(session)
-				return await ctx.reply('Data dosen/mahasiswa tidak ditemukan.', mention_author=False)
+				dest = d_res['website-link'][12:]
+				name, nidn, pt, prodi = text.split(',')
+				nidn = nidn[8:]
+				pt = pt[6:]
+				prodi = prodi[9:]
+				lecturers.append([name, nidn, pt, prodi, dest])
 
-			menu_dosen = CariMenu(ctx, session, dosen_mapping, 'dosen')
-			menu_mahasiswa = CariMenu(ctx, session, mahasiswa_mapping, 'mahasiswa')
+			if not students and not lecturers:
+				return await ctx.reply('Data mahasiswa tidak ditemukan.', mention_author=False)
+			
+			menu_mahasiswa = CariMenu(ctx, students, 'mahasiswa')
+			menu_dosen = CariMenu(ctx, lecturers, 'dosen')
 
 			class View(discord.ui.View):
 				async def interaction_check(self, interaction: discord.Interaction):
@@ -1135,18 +1143,17 @@ class Utility(commands.Cog):
 
 				async def on_timeout(self):
 					try:
-						await stop_session(session)
 						for child in self.children:
 							child.disabled = True
 						await self.msg.edit(view=self)
 					except:
 						...
-					
-			view = View(timeout=None)
-			view.add_item(menu_dosen)
-			view.add_item(menu_mahasiswa)
 
-			view.msg = await ctx.reply('Hasil pencarian:', view=view, mention_author=False)
+			view = View(timeout=None)
+			view.add_item(menu_mahasiswa)
+			view.add_item(menu_dosen)
+
+			await ctx.send('Hasil pencarian:', view=view)
 
 	@commands.command()
 	@commands.cooldown(1, 3, commands.BucketType.user)

@@ -3,8 +3,10 @@ import datetime as dt
 import importlib
 import random
 from io import BytesIO, StringIO
+from typing import Any
 
 import discord
+from discord.interactions import Interaction
 import humanize
 import numpy as np
 from dateutil import parser
@@ -1048,6 +1050,140 @@ class RoomyView(discord.ui.View):
 	# @discord.ui.button(label='', style=discord.ButtonStyle.secondary)
 	# async def (self, button, interaction):
 	# 	...
+
+
+class ColorMatchButton(discord.ui.Button):
+	def __init__(self, i, **kwargs):
+		super().__init__(style=discord.ButtonStyle.secondary, label=i, **kwargs)
+		self.i = i
+
+	async def callback(self, interaction: Interaction):
+		if self.view.state == 0:
+			self.disabled = True
+			for btn in self.view.children:
+				if isinstance(btn, ColorMatchButton):
+					btn.style = discord.ButtonStyle.primary
+			self.style = discord.ButtonStyle.success
+
+			self.view.state = 1
+			self.view.chosen = self.view.children.index(self)
+		elif self.view.state == 1:
+			for btn in self.view.children:
+				if isinstance(btn, ColorMatchButton):
+					btn.style = discord.ButtonStyle.secondary
+					btn.disabled = False
+			
+			index = self.view.children.index(self)
+			self.view.board[self.view.chosen], self.view.board[index] = self.view.board[index], self.view.board[self.view.chosen]
+			
+			children = self.view.children[:]
+			children[self.view.chosen], children[index] = children[index], children[self.view.chosen]
+
+			for btn in self.view.children[:]:
+				self.view.remove_item(btn)
+
+			for child in children:
+				self.view.add_item(child)
+
+			self.view.state = 0
+			self.view.step += 1
+
+		content = self.view.create_content(self.view.win_check())
+		buf = await self.view.draw_board()
+		f = discord.File(buf, 'color match board.png')
+		if self.view.win_check():
+			for btn in self.view.children[:]:
+				if isinstance(btn, ColorMatchButton):
+					btn.disabled = True
+			await interaction.response.edit_message(content=content, view=self.view, attachments=[f])
+		else:
+			await interaction.response.edit_message(content=content, view=self.view, attachments=[f])
+
+
+class ColorMatchView(discord.ui.View):
+	font = ImageFont.truetype('./image/GothamMedium.ttf', 30)
+	font_2 = ImageFont.truetype('./image/GothamMedium.ttf', 15)
+	def __init__(self, ctx, n):
+		super(). __init__(timeout=None)
+		self.ctx = ctx
+		self.n = n
+		self.answer = random.sample(range(1, n+1), n)
+		self.board = self.create_board()
+		self.state = 0
+		self.step = 0
+		self.chosen = -1
+		for i in self.board:
+			self.add_item(ColorMatchButton(i))
+		exit_btn = discord.ui.Button(style=discord.ButtonStyle.danger, label='Exit')
+		exit_btn.callback = self.exit_btn_callback
+		self.add_item(exit_btn)
+		self.msg = None
+
+	async def interaction_check(self, interaction: Interaction):
+		if interaction.user != self.ctx.author:
+			await interaction.response.send_message('This is not your interaction!', ephemeral=True)
+			return False
+
+		return True
+
+	async def start(self):
+		buf = await self.draw_board()
+		await self.ctx.reply(self.create_content(), view=self, file=discord.File(buf, 'color match board.png'))
+
+	@executor_function
+	def draw_board(self):
+		cs = [y, g, b, o, r, c, pi, pu, br, db]
+
+		canv = Image.new('RGB', (75*self.n+25, 200), 'white')
+		draw = ImageDraw.Draw(canv)
+
+		for i, n in enumerate(self.board):
+			draw.rectangle([i*75+25, 50, i*75+75, 100], cs[n-1], 'black', 2)
+			draw.text([i*75+50, 75], str(n), 'black', self.font, 'mm')
+			if self.win_check():
+				draw.rectangle([i*75+25, 125, i*75+75, 175], cs[n-1], 'gold', 2)
+				draw.text([i*75+50, 150], str(n), 'black', self.font, 'mm')
+			else:
+				draw.rectangle([i*75+25, 125, i*75+75, 175], 'black', 'black', 2)
+				draw.text([i*75+50, 150], '?', 'white', self.font, 'mm')
+
+		draw.text([(75*self.n+25)//2, 13], f'Correct place: {self.correct_count()}/{self.n}', 'black', self.font_2, 'mm')
+		draw.text([(75*self.n+25)//2, 35], f'Step{["", "s"][self.step > 1]}: {self.step}', 'black', self.font_2, 'mm')
+
+		buf = BytesIO()
+		canv.save(buf, 'PNG')
+		buf.seek(0)
+
+		return buf
+
+	def create_content(self, win=False):
+		if win:
+			content = '# You win!\n '
+		else:
+			content = ''
+			
+		content += '- Try to get the right order of these boxes in question mark \n- Swap and see how many boxes are already in the right place \n- Win if all boxes are in the right place'
+		return content
+
+	def create_board(self):
+		while True:
+			board = random.sample(range(1, self.n+1), self.n)
+			if any(i == j for i, j in zip(board, self.answer)):
+				board = random.sample(range(1, self.n+1), self.n)
+			else:
+				return board
+
+	def correct_count(self):
+		return sum(i == j for i, j in zip(self.board, self.answer))
+	
+	def win_check(self):
+		return self.correct_count() == self.n
+	
+	async def exit_btn_callback(self, interaction: Interaction):
+		for btn in self.children[:]:
+			btn.disabled = True
+		
+		await interaction.response.edit_message(view=self)
 
 
 # Utility cog

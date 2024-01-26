@@ -52,7 +52,8 @@ from utils.views import (
 	Switch,
 	BuildView,
 	NonoView,
-	PourView
+	PourView,
+	ColorMatchView
 )
 
 from utils.modals import AceModal
@@ -1193,6 +1194,14 @@ class Fun(commands.Cog):
 		embed.set_footer(text=ctx.author, icon_url=ctx.author.display_avatar.url)
 
 		view.msg = await ctx.reply(embed=embed, file=img_file, view=view, mention_author=False)
+
+	@commands.command(aliases=['cm', 'match'])
+	async def color_match(self, ctx, n: int = 5):
+		if n < 3 or n > 10:
+			return await ctx.reply('`n` must be between 3 and 10, inclusive.')
+		
+		view = ColorMatchView(ctx, n)
+		await view.start()
 
 async def setup(bot):
 	await bot.add_cog(Fun(bot))

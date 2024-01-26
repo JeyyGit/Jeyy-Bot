@@ -1197,6 +1197,7 @@ class Fun(commands.Cog):
 
 	@commands.command(aliases=['cm', 'match'])
 	async def color_match(self, ctx, n: int = 5):
+		"""Sort so these colors match!"""
 		if n < 3 or n > 10:
 			return await ctx.reply('`n` must be between 3 and 10, inclusive.')
 		

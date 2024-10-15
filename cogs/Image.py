@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/quarter_2e4a85.gif'})
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def quarter(self, ctx, imgb: ToImage = None, size: typing.Literal[2, 4, 5, 10, 15, 30] = 10):
+		"""Pie quarter"""
+		async with ctx.typing():
+			buf = await quarter_func(imgb or await ToImage.none(ctx), size)
+
+			return await ctx.reply(file=discord.File(buf, "quarter.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL>", aliases=["hd", "heart_diff", "h_d"], extras={'result_img': 'https://cdn.jeyy.xyz/image/heart_diffraction_443e84.gif'})
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def heart_diffraction(self, ctx, imgb: ToImage = None):

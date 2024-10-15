@@ -5799,6 +5799,30 @@ def heart_diffraction_func(img):
 
 	return wand_gif(frames, durations)
 
+@executor_function
+def quarter_func(img, size):
+	img = ImageOps.fit(Image.open(img).convert('RGBA'))
+	s = 300 // size
+
+	frames = []
+	for _ in range(10):
+		canv = Image.new('RGBA', (300, 300))
+		draw = ImageDraw.Draw(canv)
+		for i in range(0, size):
+			for j in range(0, size):
+				r = random.random()
+				if r < 1/4:
+					draw.pieslice([(i*s-s, j*s-s), (i*s+s, j*s+s)], 0, 90, img.getpixel((i*s, j*s)))
+				elif r < 2/4:
+					draw.pieslice([(i*s-1, j*s-s-1), (i*s+s+s, j*s+s)], 90, 180, img.getpixel((i*s, j*s)))
+				elif r < 3/4:
+					draw.pieslice([(i*s-1, j*s-1), (i*s+s+s, j*s+s+s)], 180, 270, img.getpixel((i*s, j*s)))
+				else:
+					draw.pieslice([(i*s-s-1, j*s-1), (i*s+s, j*s+s+s)], 270, 360, img.getpixel((i*s, j*s)))
+		frames.append(canv)
+	
+	return wand_gif(frames, 100)
+
 #
 # Utility
 # #

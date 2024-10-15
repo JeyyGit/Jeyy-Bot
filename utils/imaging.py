@@ -5801,7 +5801,7 @@ def heart_diffraction_func(img):
 
 @executor_function
 def quarter_func(img, size):
-	img = ImageOps.fit(Image.open(img).convert('RGBA'))
+	img = ImageOps.fit(Image.open(img).convert('RGBA'), (300, 300))
 	s = 300 // size
 
 	frames = []

@@ -51,7 +51,7 @@ class IMAGE(commands.Cog, name="Image"):
 	async def three_d(self, ctx, imgb: ToImage = None):
 		"""Turn your boring image 3D!"""
 		async with ctx.typing():
-			buf = await self.cache_check(ctx, three_d_func, imgb or await ToImage.none(ctx), self.depth_model["image_processor"], self.depth_model["model"])
+			buf = await self.cache_check(ctx, three_d_func, imgb or await ToImage.none(ctx), self.bot.depth_model["image_processor"], self.bot.depth_model["model"])
 
 			return await ctx.reply(file=discord.File(buf, "3d.gif"))
 

@@ -13,6 +13,7 @@ import humanize
 import numpy as np
 import PIL
 import winerp
+import transformers
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from discord_together import DiscordTogether
@@ -259,6 +260,13 @@ class JeyyBot(commands.Bot):
 
 		with open('./image/mc_blocks/mc_lut.json', 'r') as f:
 			self.mc_lut = np.array(json.load(f), dtype='object')
+
+		depth_model_dir = "models/depth_model"
+		if not os.path.exists(depth_model_dir):
+			self.depth_pipe = transformers.pipeline(task="depth-estimation", model="depth-anything/Depth-Anything-V2-Small-hf", local_files_only=False)
+			self.depth_pipe.save_pretrained(depth_model_dir)
+		else:
+			self.depth_pipe = transformers.pipeline(task="depth-estimation", model=depth_model_dir)
 
 	async def close(self):
 		await self.session.close()

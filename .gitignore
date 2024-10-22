@@ -140,3 +140,4 @@ cython_debug/
 
 .vscode/
 makesweet/
+models/depth_model/

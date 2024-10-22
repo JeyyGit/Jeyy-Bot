@@ -5826,7 +5826,7 @@ def quarter_func(img, size):
 
 @executor_function
 def three_d_func(img, image_processor, model):
-	img = ImageOps.contain(img, (400, 400)).convert('RGB')
+	img = ImageOps.contain(Image.open(img).convert('RGB'), (400, 400))
 
 	inputs = image_processor(images=img, return_tensors="pt")
 	depth = model(**inputs)

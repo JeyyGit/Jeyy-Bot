@@ -5838,6 +5838,7 @@ def three_d_func(img, image_processor, model):
 	normalized_depth = normalized_depth.astype(np.uint8)
 
 	mask = Image.fromarray(normalized_depth)
+	mask = mask.filter(PIL.ImageFilter.GaussianBlur(radius=5))
 
 	img = img.resize(mask.size)
 

@@ -2,6 +2,7 @@ import colorsys
 import datetime as dt
 import functools
 import glob
+import itertools
 import math
 import os
 import random
@@ -5822,6 +5823,41 @@ def quarter_func(img, size):
 		frames.append(canv)
 	
 	return wand_gif(frames, 100)
+
+@executor_function
+def three_d_func(img, image_processor, model):
+	img = ImageOps.contain(img, (400, 400)).convert('RGB')
+
+	inputs = image_processor(images=img, return_tensors="pt")
+	depth = model(**inputs)
+
+	depth_array = depth.predicted_depth.squeeze().detach().numpy()
+	depth_min = np.min(depth_array)
+	depth_max = np.max(depth_array)
+	normalized_depth = (depth_array - depth_min) / (depth_max - depth_min) * 255 
+	normalized_depth = normalized_depth.astype(np.uint8)
+
+	mask = Image.fromarray(normalized_depth)
+
+	img = img.resize(mask.size)
+
+	power = 5
+	frames = []
+	for i in itertools.chain(range(-power, power), range(power, -power, -1)):
+		with wImage.from_array(img) as wimg:
+			wimg.background_color = wColor('white')
+			with wImage.from_array(np.array(mask)) as wmask:
+				wimg.composite(wmask, operator='displace', arguments=f'{-i},0')
+			npa = np.array(wimg)
+			im = Image.fromarray(npa)
+			frames.append(im)
+
+	igif = BytesIO()
+	frames[0].save(igif, format='GIF', append_images=frames[1:], save_all=True, duration=50, disposal=0, loop=0)
+	igif.seek(0)
+
+	return igif
+
 
 #
 # Utility

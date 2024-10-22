@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(name="3d", aliases=["three-d"], usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/3d_0984d6.gif'})
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	async def three_d(self, ctx, imgb: ToImage = None):
+		"""Turn your boring image 3D!"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, three_d_func, imgb or await ToImage.none(ctx), self.depth_model["image_processor"], self.depth_model["model"])
+
+			return await ctx.reply(file=discord.File(buf, "3d.gif"))
+
 	@commands.command(usage="<User|Member|Emoji|URL> [size=10]", extras={'result_img': 'https://cdn.jeyy.xyz/image/quarter_2e4a85.gif'})
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def quarter(self, ctx, imgb: ToImage = None, size: typing.Literal[2, 4, 5, 10, 15, 30] = 10):

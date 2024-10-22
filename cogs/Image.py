@@ -46,10 +46,10 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
-	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/quarter_2e4a85.gif'})
+	@commands.command(usage="<User|Member|Emoji|URL> [size=10]", extras={'result_img': 'https://cdn.jeyy.xyz/image/quarter_2e4a85.gif'})
 	@commands.cooldown(1, 3, commands.BucketType.user)
 	async def quarter(self, ctx, imgb: ToImage = None, size: typing.Literal[2, 4, 5, 10, 15, 30] = 10):
-		"""Pie quarter"""
+		"""Pie quarter\nSize: `2/4/5/10/15/30`"""
 		async with ctx.typing():
 			buf = await quarter_func(imgb or await ToImage.none(ctx), size)
 

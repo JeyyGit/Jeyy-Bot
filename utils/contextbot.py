@@ -20,6 +20,8 @@ from jishaku.functools import executor_function
 from PIL import Image
 from twemoji_parser import emoji_to_url
 from zneitiz import NeitizClient, NeitizException, NeitizRatelimitException
+from transformers import AutoModelForDepthEstimation, AutoImageProcessor
+
 
 from utils.converters import ToImage
 from utils.imaging import wand_gif
@@ -259,6 +261,18 @@ class JeyyBot(commands.Bot):
 
 		with open('./image/mc_blocks/mc_lut.json', 'r') as f:
 			self.mc_lut = np.array(json.load(f), dtype='object')
+
+		depth_model_dir = "models/depth_model"
+		self.depth_model = {}
+		if not os.path.exists(depth_model_dir):
+			self.depth_model["image_processor"] = AutoImageProcessor.from_pretrained("depth-anything/Depth-Anything-V2-Small-hf")
+			self.depth_model["model"] = AutoModelForDepthEstimation.from_pretrained("depth-anything/Depth-Anything-V2-Small-hf")
+
+			self.depth_model["model"].save_pretrained(depth_model_dir)
+			self.depth_model["image_processor"].save_pretrained(depth_model_dir)
+		else:
+			self.depth_model["image_processor"] = AutoImageProcessor.from_pretrained(depth_model_dir)
+			self.depth_model["model"] = AutoModelForDepthEstimation.from_pretrained(depth_model_dir)
 
 	async def close(self):
 		await self.session.close()

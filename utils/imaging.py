@@ -5485,6 +5485,8 @@ def emojify_func(img, size, emoji_lut):
 	Image.fromarray(canv[:d*ss,:d*ss]).save(buf, 'PNG')
 	buf.seek(0)
 
+	get_closest.cache_clear()
+
 	return buf
 
 @executor_function
@@ -5644,6 +5646,7 @@ def minecraft_func(img, size, mc_lut):
 		frame_fit.close()
 		frame_qt.close()
 		frame_qt_cvt.close()
+		get_closest.cache_clear()
 
 	return wand_gif(frames, durations)
 
@@ -5753,6 +5756,8 @@ def bevel_func(img, amount):
 		frames.append(canv)
 		frame_c.close()
 		frame_c_r.close()
+		lighten.cache_clear()
+		c_bevel.cache_clear()
 
 	return wand_gif(frames, durations)
 

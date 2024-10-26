@@ -5958,7 +5958,11 @@ def console_func(img):
 	cached_bmap.cache_clear()
 	cached_fmap.cache_clear()
 
-	return Image.fromarray(fragColor.astype(np.uint8))
+	res = Image.fromarray(fragColor.astype(np.uint8))
+	buf = BytesIO()
+	res.save(buf, "PNG")
+	buf.seek(0)
+	return buf
 
 #
 # Utility

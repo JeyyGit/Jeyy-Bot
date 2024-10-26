@@ -5864,6 +5864,101 @@ def three_d_func(img, image_processor, model):
 
 	return igif
 
+@executor_function
+def console_func(img):
+	# code adapted with changes from
+	# https://www.shadertoy.com/view/XsfcD8
+	LOWREZ = 4.0
+	CHALF = 0.8431372549
+
+	@functools.cache
+	def cached_smap(c_tuple):
+		c = np.array(c_tuple)
+		if (c[0] > CHALF or c[1] > CHALF or c[2] > CHALF):
+			return tuple(np.append(c, 1.0))
+		else:
+			return tuple(np.append(np.minimum(c / CHALF, 1.0), 0.0))
+
+	@functools.cache
+	def cached_bmap(c_tuple):
+		c = np.array(c_tuple)
+		if (c[0] > CHALF or c[1] > CHALF or c[2] > CHALF):
+			return tuple(np.append(np.floor(c + 0.5), 1.0))
+		else:
+			return tuple(np.append(np.minimum(np.floor((c / CHALF) + 0.5), 1.0), 0.0))
+
+	@functools.cache
+	def cached_fmap(c_tuple):
+		c = np.array(c_tuple)
+		if c[3] >= 0.5:
+			return tuple(c[:3])
+		else:
+			return tuple(c[:3] * CHALF)
+
+	img = ImageOps.contain(Image.open(img).convert("RGB"), (400, 400))
+	image_array = np.array(img)
+
+	if image_array.ndim == 2 or image_array.shape[2] == 1:
+		image_array = np.stack([image_array] * 3, axis=-1)
+
+	h, w, _ = image_array.shape
+	fragColor = np.zeros_like(image_array)
+	scaled_h = int(np.ceil(h / 4))
+	scaled_w = int(np.ceil(w / 4))
+
+	for y in range(scaled_h):
+		for x in range(scaled_w):
+			pv = np.array([x * 4, y * 4])
+			bv = np.floor(pv / 8.0) * 8.0
+			min_cs = np.array([1.0, 1.0, 1.0, 1.0])
+			max_cs = np.array([0.0, 0.0, 0.0, 0.0])
+			bright = 0.0
+
+			for py in range(8):
+				for px in range(8):
+					iy = min(int(bv[1] + py), h - 1)
+					ix = min(int(bv[0] + px), w - 1)
+					pixel_color = image_array[iy, ix] / 255.0
+					cs = np.array(cached_bmap(tuple(pixel_color)))
+					bright += cs[3]
+					min_cs = np.minimum(min_cs, cs)
+					max_cs = np.maximum(max_cs, cs)
+
+			bright = 1.0 if bright >= 24.0 else 0.0
+
+			if np.all(max_cs[:3] == min_cs[:3]):
+				min_cs[:3] = np.array([0.0, 0.0, 0.0])
+
+			if np.all(max_cs[:3] == [0.0, 0.0, 0.0]):
+				bright = 0.0
+				max_cs[:3] = np.array([0.0, 0.0, 1.0])
+				min_cs[:3] = np.array([0.0, 0.0, 0.0])
+
+			c1 = np.array(cached_fmap(tuple(np.append(max_cs[:3], bright))))
+			c2 = np.array(cached_fmap(tuple(np.append(min_cs[:3], bright))))
+
+			for sub_y in range(4):
+				for sub_x in range(4):
+					iy_sub = min(int(pv[1] + sub_y), h - 1)
+					ix_sub = min(int(pv[0] + sub_x), w - 1)
+					cs = image_array[iy_sub, ix_sub] / 255.0
+					d = (cs + cs) - (c1 + c2)
+					dd = np.sum(d)
+
+					if (int(pv[0] + pv[1]) % 2) == 1:
+						fragColor[iy_sub, ix_sub] = np.array([
+							c1 if dd >= -0.5 else c2
+						]).flatten() * 255
+					else:
+						fragColor[iy_sub, ix_sub] = np.array([
+							c1 if dd >= 0.5 else c2
+						]).flatten() * 255
+
+	cached_smap.cache_clear()
+	cached_bmap.cache_clear()
+	cached_fmap.cache_clear()
+
+	return Image.fromarray(fragColor.astype(np.uint8))
 
 #
 # Utility

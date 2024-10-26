@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/console_a1b66a.gif'})
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	async def console(self, ctx, imgb: ToImage = None):
+		"""Console graphics"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, console_func, imgb or await ToImage.none(ctx))
+
+			return await ctx.reply(file=discord.File(buf, "console.png"))
+
 	@commands.command(name="3d", aliases=["three-d"], usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/3d_0984d6.gif'})
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	async def three_d(self, ctx, imgb: ToImage = None):

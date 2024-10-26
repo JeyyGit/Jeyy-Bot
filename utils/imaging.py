@@ -5868,7 +5868,6 @@ def three_d_func(img, image_processor, model):
 def console_func(img):
 	# code adapted with changes from
 	# https://www.shadertoy.com/view/XsfcD8
-	LOWREZ = 4.0
 	CHALF = 0.8431372549
 
 	@functools.cache
@@ -5903,12 +5902,12 @@ def console_func(img):
 
 	h, w, _ = image_array.shape
 	fragColor = np.zeros_like(image_array)
-	scaled_h = int(np.ceil(h / 4))
-	scaled_w = int(np.ceil(w / 4))
+	scaled_h = int(np.ceil(h / 8))
+	scaled_w = int(np.ceil(w / 8))
 
 	for y in range(scaled_h):
 		for x in range(scaled_w):
-			pv = np.array([x * 4, y * 4])
+			pv = np.array([x * 8, y * 8])
 			bv = np.floor(pv / 8.0) * 8.0
 			min_cs = np.array([1.0, 1.0, 1.0, 1.0])
 			max_cs = np.array([0.0, 0.0, 0.0, 0.0])
@@ -5937,8 +5936,8 @@ def console_func(img):
 			c1 = np.array(cached_fmap(tuple(np.append(max_cs[:3], bright))))
 			c2 = np.array(cached_fmap(tuple(np.append(min_cs[:3], bright))))
 
-			for sub_y in range(4):
-				for sub_x in range(4):
+			for sub_y in range(8):
+				for sub_x in range(8):
 					iy_sub = min(int(pv[1] + sub_y), h - 1)
 					ix_sub = min(int(pv[0] + sub_x), w - 1)
 					cs = image_array[iy_sub, ix_sub] / 255.0

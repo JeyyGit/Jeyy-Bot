@@ -5970,13 +5970,12 @@ def dizzy_func(img):
 
 	r = 10
 	n = 4
-	replicas = []
+	
+	frames = []
 	for angle in np.linspace(0, np.pi*2, n+1)[:-1]:
 		replica = Image.new('RGBA', (w, h), 'white')
 		replica.paste(img, (int(r * np.sin(angle)), int(r * np.cos(angle))), img)
-		replicas.append(np.array(replica))
 
-		frames = []
 		for angle in np.linspace(0, 2/n*np.pi, 10)[:-1]:
 			frame = img.copy()
 			frame_npa = np.array(frame)

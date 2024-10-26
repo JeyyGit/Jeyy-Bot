@@ -46,6 +46,15 @@ class IMAGE(commands.Cog, name="Image"):
 
 		return buf
 	
+	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/dizzy_b08865.gif'})
+	@commands.cooldown(1, 3, commands.BucketType.user)
+	async def dizzy(self, ctx, imgb: ToImage = None):
+		"""My eyes spinning 🌀🌀"""
+		async with ctx.typing():
+			buf = await self.cache_check(ctx, dizzy_func, imgb or await ToImage.none(ctx))
+
+			return await ctx.reply(file=discord.File(buf, "dizzy.png"))
+	
 	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/console_a1b66a.gif'})
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	async def console(self, ctx, imgb: ToImage = None):

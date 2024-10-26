@@ -5963,6 +5963,33 @@ def console_func(img):
 	buf.seek(0)
 	return buf
 
+@executor_function
+def dizzy_func(img):
+	img = ImageOps.contain(Image.open(img).convert('RGBA'), (400, 400))
+	w, h = img.size
+
+	r = 10
+	n = 4
+	replicas = []
+	for angle in np.linspace(0, np.pi*2, n+1)[:-1]:
+		replica = Image.new('RGBA', (w, h), 'white')
+		replica.paste(img, (int(r * np.sin(angle)), int(r * np.cos(angle))), img)
+		replicas.append(np.array(replica))
+
+		frames = []
+		for angle in np.linspace(0, 2/n*np.pi, 10)[:-1]:
+			frame = img.copy()
+			frame_npa = np.array(frame)
+			for each_angle in np.linspace(0, 2*np.pi, n+1)[:-1]:
+				replica = Image.new('RGBA', (w, h), 'white')
+				x, y = int(r*np.sin(angle+each_angle)), int(r*np.cos(angle+each_angle))
+				replica.paste(img, (x, y), img)
+				frame_npa = np.minimum(frame_npa, np.array(replica))
+		frames.append(Image.fromarray(frame_npa).crop((r, r, w-r, h-r)))
+
+	return wand_gif(frames)
+
+
 #
 # Utility
 # #

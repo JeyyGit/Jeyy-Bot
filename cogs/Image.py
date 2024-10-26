@@ -53,7 +53,7 @@ class IMAGE(commands.Cog, name="Image"):
 		async with ctx.typing():
 			buf = await self.cache_check(ctx, dizzy_func, imgb or await ToImage.none(ctx))
 
-			return await ctx.reply(file=discord.File(buf, "dizzy.png"))
+			return await ctx.reply(file=discord.File(buf, "dizzy.gif"))
 	
 	@commands.command(usage="<User|Member|Emoji|URL>", extras={'result_img': 'https://cdn.jeyy.xyz/image/console_a1b66a.gif'})
 	@commands.cooldown(1, 5, commands.BucketType.user)
